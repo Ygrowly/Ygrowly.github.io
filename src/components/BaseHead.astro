@@ -1,0 +1,158 @@
+---
+// import { ClientRouter } from 'astro:transitions'
+
+import { hasEnVersion } from '@/i18n/translations'
+import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+
+import type { SiteMeta } from 'astro-pure/types'
+import JsonLd from '@/components/JsonLd.astro'
+import config from '@/site-config'
+
+type Props = SiteMeta & {
+  noindex?: boolean
+}
+
+const { articleDate, description, noindex = false, ogImage, title } = Astro.props
+
+const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
+const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url).href
+const socialImageAlt = `${title} social preview`
+
+// Bilingual SEO: per-language og:locale, and hreflang alternates only for pages
+// that exist in both languages (never fabricate an /en URL for zh-only content).
+const lang = getLangFromUrl(Astro.url)
+const barePath = stripLangPrefix(Astro.url.pathname)
+const hasAlt = await hasEnVersion(barePath)
+const ogLocale = lang === 'en' ? 'en_US' : 'zh_CN'
+const ogLocaleAlternate = hasAlt ? (lang === 'en' ? 'zh_CN' : 'en_US') : null
+const hreflangAlternates = hasAlt
+  ? [
+      { hreflang: 'zh-CN', href: new URL(barePath, Astro.site).href },
+      { hreflang: 'en', href: new URL(withLangPrefix(barePath, 'en'), Astro.site).href },
+      { hreflang: 'x-default', href: new URL(barePath, Astro.site).href }
+    ]
+  : []
+
+// Structured data: WebSite + Person 全站输出，Person 的 @id 供文章页的
+// BlogPosting.author 引用（详情页的 JSON-LD 在各自页面输出）
+const origin = Astro.site!.origin
+const siteGraph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${origin}/#website`,
+      url: `${origin}/`,
+      name: config.title,
+      description: config.description,
+      inLanguage: lang === 'en' ? 'en' : 'zh-CN',
+      publisher: { '@id': `${origin}/#person` }
+    },
+    {
+      '@type': 'Person',
+      '@id': `${origin}/#person`,
+      name: config.author,
+      description: 'Undergraduate student at the University of Melbourne',
+      url: `${origin}/`,
+      image: `${origin}/favicon/apple-touch-icon.png`,
+      sameAs: [
+        'https://github.com/joyehuang',
+        'https://x.com/deshiou0604',
+        'https://space.bilibili.com/3546914882587480',
+        'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286'
+      ],
+      affiliation: { '@type': 'CollegeOrUniversity', name: 'University of Melbourne' }
+    }
+  ]
+}
+---
+
+<meta charset='utf-8' />
+<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+<meta content='IE=edge' http-equiv='X-UA-Compatible' />
+<title>{siteTitle}</title>
+
+{/* Icons / Favicon */}
+<link rel='apple-touch-icon' sizes='180x180' href='/favicon/apple-touch-icon.png' />
+<link rel='icon' type='image/png' sizes='32x32' href='/favicon/favicon-32x32.png' />
+<link rel='icon' type='image/png' sizes='16x16' href='/favicon/favicon-16x16.png' />
+<link rel='manifest' href='/favicon/site.webmanifest' />
+
+{/* Font preloads */}
+<link rel='preload' href='/fonts/Satoshi-Variable.ttf' as='font' type='font/ttf' crossorigin />
+
+{/* JetBrains Mono — terminal / dev mode / mascot */}
+<link rel='preconnect' href='https://fonts.googleapis.com' />
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+<link
+  rel='stylesheet'
+  href='https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap'
+/>
+
+{/* Canonical URL */}
+<link rel='canonical' href={canonicalURL} />
+
+{/* hreflang alternates — only for pages that exist in both languages */}
+{hreflangAlternates.map((alt) => <link rel='alternate' hreflang={alt.hreflang} href={alt.href} />)}
+
+{/* Primary Meta Tags */}
+<meta content={siteTitle} name='title' />
+<meta content={description} name='description' />
+<meta content={config.author} name='author' />
+<meta content={noindex ? 'noindex, follow' : 'index, follow'} name='robots' />
+
+{/* Theme Color */}
+<meta content='hsl(210 33% 99%)' media='(prefers-color-scheme: light)' name='theme-color' />
+<meta content='hsl(240 20.54% 5.2%)' media='(prefers-color-scheme: dark)' name='theme-color' />
+
+{/* Open Graph / Facebook */}
+<meta content={articleDate ? 'article' : 'website'} property='og:type' />
+<meta content={title} property='og:title' />
+<meta content={description} property='og:description' />
+<meta content={canonicalURL} property='og:url' />
+<meta content={config.title} property='og:site_name' />
+<meta content={ogLocale} property='og:locale' />
+{ogLocaleAlternate && <meta content={ogLocaleAlternate} property='og:locale:alternate' />}
+<meta content={socialImageURL} property='og:image' />
+<meta content={socialImageAlt} property='og:image:alt' />
+<meta content='1200' property='og:image:width' />
+<meta content='630' property='og:image:height' />
+{
+  articleDate && (
+    <>
+      <meta content={config.author} property='article:author' />
+      <meta content={articleDate} property='article:published_time' />
+    </>
+  )
+}
+
+{/* Twitter */}
+<meta content='summary_large_image' property='twitter:card' />
+<meta content={canonicalURL} property='twitter:url' />
+<meta content={title} property='twitter:title' />
+<meta content={description} property='twitter:description' />
+<meta content={socialImageURL} property='twitter:image' />
+<meta content={socialImageAlt} property='twitter:image:alt' />
+
+{/* Sitemap */}
+<link href='/sitemap.xml' rel='sitemap' type='application/xml' />
+
+{/* RSS auto-discovery — per-language feed */}
+<link
+  rel='alternate'
+  type='application/rss+xml'
+  title={lang === 'en' ? `${config.title} (EN)` : config.title}
+  href={`${Astro.site}${lang === 'en' ? 'en/rss.xml' : 'rss.xml'}`}
+/>
+
+<meta content={Astro.generator} name='generator' />
+
+{/* Structured data — WebSite + Person (site-wide) */}
+<JsonLd schema={siteGraph} />
+
+{/* Styles */}
+<link rel='stylesheet' href='/styles/global.css' />
+
+{/* View transitions */}
+<!-- <ClientRouter /> -->

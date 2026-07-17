@@ -1,0 +1,77 @@
+---
+import { getLangFromUrl } from '@/i18n/ui'
+import Analytics from '@vercel/analytics/astro'
+import SpeedInsights from '@vercel/speed-insights/astro'
+
+import { Footer } from 'astro-pure/components/basic'
+import type { SiteMeta } from 'astro-pure/types'
+import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
+import BaseHead from '@/components/BaseHead.astro'
+import ViewCounter from '@/components/comment/ViewCounter.astro'
+import Header from '@/components/Header.astro'
+import DevModeHost from '@/components/terminal/DevModeHost'
+import ThemeProvider from '@/components/ThemeProvider.astro'
+import config from '@/site-config'
+
+// Import the global.css file here so that it is included on
+// all pages through the use of the <BaseLayout /> component.
+import '@/assets/styles/app.css'
+
+interface Props {
+  meta: SiteMeta & { noindex?: boolean }
+  highlightColor?: string
+  chrome?: boolean
+}
+
+const {
+  meta: { articleDate, description = config.description, noindex, ogImage, title },
+  highlightColor,
+  chrome = true,
+  ...props
+} = Astro.props
+
+const lang = getLangFromUrl(Astro.url)
+const htmlLang = lang === 'en' ? 'en' : config.locale.lang
+---
+
+<html lang={htmlLang}>
+  <head>
+    <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
+    <ThemeProvider />
+  </head>
+
+  <body class='flex justify-center bg-background text-foreground' {...props}>
+    {
+      highlightColor && (
+        <div
+          id='highlight-gradient'
+          class='pointer-events-none absolute start-0 top-0 z-0 h-screen w-full opacity-25'
+          style={`background-image:linear-gradient(${highlightColor},transparent)`}
+        />
+      )
+    }
+    <div class:list={['w-full', chrome && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}>
+      {chrome && <Header lang={lang} />}
+      <slot />
+      {chrome && <Footer />}
+    </div>
+    <DevModeHost client:only='react' />
+    <Analytics />
+    <AnalyticsEvents />
+    <SpeedInsights />
+    <ViewCounter />
+
+    {/* Set highlight color */}
+    <style define:vars={{ highlightColor }}>
+      :global(.highlight) {
+        color: var(--highlightColor, hsl(var(--primary) / var(--un-text-opacity))) !important;
+      }
+      :global(.highlight-bg) {
+        background-color: var(
+          --highlightColor,
+          hsl(var(--primary) / var(--un-text-opacity))
+        ) !important;
+      }
+    </style>
+  </body>
+</html>

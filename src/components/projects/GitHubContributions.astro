@@ -1,0 +1,754 @@
+---
+type Contribution = { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }
+type ApiResponse = {
+  total: { lastYear?: number } & Record<string, number>
+  contributions: Contribution[]
+}
+
+interface Props {
+  username?: string
+  /** Caption shown next to the avatar — falls back to username */
+  displayName?: string
+}
+
+const { username = 'joyehuang', displayName } = Astro.props
+
+let total = 0
+let contributions: Contribution[] = []
+
+// Hit our own /api endpoint — it proxies the authenticated GitHub GraphQL
+// API so the calendar includes private contributions (the public scrape
+// undercounts and lags behind today by several days).
+const apiOrigin = Astro.url.origin
+try {
+  const res = await fetch(
+    `${apiOrigin}/api/github-contributions?username=${encodeURIComponent(username)}`
+  )
+  if (res.ok) {
+    const data = (await res.json()) as ApiResponse
+    contributions = data.contributions ?? []
+    total = data.total?.lastYear ?? 0
+  }
+} catch {
+  // network blip during build — render an empty grid
+}
+
+// Drop any cells dated after today (the API sometimes overshoots the current
+// day, and the user wants the rightmost column to end on today — never future).
+const todayISO = new Date().toISOString().slice(0, 10)
+contributions = contributions.filter((c) => c.date <= todayISO)
+
+// Pad the start so the first column begins on Sunday (getUTCDay()===0).
+// Use UTC to avoid local-TZ drift turning Sunday into Saturday.
+const leadingEmpty =
+  contributions.length > 0
+    ? new Date(contributions[0].date + 'T00:00:00Z').getUTCDay()
+    : 0
+
+const weeks: (Contribution | null)[][] = []
+let column: (Contribution | null)[] = Array(leadingEmpty).fill(null)
+for (const c of contributions) {
+  column.push(c)
+  if (column.length === 7) {
+    weeks.push(column)
+    column = []
+  }
+}
+// Trailing partial column (e.g. just Sun-Wed) — push as-is. With grid-auto-flow
+// column + 7 explicit rows, missing items become invisible empty grid space.
+if (column.length > 0) weeks.push(column)
+
+// Month label per week column — show abbreviation only when month first appears in that column
+const monthLabels = weeks.map((week, i) => {
+  const firstReal = week.find((c): c is Contribution => c !== null)
+  if (!firstReal) return ''
+  const month = new Date(firstReal.date + 'T00:00:00Z').getUTCMonth()
+  if (i === 0) return ''
+  const prevWeek = weeks[i - 1]
+  const prevReal = prevWeek?.find((c): c is Contribution => c !== null)
+  if (!prevReal) return ''
+  if (new Date(prevReal.date + 'T00:00:00Z').getUTCMonth() === month) return ''
+  return new Date(firstReal.date + 'T00:00:00Z')
+    .toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+    .toLowerCase()
+})
+
+const caption = displayName ?? username
+const formattedTotal = total.toLocaleString('en-US')
+---
+
+<figure class='gh-contrib not-prose my-4'>
+  <div
+    class='gh-contrib-card relative overflow-hidden rounded-2xl border bg-background p-4 sm:p-5'
+    data-username={username}
+  >
+    <div class='gh-contrib-grid'>
+      <div class='gh-contrib-months' aria-hidden='true'>
+        {monthLabels.map((m) => <span>{m}</span>)}
+      </div>
+      <div class='gh-contrib-cells' data-cells>
+        <div class='gh-contrib-layer gh-contrib-base'>
+          {
+            weeks.map((week) =>
+              week.map((cell) =>
+                cell ? (
+                  <span
+                    class='gh-cell'
+                    data-level={cell.level}
+                    data-date={cell.date}
+                    data-count={cell.count}
+                  />
+                ) : (
+                  <span class='gh-cell gh-cell-pad' data-level='empty' aria-hidden='true' />
+                )
+              )
+            )
+          }
+        </div>
+        <div class='gh-contrib-layer gh-contrib-bright' aria-hidden='true'>
+          {
+            weeks.map((week) =>
+              week.map((cell) =>
+                cell ? (
+                  <span class='gh-cell' data-level={cell.level} />
+                ) : (
+                  <span class='gh-cell gh-cell-pad' data-level='empty' />
+                )
+              )
+            )
+          }
+        </div>
+      </div>
+    </div>
+    <figcaption class='mt-4 flex items-center gap-3'>
+      <img
+        src={`https://github.com/${username}.png?size=80`}
+        alt={`${username} avatar`}
+        loading='lazy'
+        class='size-9 rounded-full border object-cover'
+      />
+      <div class='flex flex-col leading-tight'>
+        <span class='text-sm font-semibold'>{caption}</span>
+        <span class='text-xs text-muted-foreground' data-total-label>
+          {formattedTotal} contributions
+        </span>
+      </div>
+      <a
+        class='ml-auto text-xs text-muted-foreground hover:text-foreground'
+        href={`https://github.com/${username}`}
+        target='_blank'
+        rel='noreferrer'
+        data-analytics-event='github_link_click'
+        data-analytics-surface='projects'
+        data-analytics-target='profile'
+      >
+        @{username}
+      </a>
+    </figcaption>
+  </div>
+  {/* Tooltip lives OUTSIDE the card so it's never clipped by overflow:hidden
+      or the rounded corners. Positioned absolutely against the figure. */}
+  <div class='gh-tooltip' data-tooltip aria-hidden='true'>
+    <span class='gh-tooltip-row'>
+      <span class='gh-tooltip-count' data-odo aria-hidden='true'>
+        {
+          [0, 1, 2, 3].map(() => (
+            <span class='gh-odo-col' data-odo-col>
+              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-reel' data-odo-reel>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <span class='gh-odo-digit'>{d}</span>
+                ))}
+              </span>
+            </span>
+          ))
+        }
+      </span>
+      <span class='gh-tooltip-label' data-noun>contribution</span>
+    </span>
+    <span class='gh-tooltip-date'>
+      <span class='gh-date-month' data-month-label>Apr</span>
+      {' '}
+      <span class='gh-tooltip-count' data-day-odo aria-hidden='true'>
+        {
+          [0, 1].map(() => (
+            <span class='gh-odo-col' data-odo-col>
+              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-reel' data-odo-reel>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <span class='gh-odo-digit'>{d}</span>
+                ))}
+              </span>
+            </span>
+          ))
+        }
+      </span>,{' '}
+      <span class='gh-tooltip-count' data-year-odo aria-hidden='true'>
+        {
+          [0, 1, 2, 3].map(() => (
+            <span class='gh-odo-col' data-odo-col>
+              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-reel' data-odo-reel>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <span class='gh-odo-digit'>{d}</span>
+                ))}
+              </span>
+            </span>
+          ))
+        }
+      </span>
+    </span>
+  </div>
+</figure>
+
+<style>
+  /* Figure wraps the card AND the tooltip so the tooltip can render outside
+     the clipped card. Position relative so the tooltip's absolute coords
+     resolve against the figure's box. */
+  .gh-contrib {
+    position: relative;
+  }
+
+  /* Theme-aware palette: light mode uses the site teal-blue accent (#659EB9),
+     dark mode keeps the monochrome white spotlight from the reference. */
+  .gh-contrib-card {
+    --gh-gap: 3px;
+    --gh-spotlight: 110px;
+
+    --gh-base-empty: #eef1f4;
+    --gh-base-1: #cfe2ec;
+    --gh-base-2: #9bc5d8;
+    --gh-base-3: #6aa6c1;
+    --gh-base-4: #4889a8;
+
+    --gh-bright-empty: #c2cfd7;
+    --gh-bright-1: #5cb0db;
+    --gh-bright-2: #228bc7;
+    --gh-bright-3: #0d6aaa;
+    --gh-bright-4: #064a82;
+    --gh-bright-glow: rgba(13, 106, 170, 0.45);
+  }
+
+  :global(.dark) .gh-contrib-card {
+    --gh-base-empty: rgba(240, 240, 240, 0.06);
+    --gh-base-1: rgba(240, 240, 240, 0.16);
+    --gh-base-2: rgba(240, 240, 240, 0.26);
+    --gh-base-3: rgba(240, 240, 240, 0.36);
+    --gh-base-4: rgba(240, 240, 240, 0.48);
+
+    --gh-bright-empty: rgba(240, 240, 240, 0.18);
+    --gh-bright-1: rgba(240, 240, 240, 0.55);
+    --gh-bright-2: rgba(240, 240, 240, 0.78);
+    --gh-bright-3: rgba(240, 240, 240, 0.92);
+    --gh-bright-4: rgb(240, 240, 240);
+    --gh-bright-glow: rgba(240, 240, 240, 0.4);
+  }
+
+  .gh-contrib-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 4px 0;
+    min-width: 0;
+  }
+
+  .gh-contrib-months {
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: repeat(var(--gh-weeks, 53), 1fr);
+    column-gap: var(--gh-gap);
+    font-size: 0.7rem;
+    color: var(--color-muted-foreground, hsl(var(--muted-foreground)));
+    line-height: 1;
+    overflow: hidden;
+  }
+  .gh-contrib-months span {
+    grid-row: 1;
+    white-space: nowrap;
+  }
+
+  .gh-contrib-cells {
+    grid-row: 2;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    /* Aspect ratio anchored on weeks×days — both layers fill this box */
+    aspect-ratio: var(--gh-weeks, 53) / 7;
+    --mx: -200px;
+    --my: -200px;
+    /* Clip the spotlight + tooltip strictly to the cell area */
+    isolation: isolate;
+  }
+
+  .gh-contrib-layer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--gh-weeks, 53), minmax(0, 1fr));
+    grid-auto-flow: column;
+    gap: var(--gh-gap);
+    min-width: 0;
+  }
+
+  .gh-contrib-bright {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    -webkit-mask-image: radial-gradient(
+      circle var(--gh-spotlight) at var(--mx) var(--my),
+      #000 0%,
+      rgba(0, 0, 0, 0.6) 35%,
+      transparent 75%
+    );
+    mask-image: radial-gradient(
+      circle var(--gh-spotlight) at var(--mx) var(--my),
+      #000 0%,
+      rgba(0, 0, 0, 0.6) 35%,
+      transparent 75%
+    );
+  }
+
+  .gh-contrib-cells:hover .gh-contrib-bright,
+  .gh-contrib-cells:focus-within .gh-contrib-bright {
+    opacity: 1;
+  }
+
+  .gh-cell {
+    border-radius: 2px;
+    background: var(--cell-base);
+    transition: transform 0.18s ease;
+  }
+  /* Padding cells (leading-Sunday alignment fillers) — keep their grid track
+     but render fully invisible (no fill, no shadow, no hit-target). Trailing
+     future-day positions are simply skipped at the template level so the
+     last visible cell is always today. */
+  .gh-cell-pad {
+    background: transparent !important;
+    box-shadow: none !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .gh-contrib-base .gh-cell { --cell-base: var(--gh-base-empty); }
+  .gh-contrib-base .gh-cell[data-level='1'] { --cell-base: var(--gh-base-1); }
+  .gh-contrib-base .gh-cell[data-level='2'] { --cell-base: var(--gh-base-2); }
+  .gh-contrib-base .gh-cell[data-level='3'] { --cell-base: var(--gh-base-3); }
+  .gh-contrib-base .gh-cell[data-level='4'] { --cell-base: var(--gh-base-4); }
+
+  .gh-contrib-bright .gh-cell { --cell-base: var(--gh-bright-empty); }
+  .gh-contrib-bright .gh-cell[data-level='1'] { --cell-base: var(--gh-bright-1); }
+  .gh-contrib-bright .gh-cell[data-level='2'] { --cell-base: var(--gh-bright-2); }
+  .gh-contrib-bright .gh-cell[data-level='3'] { --cell-base: var(--gh-bright-3); }
+  .gh-contrib-bright .gh-cell[data-level='4'] {
+    --cell-base: var(--gh-bright-4);
+    box-shadow: 0 0 8px var(--gh-bright-glow);
+  }
+
+  /* Lift the active cell a touch for HDR feel */
+  .gh-contrib-base .gh-cell[data-active='true'] {
+    transform: scale(1.35);
+    z-index: 2;
+    position: relative;
+  }
+
+  /* Tooltip with sliding-digit odometer. Lives outside the card (sibling at
+     figure level) so neither overflow:hidden nor the rounded corners can
+     clip it. Positioned absolutely against the figure. */
+  .gh-tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    pointer-events: none;
+    transform: translate(-9999px, -9999px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--gh-tooltip-bg, rgba(20, 20, 22, 0.92));
+    color: #fff;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+  }
+  :global(.dark) .gh-tooltip {
+    background: rgba(245, 245, 247, 0.96);
+    color: #111;
+  }
+  .gh-tooltip[data-visible='true'] {
+    opacity: 1;
+  }
+  .gh-tooltip-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-weight: 600;
+  }
+  .gh-tooltip-label {
+    font-weight: 500;
+    opacity: 0.85;
+  }
+  .gh-tooltip-date {
+    display: inline-block;
+    font-size: 0.65rem;
+    opacity: 0.85;
+    line-height: 1;
+    white-space: nowrap;
+    /* Reset font weight so the date numerals match the month text */
+    font-weight: 600;
+  }
+  .gh-date-month {
+    transition: opacity 0.25s ease;
+  }
+  .gh-date-month.swap {
+    opacity: 0;
+  }
+  .gh-tooltip-date .gh-tooltip-count {
+    font-size: inherit;
+    font-weight: 600;
+  }
+  .gh-tooltip-count {
+    display: inline-flex;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+    height: 1em;
+    line-height: 1;
+    /* Anchor inline-flex baseline to the first flex item's baseline (the
+       column's baseline, established by the spacer digit). Without this,
+       inline-flex falls back to the bottom edge and digits sit too low
+       relative to the surrounding text. */
+    vertical-align: baseline;
+  }
+  /* Each column is a fixed 1ch × 1em window. Reel is absolutely positioned
+     inside, so its intrinsic height never escapes the window — much more
+     defensive than relying on flex-column sizing. */
+  .gh-odo-col {
+    position: relative;
+    display: inline-block;
+    /* JS drives flex-basis inline. Chrome silently no-ops flex-basis
+       transitions, so the width snaps instantly while opacity fades —
+       the digit roll inside the column is the focal animation anyway. */
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 0.6em;
+    min-width: 0;
+    height: 1em;
+    overflow: hidden;
+    text-align: center;
+    vertical-align: baseline;
+    transition: opacity 0.18s ease;
+  }
+  /* Invisible digit kept in normal flow purely to give the column a real
+     text baseline. Without it the absolutely-positioned reel contributes no
+     baseline and inline-flex falls back to the bottom edge — making digits
+     look misaligned with surrounding text like the month abbreviation. */
+  .gh-odo-spacer {
+    display: inline-block;
+    visibility: hidden;
+    width: 0.6em;
+    height: 1em;
+    line-height: 1;
+  }
+  .gh-odo-reel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Slower roll with a strong ease-out so the reel "winds down" onto the
+       target digit instead of snapping. */
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .gh-odo-digit {
+    display: block;
+    height: 1em;
+    line-height: 1;
+    text-align: center;
+  }
+
+  /* Mobile: shrink spotlight + gap so the effect still feels punchy on a small card */
+  @media (max-width: 640px) {
+    .gh-contrib-card {
+      --gh-spotlight: 70px;
+      --gh-gap: 2px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gh-odo-reel { transition: none; }
+    .gh-cell { transition: none; }
+  }
+</style>
+
+<script is:inline define:vars={{ totalWeeks: weeks.length }}>
+  // Build an odometer driver against pre-rendered columns. options.padToFull
+  // disables leading-zero hiding (used for the year column where we always
+  // want all 4 digits visible).
+  function makeOdometer(container, options) {
+    const cols = Array.from(container.querySelectorAll('[data-odo-col]'))
+    const reels = cols.map((col) => col.querySelector('[data-odo-reel]'))
+    const max = cols.length
+    const padToFull = !!(options && options.padToFull)
+    const stagger = (options && options.stagger) ?? 100
+
+    return function setValue(value) {
+      const v = Math.max(0, value | 0)
+      const str = String(v).padStart(max, '0')
+      const meaningful = padToFull ? max : String(v).length
+      for (let i = 0; i < max; i++) {
+        const col = cols[i]
+        const reel = reels[i]
+        const isLeading = i < max - meaningful
+        col.dataset.hidden = isLeading ? 'true' : 'false'
+        col.style.flexBasis = isLeading ? '0px' : '0.6em'
+        col.style.opacity = isLeading ? '0' : '1'
+        const order = i - (max - meaningful)
+        reel.style.transitionDelay = order >= 0 ? `${order * stagger}ms` : '0ms'
+        reel.style.transform = `translateY(-${parseInt(str[i], 10)}em)`
+      }
+    }
+  }
+
+  for (const figure of document.querySelectorAll('.gh-contrib')) {
+    const card = figure.querySelector('.gh-contrib-card')
+    const cells = figure.querySelector('[data-cells]')
+    const tooltip = figure.querySelector('[data-tooltip]')
+    const countOdo = figure.querySelector('[data-odo]')
+    const dayOdo = figure.querySelector('[data-day-odo]')
+    const yearOdo = figure.querySelector('[data-year-odo]')
+    const monthLabel = figure.querySelector('[data-month-label]')
+    const noun = figure.querySelector('[data-noun]')
+    if (!card || !cells || !tooltip || !countOdo || !dayOdo || !yearOdo || !monthLabel || !noun) continue
+
+    card.style.setProperty('--gh-weeks', String(totalWeeks))
+
+    const setCount = makeOdometer(countOdo)
+    const setDay = makeOdometer(dayOdo)
+    const setYear = makeOdometer(yearOdo, { padToFull: true })
+
+    const monthFmt = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' })
+
+    let activeCell = null
+    let lastMonthText = ''
+
+    const setCountAndNoun = (value) => {
+      setCount(value)
+      noun.textContent = value === 1 ? 'contribution' : 'contributions'
+    }
+
+    const setDate = (iso) => {
+      const d = new Date(iso + 'T00:00:00Z')
+      const monthText = monthFmt.format(d)
+      if (monthText !== lastMonthText) {
+        // Brief fade-swap so the month change reads as deliberate
+        monthLabel.classList.add('swap')
+        setTimeout(() => {
+          monthLabel.textContent = monthText
+          monthLabel.classList.remove('swap')
+        }, 140)
+        lastMonthText = monthText
+      }
+      setDay(d.getUTCDate())
+      setYear(d.getUTCFullYear())
+    }
+
+    const showTooltip = (cell) => {
+      // Tooltip lives at figure level (sibling to card) so the card's
+      // overflow:hidden + rounded corners can never clip it. We then
+      // anchor it inside the card's visible area through positioning:
+      //   - Vertical: prefer ABOVE the cell, flip BELOW when above would
+      //     pass the card's top edge — keeps it from overlapping the
+      //     rounded top-left/right corners.
+      //   - Horizontal: clamp to the card's straight edges (excluding the
+      //     16px border-radius) so the box never intersects a corner arc.
+      const cellRect = cell.getBoundingClientRect()
+      const figRect = figure.getBoundingClientRect()
+      const cardRect = card.getBoundingClientRect()
+      const ttRect = tooltip.getBoundingClientRect()
+
+      const halfW = ttRect.width / 2
+      const ttHeight = ttRect.height
+      const gap = 10
+      const cornerInset = 16 // matches rounded-2xl border-radius
+      const safeMargin = 4 // small extra so the box-shadow stays comfy
+
+      // Horizontal clamp — convert card's straight-edge bounds into figure-coords
+      const cardLeftInFig = cardRect.left - figRect.left
+      const cardRightInFig = cardRect.right - figRect.left
+      const minX = cardLeftInFig + cornerInset + halfW + safeMargin
+      const maxX = cardRightInFig - cornerInset - halfW - safeMargin
+      const desiredX = cellRect.left + cellRect.width / 2 - figRect.left
+      // If the card is too narrow to fit the tooltip even at its straight
+      // edges, fall back to viewport clamp instead of inverting the bounds.
+      const x = minX <= maxX
+        ? Math.max(minX, Math.min(maxX, desiredX))
+        : desiredX
+
+      // Smart vertical flip
+      const cardTopInFig = cardRect.top - figRect.top
+      const cellTopInFig = cellRect.top - figRect.top
+      const cellBottomInFig = cellRect.bottom - figRect.top
+      const aboveTop = cellTopInFig - ttHeight - gap
+      const wouldClipTop = aboveTop < cardTopInFig + cornerInset
+      const useBelow = wouldClipTop
+
+      if (useBelow) {
+        tooltip.dataset.position = 'below'
+        tooltip.style.transform =
+          `translate(${x}px, ${cellBottomInFig + gap}px) translate(-50%, 0)`
+      } else {
+        tooltip.dataset.position = 'above'
+        tooltip.style.transform =
+          `translate(${x}px, ${cellTopInFig - gap}px) translate(-50%, -100%)`
+      }
+      tooltip.dataset.visible = 'true'
+    }
+
+    const hideTooltip = () => {
+      tooltip.dataset.visible = 'false'
+    }
+
+    const setActive = (cell) => {
+      if (activeCell === cell) return
+      if (activeCell) activeCell.removeAttribute('data-active')
+      activeCell = cell
+      if (cell) {
+        cell.setAttribute('data-active', 'true')
+        const date = cell.getAttribute('data-date')
+        const count = parseInt(cell.getAttribute('data-count') || '0', 10)
+        if (date) setDate(date)
+        setCountAndNoun(count)
+      }
+    }
+
+    cells.addEventListener('pointermove', (e) => {
+      const rect = cells.getBoundingClientRect()
+      cells.style.setProperty('--mx', `${e.clientX - rect.left}px`)
+      cells.style.setProperty('--my', `${e.clientY - rect.top}px`)
+
+      const cell = e.target instanceof Element
+        ? e.target.closest('.gh-contrib-base .gh-cell[data-date]')
+        : null
+      if (cell) {
+        setActive(cell)
+        showTooltip(cell)
+      } else {
+        hideTooltip()
+      }
+    })
+
+    cells.addEventListener('pointerleave', () => {
+      cells.style.setProperty('--mx', `-200px`)
+      cells.style.setProperty('--my', `-200px`)
+      hideTooltip()
+      if (activeCell) {
+        activeCell.removeAttribute('data-active')
+        activeCell = null
+      }
+    })
+
+    // Refresh from the GitHub contributions API on mount so the rightmost
+    // column always reflects today, regardless of how stale the SSR/CDN
+    // snapshot is. Silent fallback to the rendered grid if the fetch fails.
+    refreshGrid(figure).catch(() => {})
+  }
+
+  async function refreshGrid(figure) {
+    const card = figure.querySelector('.gh-contrib-card')
+    const username = card?.dataset.username
+    if (!username) return
+
+    let data
+    try {
+      const res = await fetch(
+        `/api/github-contributions?username=${encodeURIComponent(username)}`,
+        { cache: 'no-store' }
+      )
+      if (!res.ok) return
+      data = await res.json()
+    } catch {
+      return
+    }
+
+    const today = new Date().toISOString().slice(0, 10)
+    const contributions = (data.contributions || []).filter((c) => c.date <= today)
+    if (contributions.length === 0) return
+
+    // Bail if the grid is already up to date (server-side fetch was fresh).
+    const baseLayer = figure.querySelector('.gh-contrib-base')
+    const lastInDom = baseLayer?.querySelector('.gh-cell[data-date]:last-of-type')
+    const lastInApi = contributions[contributions.length - 1].date
+    if (lastInDom && lastInDom.dataset.date === lastInApi) return
+
+    // Build week buckets — mirror of the SSR logic in the frontmatter
+    const leadingEmpty = new Date(contributions[0].date + 'T00:00:00Z').getUTCDay()
+    const weeks = []
+    let column = Array(leadingEmpty).fill(null)
+    for (const c of contributions) {
+      column.push(c)
+      if (column.length === 7) {
+        weeks.push(column)
+        column = []
+      }
+    }
+    if (column.length > 0) weeks.push(column)
+
+    // Month label per week column
+    const monthLabels = weeks.map((week, i) => {
+      const firstReal = week.find((c) => c)
+      if (!firstReal) return ''
+      const month = new Date(firstReal.date + 'T00:00:00Z').getUTCMonth()
+      if (i === 0) return ''
+      const prevReal = weeks[i - 1]?.find((c) => c)
+      if (!prevReal) return ''
+      if (new Date(prevReal.date + 'T00:00:00Z').getUTCMonth() === month) return ''
+      return new Date(firstReal.date + 'T00:00:00Z')
+        .toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+        .toLowerCase()
+    })
+
+    // Replace cell layers
+    const brightLayer = figure.querySelector('.gh-contrib-bright')
+    const buildLayer = (template, withData) => {
+      const layer = template.cloneNode(false)
+      for (const week of weeks) {
+        for (const cell of week) {
+          const span = document.createElement('span')
+          span.className = cell ? 'gh-cell' : 'gh-cell gh-cell-pad'
+          span.dataset.level = cell ? String(cell.level) : 'empty'
+          if (cell && withData) {
+            span.dataset.date = cell.date
+            span.dataset.count = String(cell.count)
+          }
+          if (!cell) span.setAttribute('aria-hidden', 'true')
+          layer.appendChild(span)
+        }
+      }
+      return layer
+    }
+    if (baseLayer) baseLayer.replaceWith(buildLayer(baseLayer, true))
+    if (brightLayer) brightLayer.replaceWith(buildLayer(brightLayer, false))
+
+    // Update grid column count + month labels + total caption
+    card.style.setProperty('--gh-weeks', String(weeks.length))
+    const monthsContainer = figure.querySelector('.gh-contrib-months')
+    if (monthsContainer) {
+      monthsContainer.replaceChildren(
+        ...monthLabels.map((m) => {
+          const s = document.createElement('span')
+          s.textContent = m
+          return s
+        })
+      )
+    }
+    const totalEl = figure.querySelector('[data-total-label]')
+    const total = data.total?.lastYear ?? 0
+    if (totalEl) totalEl.textContent = `${total.toLocaleString('en-US')} contributions`
+  }
+</script>

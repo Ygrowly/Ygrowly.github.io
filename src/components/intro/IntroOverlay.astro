@@ -1,0 +1,402 @@
+---
+import FocusIntro from './variants/FocusIntro.astro'
+import JoJoIntro from './variants/JoJoIntro.astro'
+import LineIntro from './variants/LineIntro.astro'
+
+interface Props {
+  locale?: 'zh' | 'en'
+}
+
+const locale = Astro.props.locale ?? 'zh'
+const copy =
+  locale === 'en'
+    ? {
+        skip: 'Skip intro',
+        choose: 'Choose intro',
+        menu: 'Entrance animation selector',
+        focus: 'Play F/1.4 Into Focus',
+        line: 'Play One Continuous Thought',
+        jojo: 'Play JoJo Pulls the Page'
+      }
+    : {
+        skip: '跳过动画',
+        choose: '选择入场',
+        menu: '入场动画选择器',
+        focus: '播放 F/1.4 镜头对焦',
+        line: '播放一笔成站',
+        jojo: '播放 JoJo 拉开页面'
+      }
+---
+
+<div
+  id='intro-overlay'
+  class='intro-shell intro-pending'
+  data-locale={locale}
+  role='dialog'
+  aria-label={copy.menu}
+  aria-modal='true'
+  aria-hidden='false'
+  tabindex='-1'
+>
+  <FocusIntro />
+  <LineIntro />
+  <JoJoIntro />
+
+  <div class='intro-chrome' aria-hidden='true'>
+    <span>JOYE / SYSTEM ENTRY</span>
+    <span class='intro-chrome-rule'></span>
+    <span>LONG FORM / 03 VARIANTS</span>
+  </div>
+
+  <button id='intro-skip' class='intro-skip' type='button' aria-label={copy.skip}>
+    <span>{copy.skip}</span>
+    <span aria-hidden='true'>Esc</span>
+  </button>
+</div>
+
+<div id='intro-trigger-dock' class='intro-trigger-dock' data-open='false'>
+  <div
+    id='intro-trigger-menu'
+    class='intro-trigger-menu'
+    aria-hidden='true'
+    aria-label={copy.menu}
+    inert
+  >
+    <button type='button' data-intro-trigger='focus' aria-label={copy.focus}>
+      <span>01</span><strong>F/1.4</strong>
+    </button>
+    <button type='button' data-intro-trigger='line' aria-label={copy.line}>
+      <span>02</span><strong>One line</strong>
+    </button>
+    <button type='button' data-intro-trigger='jojo' aria-label={copy.jojo}>
+      <span>03</span><strong>JoJo</strong>
+    </button>
+  </div>
+  <button
+    id='intro-trigger-toggle'
+    class='intro-trigger-toggle'
+    type='button'
+    aria-expanded='false'
+    aria-controls='intro-trigger-menu'
+  >
+    <span aria-hidden='true'>↻</span>
+    <span>{copy.choose}</span>
+  </button>
+</div>
+
+<noscript
+  ><style>
+    .intro-shell,
+    .intro-trigger-dock {
+      display: none !important;
+    }
+  </style></noscript
+>
+
+{/* Prevent a repeat-visit flash before the bundled controller loads. */}
+<script is:inline>
+  ;(() => {
+    const overlay = document.getElementById('intro-overlay')
+    if (!overlay) return
+    const isPublicSite = /^(?:www\.)?joyehuang\.me$/i.test(location.hostname)
+    if (isPublicSite) {
+      overlay.classList.add('intro-idle')
+      overlay.classList.remove('intro-pending')
+      overlay.setAttribute('aria-hidden', 'true')
+      document.documentElement.classList.remove('intro-scroll-lock')
+      const dock = document.getElementById('intro-trigger-dock')
+      if (dock) dock.hidden = true
+      return
+    }
+    const value = new URLSearchParams(location.search).get('intro')
+    const forced = value === 'focus' || value === 'line' || value === 'jojo'
+    const disabled = value === 'off' || value === 'picker'
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const saveData = Boolean(navigator.connection && navigator.connection.saveData)
+    let seen = false
+    try {
+      seen = Boolean(localStorage.getItem('joye:intro:v4:seen'))
+    } catch {
+      // Storage may be unavailable in private browsing.
+    }
+    if (disabled || reduced || saveData || (seen && !forced)) {
+      overlay.classList.add('intro-idle')
+      overlay.classList.remove('intro-pending')
+      overlay.setAttribute('aria-hidden', 'true')
+      document.documentElement.classList.remove('intro-scroll-lock')
+      if (reduced || saveData) {
+        const dock = document.getElementById('intro-trigger-dock')
+        if (dock) dock.hidden = true
+      }
+      return
+    }
+    document.documentElement.classList.add('intro-scroll-lock')
+    window.__introWatchdog = window.setTimeout(() => {
+      overlay.classList.add('intro-idle')
+      overlay.classList.remove('intro-pending', 'intro-active', 'intro-exit')
+      overlay.setAttribute('aria-hidden', 'true')
+      document.documentElement.classList.remove('intro-scroll-lock')
+    }, 4000)
+  })()
+</script>
+
+<script>
+  import './intro-controller'
+</script>
+
+<style is:global>
+  html.intro-scroll-lock,
+  html.intro-scroll-lock body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .intro-shell {
+    --background: 200 24% 4%;
+    --foreground: 48 26% 93%;
+    --muted: 198 18% 10%;
+    --muted-foreground: 198 10% 67%;
+    --border: 198 14% 21%;
+    --primary: 198 56% 66%;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    overflow: hidden;
+    color: hsl(var(--foreground));
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    isolation: isolate;
+  }
+
+  .intro-shell.intro-pending {
+    background:
+      radial-gradient(circle at 50% 44%, hsl(var(--primary) / 0.08), transparent 34%),
+      hsl(var(--background));
+  }
+
+  .intro-shell.intro-idle {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .intro-shell.intro-exit {
+    opacity: 0;
+    visibility: visible;
+    pointer-events: none;
+    transition: opacity 0.12s ease-in;
+  }
+
+  .intro-variant {
+    position: absolute;
+    inset: 0;
+  }
+
+  .intro-shell.intro-loading .intro-variant {
+    visibility: hidden;
+  }
+
+  .intro-chrome {
+    position: absolute;
+    inset: 22px 24px auto;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: auto minmax(44px, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    color: hsl(var(--muted-foreground) / 0.7);
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    pointer-events: none;
+  }
+
+  .intro-chrome-rule {
+    height: 1px;
+    background: hsl(var(--border) / 0.8);
+    transform-origin: left;
+  }
+
+  .intro-skip {
+    position: absolute;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    z-index: 50;
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px 8px 15px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--background) / 0.72);
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    box-shadow: 0 12px 40px hsl(var(--foreground) / 0.08);
+    backdrop-filter: blur(14px);
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .intro-skip span:last-child {
+    padding: 4px 7px;
+    border-radius: 999px;
+    color: hsl(var(--foreground) / 0.72);
+    background: hsl(var(--muted));
+    font-size: 9px;
+  }
+
+  .intro-skip:hover {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.62);
+    transform: translateY(-1px);
+  }
+
+  .intro-trigger-dock {
+    position: fixed;
+    left: 50%;
+    bottom: max(64px, calc(env(safe-area-inset-bottom) + 14px));
+    z-index: 65;
+    display: grid;
+    justify-items: center;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  .intro-trigger-toggle {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--background) / 0.78);
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    box-shadow: 0 10px 32px hsl(var(--foreground) / 0.08);
+    backdrop-filter: blur(12px);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    opacity: 0.58;
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .intro-trigger-toggle:hover,
+  .intro-trigger-dock[data-open='true'] .intro-trigger-toggle {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.55);
+    opacity: 1;
+  }
+
+  .intro-trigger-menu {
+    position: absolute;
+    bottom: calc(100% + 9px);
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 4px;
+    padding: 5px;
+    background: hsl(var(--background) / 0.92);
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px;
+    box-shadow: 0 18px 60px hsl(var(--foreground) / 0.15);
+    backdrop-filter: blur(18px);
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(5px) scale(0.96);
+    transform-origin: 50% 100%;
+    pointer-events: none;
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .intro-trigger-dock[data-open='true'] .intro-trigger-menu {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .intro-trigger-menu button {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 11px;
+    color: hsl(var(--muted-foreground));
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .intro-trigger-menu button:hover,
+  .intro-trigger-menu button:focus-visible {
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.75);
+    border-color: hsl(var(--border));
+    outline: none;
+  }
+
+  .intro-trigger-menu span {
+    font-size: 8px;
+    color: hsl(var(--primary));
+  }
+
+  .intro-trigger-menu strong {
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .intro-chrome {
+      inset: max(18px, env(safe-area-inset-top)) 16px auto;
+    }
+
+    .intro-chrome span:first-child {
+      display: none;
+    }
+
+    .intro-chrome {
+      grid-template-columns: 1fr auto;
+    }
+
+    .intro-trigger-menu {
+      grid-template-columns: 1fr;
+      width: min(230px, calc(100vw - 32px));
+    }
+
+    .intro-trigger-menu button {
+      justify-content: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-shell,
+    .intro-shell.intro-exit,
+    .intro-skip,
+    .intro-trigger-toggle,
+    .intro-trigger-menu,
+    .intro-trigger-menu button {
+      transition: none !important;
+    }
+  }
+</style>

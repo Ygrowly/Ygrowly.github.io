@@ -1,0 +1,58 @@
+---
+import { Button } from 'astro-pure/user'
+
+const { title, skills } = Astro.props
+---
+
+<div class='skill-section flex flex-col gap-y-2 md:flex-row md:gap-x-5 md:gap-y-0'>
+  <h3 class='skill-title w-1/5 font-medium'>
+    {title}
+  </h3>
+  <div class='skill-container flex flex-row flex-wrap gap-x-4 gap-y-2 md:w-4/5'>
+    {skills.map((skill: string[], index: number) => (
+      <div class='skill-pill' style={`--skill-index:${index}`}>
+        <Button as='button' title={skill} style='pill' />
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  @keyframes skill-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .skill-title,
+  .skill-pill {
+    animation: skill-fade-in 320ms ease both;
+  }
+
+  .skill-pill {
+    animation-delay: calc(var(--skill-index, 0) * 28ms + 60ms);
+  }
+
+  .skill-pill :global(button) {
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .skill-pill :global(button:hover) {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skill-title,
+    .skill-pill {
+      animation: none;
+    }
+  }
+</style>

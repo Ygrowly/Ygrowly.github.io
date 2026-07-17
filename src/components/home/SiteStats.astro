@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content'
+import config from 'virtual:config'
+
+import Section from './Section.astro'
+
+interface Props {
+  lang?: 'zh' | 'en'
+}
+
+const { lang = 'zh' } = Astro.props as Props
+
+const [blogPosts, notes, talks] = await Promise.all([
+  getCollection('blog', ({ data }) => !data.draft),
+  getCollection('notes', ({ data }) => !data.draft),
+  getCollection('talks', ({ data }) => !data.draft && data.status === 'published')
+])
+
+// Live total page views from Waline (/api/stats endpoint on the waline server).
+// On a transient failure we render 0 — better than a stale number.
+let pageViews = 0
+const walineServer = config.integ.waline.server
+if (walineServer) {
+  try {
+    const res = await fetch(`${walineServer}/api/stats`, {
+      signal: AbortSignal.timeout(2000)
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { totalViews?: number }
+      if (typeof data.totalViews === 'number') pageViews = data.totalViews
+    }
+  } catch {
+    // Network/timeout — leave pageViews at 0.
+  }
+}
+
+const labels =
+  lang === 'en'
+    ? {
+        title: 'Site stats',
+        blog: 'Posts',
+        notes: 'Notes',
+        talks: 'Talks',
+        pageViews: 'Page views'
+      }
+    : {
+        title: '站点统计',
+        blog: '文章',
+        notes: '笔记',
+        talks: '分享',
+        pageViews: '浏览量'
+      }
+
+const items = [
+  { label: labels.blog, value: blogPosts.length.toString() },
+  { label: labels.notes, value: notes.length.toString() },
+  { label: labels.talks, value: talks.length.toString() },
+  { label: labels.pageViews, value: pageViews.toLocaleString() }
+]
+---
+
+<Section title={labels.title}>
+  <div class='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+    {
+      items.map(({ label, value }) => (
+        <div class='rounded-xl border bg-muted/30 px-4 py-3 text-center'>
+          <div class='text-2xl font-medium tabular-nums'>{value}</div>
+          <div class='mt-1 text-xs text-muted-foreground'>{label}</div>
+        </div>
+      ))
+    }
+  </div>
+</Section>

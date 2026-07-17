@@ -1,0 +1,455 @@
+---
+import { Image } from 'astro:assets'
+
+import defaultMeAvatar from '@/assets/avatar.png'
+
+interface Friend {
+  name: string
+  intro: string
+  link: string
+  avatar: string
+  since?: string
+  met?: string
+  note?: string
+  /** Optional personal alias / playful tag — when set, replaces the name
+   *  shown under the star at rest, and becomes the title in the hover card
+   *  with the real name shown as a small subtitle. */
+  label?: string
+}
+
+interface FriendList {
+  id_name: string
+  desc: string
+  link_list: Friend[]
+}
+
+interface Props {
+  list: FriendList
+  meAvatar?: ImageMetadata
+  meLabel?: string
+}
+
+const { list, meAvatar = defaultMeAvatar, meLabel = 'joyehuang.me' } = Astro.props
+const friends = list.link_list
+
+// Phyllotactic spiral (golden-angle + sqrt-radius). Gives roughly uniform
+// point density inside an annulus regardless of how many stars there are,
+// so 7 stars look airy and 30 stars stay legible.
+const GOLDEN_ANGLE_DEG = 137.508
+const N = friends.length
+const MIN_R = 24 // % from center — avoids the central avatar
+const MAX_R = Math.max(40, Math.min(48, 38 + N * 0.4)) // expand outward as N grows
+// Shrink star avatars as N grows so they don't visually collide.
+const starSizePx = Math.max(36, Math.min(56, 80 - N * 1.4))
+// Hide always-on name labels once the constellation gets crowded.
+const showNames = N <= 12
+const positioned = friends.map((frd, i) => {
+  const t = (i + 0.5) / N
+  const radius = MIN_R + (MAX_R - MIN_R) * Math.sqrt(t)
+  const angleDeg = (i * GOLDEN_ANGLE_DEG + 22) % 360
+  const angleRad = (angleDeg * Math.PI) / 180
+  const x = 50 + radius * Math.cos(angleRad)
+  const y = 50 + radius * Math.sin(angleRad)
+  // Anchor the hover card to the inner side of the canvas so it doesn't
+  // overflow at the right/left edge.
+  const posX = x < 33 ? 'left' : x > 67 ? 'right' : 'center'
+  const posY = y < 50 ? 'top' : 'bottom'
+  return { frd, x, y, posX, posY, idx: i }
+})
+---
+
+<section
+  class={`friend-constellation${showNames ? '' : ' is-crowded'}`}
+  style={`--star-size: ${starSizePx}px`}
+  aria-label='Friend Constellation'
+>
+  <div class='constellation-stage'>
+    <svg class='constellation-svg' viewBox='0 0 100 100' preserveAspectRatio='none' aria-hidden='true'>
+      {positioned.map(({ x, y }) => (
+        <line x1='50' y1='50' x2={x} y2={y} class='line' />
+      ))}
+    </svg>
+
+    <div class='constellation-center' aria-hidden='true'>
+      <span class='constellation-center-ring'></span>
+      <span class='constellation-center-avatar'>
+        <Image
+          src={meAvatar}
+          width={140}
+          height={140}
+          alt='You'
+          loading='eager'
+          class='m-0 h-full w-full object-cover'
+        />
+      </span>
+      <span class='constellation-center-label'>{meLabel}</span>
+    </div>
+
+    {positioned.map(({ frd, x, y, posX, posY, idx }) => (
+      <a
+        href={frd.link}
+        target='_blank'
+        rel='noopener noreferrer'
+        class='constellation-star'
+        style={{ left: `${x}%`, top: `${y}%` }}
+        data-pos-x={posX}
+        data-pos-y={posY}
+        data-star-idx={idx}
+        aria-label={frd.name}
+      >
+        <span class='constellation-star-avatar'>
+          <Image
+            class='m-0 h-full w-full object-cover'
+            src={frd.avatar}
+            width={120}
+            height={120}
+            alt=''
+            loading='lazy'
+          />
+        </span>
+        <span class={`constellation-star-name${frd.label ? ' has-label' : ''}`}>{frd.label ?? frd.name}</span>
+        <span class='constellation-star-card' role='tooltip'>
+          <span class='card-name'>{frd.label ?? frd.name}</span>
+          {frd.label && <span class='card-real-name'>aka {frd.name}</span>}
+          {frd.intro && <span class='card-intro'>{frd.intro}</span>}
+          {(frd.since || frd.met) && (
+            <span class='card-meta'>
+              {frd.met}
+              {frd.met && frd.since && <span class='dot'>·</span>}
+              {frd.since}
+            </span>
+          )}
+          {frd.note && <span class='card-note'>{frd.note}</span>}
+          <span class='card-link'>{new URL(frd.link).host} ↗</span>
+        </span>
+      </a>
+    ))}
+
+  </div>
+  <p class='constellation-coords' aria-hidden='true'>{friends.length} stars · ∞ canvas</p>
+</section>
+
+<script>
+  // Tap-to-toggle on touch / coarse pointers (no hover available).
+  const isCoarse = window.matchMedia('(hover: none), (pointer: coarse)').matches
+  if (isCoarse) {
+    document.querySelectorAll<HTMLAnchorElement>('.constellation-star').forEach((star) => {
+      star.addEventListener('click', (e) => {
+        if (!star.classList.contains('is-open')) {
+          e.preventDefault()
+          document
+            .querySelectorAll('.constellation-star.is-open')
+            .forEach((el) => el !== star && el.classList.remove('is-open'))
+          star.classList.add('is-open')
+        }
+      })
+    })
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.constellation-star')) {
+        document
+          .querySelectorAll('.constellation-star.is-open')
+          .forEach((el) => el.classList.remove('is-open'))
+      }
+    })
+  }
+</script>
+
+<style>
+  .friend-constellation {
+    --star-size: 56px;
+    --center-size: 110px;
+    --line-color: hsl(var(--primary) / 0.5);
+  }
+
+  .constellation-stage {
+    position: relative;
+    aspect-ratio: 16 / 11;
+    width: 100%;
+    /* No border / no fill — content (lines, avatars, center) sits directly
+       on the page. The starfield bg is painted via ::before below so only
+       the stars fade at the edges, not the children. */
+  }
+  .constellation-stage::before {
+    content: '';
+    position: absolute;
+    inset: -4% -4%;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 7% 12%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 18% 32%, hsl(var(--foreground) / 0.22) 50%, transparent 51%),
+      radial-gradient(1px 1px at 26% 78%, hsl(var(--foreground) / 0.32) 50%, transparent 51%),
+      radial-gradient(1px 1px at 35% 14%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 47% 88%, hsl(var(--foreground) / 0.28) 50%, transparent 51%),
+      radial-gradient(1px 1px at 58% 7%, hsl(var(--foreground) / 0.2) 50%, transparent 51%),
+      radial-gradient(1px 1px at 66% 94%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 78% 22%, hsl(var(--foreground) / 0.32) 50%, transparent 51%),
+      radial-gradient(1px 1px at 85% 64%, hsl(var(--foreground) / 0.22) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 92% 38%, hsl(var(--foreground) / 0.32) 50%, transparent 51%),
+      radial-gradient(1px 1px at 96% 84%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
+      radial-gradient(1px 1px at 3% 52%, hsl(var(--foreground) / 0.22) 50%, transparent 51%);
+    /* fade only the starfield at edges so the canvas feels boundless */
+    -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 95%);
+    mask-image: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 95%);
+  }
+
+  .friend-constellation {
+    margin-bottom: 1rem;
+  }
+  .constellation-coords {
+    margin: 0.6rem 0 0;
+    text-align: right;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .constellation-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .constellation-svg .line {
+    stroke: var(--line-color);
+    stroke-width: 0.4;
+    stroke-dasharray: 1.2 1;
+    stroke-linecap: round;
+  }
+
+  .constellation-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    width: var(--center-size);
+    height: var(--center-size);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .constellation-center-ring {
+    position: absolute;
+    inset: -10px;
+    border-radius: 9999px;
+    background:
+      radial-gradient(circle, hsl(var(--primary) / 0.35) 0%, transparent 70%);
+    filter: blur(6px);
+    z-index: -1;
+  }
+  .constellation-center-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    border: 2px solid hsl(var(--background));
+    box-shadow:
+      0 0 0 2px hsl(var(--primary) / 0.6),
+      0 0 30px 6px hsl(var(--primary) / 0.25);
+  }
+  .constellation-center-label {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+
+  .constellation-star {
+    position: absolute;
+    z-index: 4;
+    transform: translate(-50%, -50%);
+    width: var(--star-size);
+    height: var(--star-size);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 200ms ease;
+  }
+  .constellation-star:hover,
+  .constellation-star:focus-visible,
+  .constellation-star.is-open {
+    z-index: 6;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+
+  .constellation-star-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    border: 2px solid hsl(var(--background));
+    background: hsl(var(--muted));
+    box-shadow:
+      0 0 0 1px hsl(var(--border)),
+      0 6px 20px hsl(var(--background) / 0.7);
+    transition:
+      box-shadow 200ms ease;
+  }
+  .constellation-star:hover .constellation-star-avatar,
+  .constellation-star:focus-visible .constellation-star-avatar,
+  .constellation-star.is-open .constellation-star-avatar {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.7),
+      0 0 24px 4px hsl(var(--primary) / 0.4);
+  }
+
+  .constellation-star-name {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.72rem;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    pointer-events: none;
+    transition: color 160ms ease, opacity 160ms ease;
+  }
+  .friend-constellation.is-crowded .constellation-star-name {
+    opacity: 0;
+  }
+  .constellation-star-name.has-label {
+    font-style: italic;
+    color: hsl(var(--primary) / 0.85);
+  }
+  .constellation-star:hover .constellation-star-name,
+  .constellation-star:focus-visible .constellation-star-name,
+  .constellation-star.is-open .constellation-star-name {
+    opacity: 1;
+    color: hsl(var(--foreground));
+  }
+
+  .constellation-star-card {
+    position: absolute;
+    top: calc(100% + 1.6rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    z-index: 10;
+    width: 240px;
+    padding: 0.75rem 0.85rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-radius: 0.65rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background));
+    box-shadow:
+      0 12px 30px hsl(var(--background) / 0.6),
+      0 2px 6px hsl(var(--background) / 0.4);
+    text-align: left;
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+  .constellation-star:hover .constellation-star-card,
+  .constellation-star:focus-visible .constellation-star-card,
+  .constellation-star.is-open .constellation-star-card {
+    display: flex;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  .constellation-star[data-pos-y='bottom'] .constellation-star-card {
+    top: auto;
+    bottom: calc(100% + 1.6rem);
+  }
+  /* Anchor card to the LEFT side of the star when star is on the right edge,
+     so the card extends inward (leftward) instead of overflowing the stage. */
+  .constellation-star[data-pos-x='right'] .constellation-star-card {
+    left: auto;
+    right: calc(100% + 0.6rem);
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  .constellation-star[data-pos-x='right']:hover .constellation-star-card,
+  .constellation-star[data-pos-x='right']:focus-visible .constellation-star-card,
+  .constellation-star[data-pos-x='right'].is-open .constellation-star-card {
+    transform: translateY(-50%) translateX(0);
+  }
+  .constellation-star[data-pos-x='left'] .constellation-star-card {
+    right: auto;
+    left: calc(100% + 0.6rem);
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%) translateX(4px);
+  }
+  .constellation-star[data-pos-x='left']:hover .constellation-star-card,
+  .constellation-star[data-pos-x='left']:focus-visible .constellation-star-card,
+  .constellation-star[data-pos-x='left'].is-open .constellation-star-card {
+    transform: translateY(-50%) translateX(0);
+  }
+  .constellation-star-card .card-name {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .constellation-star-card .card-real-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+    margin-top: -0.1rem;
+  }
+  .constellation-star-card .card-intro {
+    font-size: 0.85rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .constellation-star-card .card-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .constellation-star-card .card-meta .dot {
+    opacity: 0.5;
+  }
+  .constellation-star-card .card-note {
+    font-style: italic;
+    font-size: 0.85rem;
+    color: hsl(var(--foreground) / 0.85);
+    border-left: 2px solid hsl(var(--border));
+    padding-left: 0.6rem;
+  }
+  .constellation-star-card .card-link {
+    margin-top: 0.15rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--primary));
+  }
+
+  @media (max-width: 640px) {
+    .friend-constellation {
+      --star-size: 44px;
+      --center-size: 80px;
+    }
+    .constellation-stage {
+      aspect-ratio: 4 / 5;
+    }
+    .constellation-meta {
+      top: 0.6rem;
+      left: 0.7rem;
+      font-size: 0.6rem;
+    }
+    .constellation-star-card {
+      width: 200px;
+      font-size: 0.85rem;
+    }
+    .constellation-star-name {
+      font-size: 0.65rem;
+    }
+  }
+</style>

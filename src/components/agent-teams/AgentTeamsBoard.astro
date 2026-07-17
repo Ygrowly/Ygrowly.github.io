@@ -1,0 +1,2081 @@
+---
+import { activity, isSignupClosed, teams } from '@/data/agent-teams'
+
+// 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
+// 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
+// signupClosed 是构建时刻的快照；页面可能在截止前构建，权威值以 API 返回为准。
+const signupClosed = isSignupClosed()
+---
+
+<section class='agent-board not-prose mt-6 flex flex-col' data-agent-board>
+  <header class='board-hero mb-6 overflow-visible rounded-2xl border p-5 sm:mb-8 sm:overflow-hidden sm:p-8'>
+    <div class='board-hero-inner flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6'>
+      <div class='min-w-0 sm:flex-1'>
+        <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
+          <span
+            class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-0.5 text-amber-700 dark:text-amber-300'
+          >
+            {activity.title}
+          </span>
+          <span class='text-muted-foreground'>{activity.subtitle}</span>
+        </div>
+        <h1 class='board-title mt-3 text-3xl font-bold tracking-tight sm:text-5xl'>
+          {activity.name}
+        </h1>
+        <p class='mt-3 max-w-2xl leading-relaxed text-muted-foreground'>{activity.tagline}</p>
+        <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
+          <span class='inline-flex items-center gap-1.5'>
+            <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
+            比赛进行中 · 组队已截止
+          </span>
+          <a
+            class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
+            href={activity.docHref}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            活动详情 ↗
+          </a>
+          <span class='qq-group-wrap relative inline-flex' data-qq-group-wrap>
+            <button
+              type='button'
+              class='inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 font-medium text-amber-950 transition-colors hover:bg-amber-400'
+              data-qq-group-toggle
+              aria-expanded='false'
+            >
+              加入 QQ 群围观 <span aria-hidden='true'>↗</span>
+            </button>
+            <span
+              class='qq-group-popover absolute left-0 top-full z-20 mt-2 whitespace-nowrap rounded-lg border bg-background px-3 py-2 text-sm shadow-lg'
+              data-qq-group-popover
+              role='tooltip'
+            >
+              QQ 群：<strong class='font-semibold text-foreground'>831907794</strong>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* 参评队伍数：只统计至少有一位报名队员、最终可以参加评选的队伍。
+          名单还没拉到前无法判断，先播放 loading 动效，数据到手后再数字滚动到位。 */}
+      <div
+        class='team-count-card shrink-0 self-start overflow-hidden rounded-xl border px-6 py-5 text-center sm:self-center'
+        data-team-count-card
+      >
+        <div class='team-count-stage'>
+          <div class='team-count-loader' data-team-count-loader aria-hidden='true'>
+            <span class='team-count-dot'></span>
+            <span class='team-count-dot'></span>
+            <span class='team-count-dot'></span>
+          </div>
+          <div
+            class='team-count-number text-5xl font-bold leading-none sm:text-6xl'
+            data-team-count-number
+            aria-live='polite'
+            aria-hidden='true'
+          >
+            0
+          </div>
+        </div>
+        <div class='team-count-label mt-1.5 text-xs font-medium text-muted-foreground'>
+          <span class='sr-only' data-team-count-loading-label>参评队伍数量加载中，</span>支队伍参评
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {/* 首次拉取名单 / 自定义赛道期间的进度条，加载完成后由脚本隐藏 */}
+  <div class='board-loading-bar mb-5' data-board-loading role='status' aria-label='正在加载赛道数据…'>
+    <span class='board-loading-fill'></span>
+  </div>
+
+  {/* 未配置 / 加载失败时的横幅，默认隐藏，由脚本控制 */}
+  <p
+    class='board-banner mb-5 hidden rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground'
+    data-board-banner
+    role='status'
+  >
+  </p>
+
+  <div class='team-search mb-5 flex items-center gap-3 rounded-xl border bg-background px-3 py-2.5'>
+    <svg aria-hidden='true' viewBox='0 0 24 24' class='size-4 shrink-0 text-muted-foreground' fill='none' stroke='currentColor' stroke-width='2'>
+      <circle cx='11' cy='11' r='8'></circle>
+      <path d='m21 21-4.3-4.3'></path>
+    </svg>
+    <label class='sr-only' for='agent-team-search'>搜索队伍、标签或成员</label>
+    <input
+      id='agent-team-search'
+      class='min-w-0 flex-1 border-0 bg-transparent text-sm text-foreground outline-none'
+      type='search'
+      placeholder='搜索队名、标签或成员…'
+      autocomplete='off'
+      data-team-search
+    />
+    <span class='shrink-0 text-xs text-muted-foreground' data-search-status aria-live='polite'></span>
+  </div>
+
+  <p class='mb-5 hidden rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground' data-search-empty>
+    没找到匹配的队伍，换个关键词试试。
+  </p>
+
+  {/* order-last：视觉上把「创建赛道」卡排到队伍列表上面（DOM 里它仍在后面） */}
+  <div class='order-last grid grid-cols-1 gap-4 sm:grid-cols-2' data-team-grid>
+    {
+      teams.map((team) => (
+        <article
+          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5 sm:min-h-[15rem]'
+          data-team-id={team.id}
+          data-capacity={team.capacity ?? ''}
+          data-loaded='false'
+        >
+          <div class='flex items-start justify-between gap-3'>
+            <h2 class='m-0 text-lg font-medium text-foreground' data-title>{team.title}</h2>
+            <span
+              class='skeleton count-label inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+              data-count-label
+            >
+              <span class='sr-only'>人数加载中…</span>
+            </span>
+          </div>
+
+          <p class='team-summary m-0 text-sm leading-snug text-muted-foreground' data-summary>
+            {team.summary}
+          </p>
+
+          {team.tags && team.tags.length > 0 && (
+            <div class='flex flex-wrap gap-1.5' data-tags>
+              {team.tags.map((tag) => (
+                <span class='rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <a
+            class='github-link hidden items-center gap-1.5 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline'
+            data-github-link
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            <svg aria-hidden='true' viewBox='0 0 24 24' class='size-3.5' fill='currentColor'>
+              <path d='M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.74-1.55-2.57-.29-5.27-1.29-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18a10.9 10.9 0 0 1 5.75 0c2.19-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.71 5.4-5.29 5.68.42.36.78 1.07.78 2.16v3.2c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z'></path>
+            </svg>
+            GitHub 仓库 ↗
+          </a>
+
+          <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
+            <li class='roster-empty flex flex-wrap gap-1.5'>
+              <span class='sr-only'>名单加载中…</span>
+              {/* 骨架屏的人数跟着名额走（名额越大占位越多），加载完切成真名单时不会跳得太突兀。 */}
+              {Array.from({
+                length: Math.min(5, Math.max(2, team.capacity ? Math.round(team.capacity / 2.5) : 3))
+              }).map((_, i) => (
+                <span
+                  class={`skeleton h-5 rounded-full ${['w-16', 'w-12', 'w-14', 'w-10', 'w-16'][i % 5]}`}
+                  aria-hidden='true'
+                />
+              ))}
+            </li>
+          </ul>
+
+          <button
+            type='button'
+            class='detail-toggle hidden items-center gap-1 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline'
+            data-detail-toggle
+          >
+            📄 查看详细介绍
+          </button>
+
+          <div class='mt-auto flex flex-wrap items-center gap-2 pt-1'>
+            <span
+              class='development-status inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium'
+              data-development-status
+              hidden={!signupClosed}
+            >
+              开发中
+            </span>
+            <button
+              type='button'
+              class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              data-signup-toggle
+              aria-expanded='false'
+              hidden={signupClosed}
+            >
+              报名
+            </button>
+            <button
+              type='button'
+              class='manage-toggle hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex'
+              data-manage-toggle
+              aria-expanded='false'
+            >
+              队伍管理
+            </button>
+          </div>
+
+          <form class='signup-form mt-1 flex-col gap-2' data-signup-form hidden>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              QQ 昵称（会公开显示，方便认人）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='name'
+                type='text'
+                maxlength='24'
+                required
+                autocomplete='off'
+                placeholder='你的 QQ 昵称'
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              QQ（可选，仅组织者可见，方便拉你进队）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='contact'
+                type='text'
+                maxlength='60'
+                autocomplete='off'
+                placeholder='你的 QQ 号'
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              留言（可选）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='note'
+                type='text'
+                maxlength='60'
+                autocomplete='off'
+                placeholder='想说的一句话'
+              />
+            </label>
+            <label class='passcode-field flex-col gap-1 text-xs text-muted-foreground' data-passcode-field hidden>
+              报名口令
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                autocomplete='off'
+                placeholder='群里公布的口令'
+              />
+            </label>
+
+            {/* 蜜罐：正常用户看不到、不会填 */}
+            <div class='hp-field' aria-hidden='true'>
+              <label>
+                Leave this empty
+                <input name='hp' type='text' tabindex='-1' autocomplete='off' />
+              </label>
+            </div>
+
+            <div class='flex items-center gap-3'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                提交报名
+              </button>
+              <button
+                type='button'
+                class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                data-cancel
+              >
+                收起
+              </button>
+              <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
+            </div>
+          </form>
+
+          <dialog class='manage-dialog' data-manage-panel>
+            <div class='manage-dialog-inner'>
+              <header class='manage-dialog-head'>
+                <div>
+                  <h2 class='m-0 text-lg font-medium text-foreground'>队伍管理</h2>
+                  <p class='manage-dialog-subtitle'>退出报名、维护资料或管理队员</p>
+                </div>
+                <button type='button' class='manage-dialog-close' data-manage-close aria-label='关闭'>✕</button>
+              </header>
+              <div class='manage-dialog-body'>
+            <section class='manage-section'>
+              <h3 class='manage-section-title'>个人退出</h3>
+              <p class='manage-section-hint'>仅退出你自己的报名，需要 QQ 群口令。</p>
+          <form class='leave-form manage-form' data-leave-form>
+            <label class='manage-field'>
+              你的 QQ 昵称（要和报名时一致）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='name'
+                type='text'
+                maxlength='24'
+                required
+                autocomplete='off'
+                placeholder='报名时填的昵称'
+              />
+            </label>
+            <label class='manage-field'>
+              QQ 群口令（和报名时一致）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                required
+                autocomplete='off'
+                placeholder='群里公布的口令'
+              />
+            </label>
+            <div class='manage-actions'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                确认退出
+              </button>
+              <p class='form-msg m-0 text-xs' data-leave-msg role='status'></p>
+            </div>
+          </form>
+            </section>
+
+            <section class='manage-section manage-section-divided' data-captain-management>
+              <h3 class='manage-section-title'>队长管理</h3>
+              <p class='manage-section-hint'>维护项目资料、转让队长或移除摸鱼队员。</p>
+          <form class='detail-form manage-form' data-detail-form>
+            <label class='manage-field'>
+              口令（粉丝群的名字）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                autocomplete='off'
+                placeholder='粉丝群的名字'
+                required
+              />
+            </label>
+            <label class='manage-field'>
+              详细介绍（会公开显示，最多 600 字，可分段）
+              <textarea
+                class='min-h-[7rem] rounded-lg border bg-background px-2.5 py-1.5 text-sm leading-relaxed text-foreground'
+                name='detail'
+                maxlength='600'
+                placeholder='多写点：这支队想做成什么样、技术路线、想找什么样的队友…'
+              ></textarea>
+            </label>
+            <label class='manage-field'>
+              GitHub 仓库（可选）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='githubUrl'
+                type='url'
+                maxlength='200'
+                autocomplete='url'
+                placeholder='https://github.com/用户名/仓库名'
+              />
+            </label>
+            <label class='manage-field'>
+              转让队长给（可选，填名单里某人的昵称）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='captain'
+                type='text'
+                maxlength='24'
+                autocomplete='off'
+                placeholder='留空则不变'
+              />
+            </label>
+            <label class='manage-field'>
+              移除队员（可选，填名单里的昵称）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='kick'
+                type='text'
+                maxlength='24'
+                autocomplete='off'
+                placeholder='队长本人需先转让队长'
+              />
+            </label>
+            <div class='manage-actions'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                保存
+              </button>
+              <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
+            </div>
+          </form>
+            </section>
+              </div>
+            </div>
+          </dialog>
+        </article>
+      ))
+    }
+  </div>
+
+  {/* 分页控件：order-last 保证它排在赛道网格下面（而不是排到「创建赛道」下面）。 */}
+  <div
+    class='board-pagination order-last mt-5 mb-4 flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground'
+    data-board-pagination
+    hidden
+  >
+  </div>
+
+  {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方），加个光环效果突出它是入口 */}
+  <div
+    class='create-card mb-4 rounded-xl border bg-background p-4 sm:p-5'
+    data-create-card
+    hidden={signupClosed}
+  >
+    <div class='flex items-start justify-between gap-3'>
+      <div class='min-w-0'>
+        <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
+        <p class='m-0 mt-1 text-sm leading-snug text-muted-foreground'>
+          自命题：创建一个属于你的赛道。组队（多人）或个人（就你一个）都行。
+        </p>
+      </div>
+      <button
+        type='button'
+        class='create-toggle inline-flex shrink-0 items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+        data-create-toggle
+        aria-expanded='false'
+      >
+        ＋ 创建赛道
+      </button>
+    </div>
+
+    <form class='create-form mt-4 flex-col gap-4' data-create-form hidden>
+      <div class='grid gap-3 sm:grid-cols-2'>
+        <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+          赛道名称
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='title'
+            type='text'
+            maxlength='30'
+            required
+            autocomplete='off'
+            placeholder='例如：会写周报的 Agent'
+          />
+        </label>
+        <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+          一句话简介
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='summary'
+            type='text'
+            maxlength='80'
+            required
+            autocomplete='off'
+            placeholder='它能做什么，一句话说清'
+          />
+        </label>
+      </div>
+
+      <div class='flex flex-col gap-1.5 text-xs text-muted-foreground'>
+        类型
+        <div class='kind-picker grid grid-cols-2 gap-2' data-create-kind>
+          <label class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'>
+            <input class='sr-only' type='radio' name='kind' value='team' checked />
+            <span class='text-sm font-medium text-foreground'>👥 组队</span>
+            <span class='text-xs text-muted-foreground'>多人一起做，你自动当队长</span>
+          </label>
+          <label class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'>
+            <input class='sr-only' type='radio' name='kind' value='solo' />
+            <span class='text-sm font-medium text-foreground'>🧍 个人</span>
+            <span class='text-xs text-muted-foreground'>就我一个，别人不能加入</span>
+          </label>
+        </div>
+      </div>
+
+      <div class='grid gap-3 sm:grid-cols-2'>
+        <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+          你的昵称（会公开显示，创建后自动加入并成为队长）
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='name'
+            type='text'
+            maxlength='24'
+            required
+            autocomplete='off'
+            placeholder='你的 QQ 昵称'
+          />
+        </label>
+        <label
+          class='team-capacity-field flex-col gap-1 text-xs text-muted-foreground'
+          data-team-capacity-field
+          data-show
+        >
+          名额上限（组队才需要，个人固定 1 人）
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='capacity'
+            type='number'
+            min='2'
+            max='999'
+            step='1'
+            value='10'
+            autocomplete='off'
+          />
+        </label>
+      </div>
+
+      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+        口令（粉丝群的名字）
+        <input
+          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+          name='passcode'
+          type='text'
+          maxlength='40'
+          required
+          autocomplete='off'
+          placeholder='粉丝群的名字'
+        />
+      </label>
+
+      {/* 蜜罐 */}
+      <div class='hp-field' aria-hidden='true'>
+        <label>
+          Leave this empty
+          <input name='hp' type='text' tabindex='-1' autocomplete='off' />
+        </label>
+      </div>
+
+      <div class='flex items-center gap-3'>
+        <button
+          type='submit'
+          class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+        >
+          创建
+        </button>
+        <button
+          type='button'
+          class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+          data-cancel
+        >
+          收起
+        </button>
+        <p class='form-msg m-0 text-xs' data-create-msg role='status'></p>
+      </div>
+    </form>
+  </div>
+
+  {/* 「详细介绍」弹窗：全站共用一个，点开哪张卡就把内容填进来再 showModal。 */}
+  <dialog class='detail-dialog' data-detail-dialog>
+    <form method='dialog' class='detail-dialog-inner'>
+      <div class='detail-dialog-head'>
+        <h3 class='m-0 text-base font-medium text-foreground' data-detail-dialog-title></h3>
+        <button type='submit' class='detail-dialog-close' aria-label='关闭'>✕</button>
+      </div>
+      <div class='detail-dialog-body' data-detail-dialog-body></div>
+    </form>
+  </dialog>
+</section>
+
+<style>
+  /* 头部 hero：暖色渐变底 + 渐变标题（UnoCSS 不生成 bg-gradient 工具类，这里手写） */
+  .board-hero {
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(250 204 21 / 0.1),
+      rgb(245 158 11 / 0.05),
+      rgb(249 115 22 / 0.08)
+    );
+  }
+  .board-title {
+    /* text-5xl 默认 line-height:1，行框正好等于字号，会让 g/y 这类降部字母露到框外
+       盖住下面的段落。加回一点行高留出降部空间。 */
+    line-height: 1.15 !important;
+    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    width: fit-content;
+  }
+
+  .qq-group-popover {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(0.97);
+    transform-origin: top left;
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 180ms;
+  }
+  .qq-group-wrap:hover .qq-group-popover,
+  .qq-group-wrap:focus-within .qq-group-popover,
+  .qq-group-wrap[data-open] .qq-group-popover {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .manage-dialog {
+    width: min(calc(100vw - 3rem), 42rem);
+    max-height: none;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.12);
+  }
+  .manage-dialog::backdrop {
+    background: hsl(var(--foreground) / 0.36);
+    backdrop-filter: blur(2px);
+  }
+  :global(html:has(.manage-dialog[open])) {
+    overflow: hidden;
+  }
+  .manage-dialog-inner {
+    display: flex;
+    height: min(82vh, 44rem);
+    min-height: 0;
+    flex-direction: column;
+  }
+  .manage-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex: none;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .manage-dialog-subtitle {
+    margin: 0.375rem 0 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+  .manage-dialog-close {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    place-items: center;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    padding: 0.375rem;
+    color: hsl(var(--muted-foreground));
+    line-height: 1;
+    cursor: pointer;
+  }
+  .manage-dialog-close:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+  .manage-dialog-body {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 1.5rem;
+  }
+  .manage-section-title {
+    margin: 0;
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+  }
+  .manage-section-hint {
+    margin: 0.5rem 0 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+  .manage-section-divided {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid hsl(var(--border));
+  }
+  .manage-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  .manage-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+  .manage-field :is(input, textarea) {
+    padding: 0.625rem 0.75rem;
+  }
+  .manage-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  /* 参评队伍数：单独一块摆在 hero 右侧，用暖色描边与正文区隔。 */
+  .team-count-card {
+    position: relative;
+    border-color: rgb(245 158 11 / 0.4);
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(250 204 21 / 0.14),
+      rgb(245 158 11 / 0.07),
+      rgb(249 115 22 / 0.12)
+    );
+  }
+  /* 加载期间让一束很淡的暖光掠过数字区；只动 transform，避免触发布局。 */
+  .team-count-card:not([data-count-ready])::after {
+    content: '';
+    position: absolute;
+    inset: -60% -100%;
+    background: linear-gradient(
+      100deg,
+      transparent 42%,
+      rgb(251 191 36 / 0.14) 50%,
+      transparent 58%
+    );
+    animation: team-count-shine 1.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .team-count-stage {
+    position: relative;
+    display: grid;
+    width: 6rem;
+    height: 3.75rem;
+    margin-inline: auto;
+    place-items: center;
+  }
+  .team-count-loader,
+  .team-count-number {
+    grid-area: 1 / 1;
+  }
+  .team-count-loader {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition:
+      opacity 180ms ease,
+      transform 240ms ease;
+  }
+  .team-count-dot {
+    display: block;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #fbbf24, #f97316);
+    box-shadow: 0 0 12px rgb(245 158 11 / 0.3);
+    animation: team-count-dot 1.1s ease-in-out infinite;
+  }
+  .team-count-dot:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .team-count-dot:nth-child(3) {
+    animation-delay: 240ms;
+  }
+  /* 真数字与 loading 共用同一块固定尺寸区域，切换时卡片不会跳。 */
+  .team-count-number {
+    opacity: 0;
+    transform: translateY(0.45rem) scale(0.94);
+    transition:
+      opacity 220ms ease,
+      transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .team-count-card[data-count-ready] .team-count-loader {
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(0.85);
+  }
+  .team-count-card[data-count-ready] .team-count-number {
+    opacity: 1;
+    transform: none;
+  }
+  @keyframes team-count-dot {
+    0%,
+    60%,
+    100% {
+      opacity: 0.35;
+      transform: translateY(0) scale(0.78);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(-0.4rem) scale(1);
+    }
+  }
+  @keyframes team-count-shine {
+    from {
+      transform: translateX(-45%);
+    }
+    to {
+      transform: translateX(45%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .team-count-card:not([data-count-ready])::after,
+    .team-count-dot {
+      animation: none;
+    }
+    .team-count-loader,
+    .team-count-number {
+      transition: none;
+    }
+    .qq-group-popover {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .board-hero-inner {
+      gap: 0;
+    }
+    .board-hero .team-count-card {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      align-self: stretch;
+      margin-top: 1rem;
+      padding: 1rem 0 0;
+      border: 0;
+      border-top: 1px solid hsl(var(--border));
+      border-radius: 0;
+      background: none;
+      text-align: left;
+    }
+    .team-count-card::after {
+      display: none;
+    }
+    .team-count-stage {
+      width: 2.5rem;
+      height: 2rem;
+      margin-inline: 0;
+    }
+    .team-count-number {
+      font-size: 1.75rem !important;
+    }
+    .team-count-card .team-count-label {
+      margin-top: 0;
+      font-size: 0.75rem;
+    }
+  }
+
+  /* 创建赛道卡：暖色描边 + 呼吸光环，让它在一堆队伍卡里跳出来，别人一眼就知道这是入口。 */
+  .create-card {
+    position: relative;
+    border-color: rgb(245 158 11 / 0.45);
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(250 204 21 / 0.07),
+      rgb(245 158 11 / 0.03),
+      rgb(249 115 22 / 0.05)
+    );
+    animation: create-card-glow 3s ease-in-out infinite;
+  }
+  @keyframes create-card-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 1px rgb(245 158 11 / 0.12),
+        0 0 22px 2px rgb(245 158 11 / 0.1);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px rgb(245 158 11 / 0.28),
+        0 0 34px 6px rgb(245 158 11 / 0.2);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .create-card {
+      animation: none;
+      box-shadow:
+        0 0 0 1px rgb(245 158 11 / 0.18),
+        0 0 22px 2px rgb(245 158 11 / 0.12);
+    }
+  }
+
+  /* 蜜罐字段：对真人完全不可见，但对填表机器人仍存在 */
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* 骨架屏：名单 / 人数还没从接口拉回来之前的占位动画。 */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    color: transparent !important;
+    background: hsl(var(--muted));
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.12), transparent);
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes skeleton-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  /* 人数徽章：骨架屏阶段给个占位尺寸；真实文案（如「6 / 10 人」）到手后
+     去掉 .skeleton 就该按内容自适应宽度，靠 white-space:nowrap 防止折成两行。 */
+  .count-label.skeleton {
+    min-width: 3.5rem;
+    min-height: 1.25rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::after {
+      animation: none;
+    }
+  }
+  /* 数据到手后脚本会把这些元素换成真实内容并摘掉 .skeleton，这里只是兜底防止残留动画。 */
+  [data-loaded='true'] .skeleton {
+    animation: none;
+  }
+
+  /* 顶部细进度条：首次拉取赛道数据期间显示，拉完（无论成功与否）就淡出。 */
+  .board-loading-bar {
+    height: 3px;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  .board-loading-bar[data-done] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .board-loading-fill {
+    display: block;
+    height: 100%;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+    animation: board-loading-slide 1.1s ease-in-out infinite;
+  }
+  @keyframes board-loading-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .board-loading-fill {
+      animation: none;
+      width: 100%;
+    }
+  }
+
+  /* 详细介绍不再撑在卡片里——点「查看详细介绍」弹一个共用的 <dialog>，
+     卡片高度就不会因为有没有写详细介绍而参差不齐。 */
+  .detail-toggle:not(.hidden) {
+    display: inline-flex;
+  }
+
+  .detail-dialog {
+    width: min(92vw, 34rem);
+    max-height: 80vh;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius, 0.75rem);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  .detail-dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  .detail-dialog-inner {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+  }
+  .detail-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .detail-dialog-close {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    line-height: 1;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground));
+  }
+  .detail-dialog-close:hover {
+    color: hsl(var(--foreground));
+  }
+  .detail-dialog-body {
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+  }
+  /* 弹窗里：一句话简介（完整版）当引言放最上面，下面才是队长写的详细介绍。 */
+  .detail-dialog-summary {
+    margin: 0;
+    color: hsl(var(--foreground));
+    white-space: pre-wrap;
+  }
+  .detail-dialog-detail {
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid hsl(var(--border));
+    white-space: pre-wrap;
+  }
+
+  .signup-form[data-open] {
+    display: flex;
+  }
+  .create-form[data-open] {
+    display: flex;
+  }
+  .github-link[data-show] {
+    display: inline-flex;
+  }
+  .passcode-field[data-show] {
+    display: flex;
+  }
+  .team-capacity-field[data-show] {
+    display: flex;
+  }
+  .board-pagination:not([hidden]) {
+    display: flex;
+  }
+  /* team-card 自带 .flex（内部要用 flex-col 排版），普通的 [hidden]/.hidden 优先级
+     干不过它——分页隐藏另开一个更高优先级的属性选择器，而不是复用 .hidden。 */
+  .team-card[data-page-hidden],
+  .team-card[data-search-hidden] {
+    display: none;
+  }
+  /* 类型选择做成两张可点的卡片而不是裸单选框：原生 radio 视觉隐藏，
+     用 :has() 给选中的那张卡描边高亮，比灰突突的圆点好认多了。 */
+  .kind-option {
+    border-color: hsl(var(--border));
+  }
+  .kind-option:hover {
+    background: hsl(var(--muted) / 0.5);
+  }
+  .kind-option:has(input:checked) {
+    border-color: rgb(245 158 11 / 0.6);
+    background: rgb(245 158 11 / 0.1);
+  }
+  .kind-option:has(input:focus-visible) {
+    outline: 2px solid rgb(245 158 11 / 0.5);
+    outline-offset: 1px;
+  }
+
+  /* 一句话简介裁到 2 行——各卡的简介长短不一，裁齐了这一段的高度才稳定，
+     卡片就不会因为简介一长一短而参差。完整简介 + 详细介绍都进「查看详细介绍」弹窗。 */
+  .team-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  /* 名单不再强行等高——人多就多占一点、人少就少占一点，自然排布。人特别多时给个
+     上限滚动，别把卡撑爆；卡片整体等高交给 grid 的 stretch + 底部按钮的 mt-auto。 */
+  .roster {
+    max-height: 5.5rem;
+    overflow-y: auto;
+  }
+  /* flex-wrap 容器里，中文/emoji 文本的 flex item 默认允许缩到 min-content
+     （几乎能在任意字符间断行），加了 max-height/overflow 后这个收缩会被放大成
+     一整列竖排字——用 flex-shrink:0 让它们按自然宽度换行，不要被压扁。 */
+  :global(.roster-chip),
+  :global(.roster-empty) {
+    flex-shrink: 0;
+  }
+
+  /* 名单是脚本动态渲染的，拿不到 Astro 的 scope 属性，故这几条都用 :global 才生效。 */
+  :global(.roster-chip) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border));
+    padding: 0.12rem 0.55rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.4);
+    /* 名单一到手就按顺序从下往上弹出来，像一个个上台一样；--i 由脚本按序号写入。 */
+    animation: roster-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+  @keyframes roster-pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.6rem) scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.roster-chip) {
+      animation: none;
+    }
+  }
+  /* 队长：琥珀色描边 + 淡底，配一个小皇冠 */
+  :global(.roster-chip.is-captain) {
+    border-color: rgb(245 158 11 / 0.5);
+    background: rgb(245 158 11 / 0.12);
+  }
+  :global(.roster-crown) {
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
+
+  .team-card[data-full='true'] .signup-toggle {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .development-status {
+    border-color: rgb(245 158 11 / 0.45);
+    background: rgb(245 158 11 / 0.12);
+    color: #b45309;
+  }
+  .development-status[hidden],
+  .signup-toggle[hidden] {
+    display: none;
+  }
+  .development-status::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 9999px;
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgb(245 158 11 / 0.14);
+  }
+  :global(.dark) .development-status {
+    color: #fcd34d;
+  }
+
+  .form-msg[data-tone='error'] {
+    color: #dc2626;
+  }
+  .form-msg[data-tone='success'] {
+    color: #16a34a;
+  }
+  :global(.dark) .form-msg[data-tone='error'] {
+    color: #f87171;
+  }
+  :global(.dark) .form-msg[data-tone='success'] {
+    color: #4ade80;
+  }
+</style>
+
+<script>
+  import { normalizeTeamSearch, pageSizeForWidth, paginationFor } from '@/lib/agent-teams/board'
+
+  type Member = { name: string; note: string | null; ts: number }
+  type Team = {
+    id: string
+    title: string
+    summary: string
+    tags: string[]
+    count: number
+    capacity: number | null
+    members: Member[]
+    detail: string | null
+    githubUrl: string | null
+    captain?: string | null
+  }
+  type BoardData = {
+    configured: boolean
+    degraded?: boolean
+    passcodeRequired: boolean
+    detailEditable: boolean
+    signupClosed?: boolean
+    teams: Team[]
+  }
+
+  // 组队截止状态（以 API 返回为准）；renderRoster 重绘按钮时也要感知它
+  let signupClosed = false
+
+  function fireAnalytics(action: 'open' | 'submit', team: string) {
+    document.dispatchEvent(
+      new CustomEvent('site:analytics', {
+        detail: {
+          eventName: 'agent_team_signup',
+          properties: { surface: 'agent_teams', action, team }
+        }
+      })
+    )
+  }
+
+  function setMsg(
+    form: HTMLElement,
+    text: string,
+    tone: 'error' | 'success' | '' = '',
+    selector = '[data-form-msg]'
+  ) {
+    const el = form.querySelector<HTMLElement>(selector)
+    if (!el) return
+    el.textContent = text
+    if (tone) el.dataset.tone = tone
+    else delete el.dataset.tone
+  }
+
+  // 参评队伍数「数字滚动」：从当前显示的值滚到目标值，而不是直接跳字。
+  function animateCount(el: HTMLElement, to: number, duration = 700) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.textContent = String(to)
+      return
+    }
+    const from = Number.parseInt(el.textContent ?? '0', 10) || 0
+    if (from === to) {
+      el.textContent = String(to)
+      return
+    }
+    const start = performance.now()
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - (1 - t) ** 3 // ease-out，滚到最后再放慢
+      el.textContent = String(Math.round(from + (to - from) * eased))
+      if (t < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }
+
+  // 跳动圆点 → 数字滚动：两种状态叠在固定尺寸的 stage 里，切换时不引发布局跳动。
+  function revealTeamCount(board: HTMLElement, total: number) {
+    const card = board.querySelector<HTMLElement>('[data-team-count-card]')
+    const number = board.querySelector<HTMLElement>('[data-team-count-number]')
+    if (!number) return
+    if (card && !card.hasAttribute('data-count-ready')) {
+      card.dataset.countReady = ''
+      number.setAttribute('aria-hidden', 'false')
+      const loadingLabel = board.querySelector<HTMLElement>('[data-team-count-loading-label]')
+      if (loadingLabel) loadingLabel.remove()
+    }
+    animateCount(number, total)
+  }
+
+  function renderDetail(card: HTMLElement, value: string | null) {
+    // 缓存当前值：卡片本身不再铺开显示，只在弹窗和队长编辑表单预填时用它。
+    card.dataset.detail = value ?? ''
+    refreshDetailToggle(card)
+  }
+
+  function renderGithub(card: HTMLElement, value: string | null) {
+    const link = card.querySelector<HTMLAnchorElement>('[data-github-link]')
+    if (!link) return
+    card.dataset.githubUrl = value ?? ''
+    if (value) {
+      link.href = value
+      link.dataset.show = ''
+      link.classList.remove('hidden')
+    } else {
+      link.removeAttribute('href')
+      delete link.dataset.show
+      link.classList.add('hidden')
+    }
+  }
+
+  function updateCardSearchText(card: HTMLElement, team: Team) {
+    card.dataset.searchText = normalizeTeamSearch(
+      [team.title, ...team.tags, ...team.members.map((member) => member.name)].join(' ')
+    )
+  }
+
+  // 「查看详细介绍」按钮的显隐：有详细介绍，或者一句话简介被裁到看不全，就显示。
+  // 注意要在卡片可见时量 scrollHeight——display:none 的卡（翻页隐藏）量出来是 0，
+  // 所以翻页把某张卡显示出来时会再调一次这个函数重新判断。
+  function refreshDetailToggle(card: HTMLElement) {
+    const toggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
+    if (!toggle) return
+    const hasDetail = (card.dataset.detail ?? '').length > 0
+    const summaryEl = card.querySelector<HTMLElement>('[data-summary]')
+    const summaryClamped = !!summaryEl && summaryEl.scrollHeight - summaryEl.clientHeight > 1
+    const show = hasDetail || summaryClamped
+    toggle.hidden = !show
+    toggle.classList.toggle('hidden', !show)
+  }
+
+  function renderRoster(card: HTMLElement, team: Team) {
+    const capacity = team.capacity
+    const label = card.querySelector<HTMLElement>('[data-count-label]')
+    if (label) {
+      label.classList.remove('skeleton')
+      label.textContent = `${team.count} 人`
+    }
+
+    const full = capacity != null && team.count >= capacity
+    card.dataset.full = full ? 'true' : 'false'
+    const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
+    if (toggle) {
+      toggle.disabled = full
+      toggle.hidden = signupClosed
+      toggle.textContent = full ? '名额已满' : '报名'
+    }
+    const status = card.querySelector<HTMLElement>('[data-development-status]')
+    if (status) status.hidden = !signupClosed
+
+    const roster = card.querySelector<HTMLElement>('[data-roster]')
+    if (!roster) return
+    roster.replaceChildren()
+    if (team.members.length === 0) {
+      const li = document.createElement('li')
+      li.className = 'roster-empty text-xs text-muted-foreground'
+      li.textContent = '还没有人报名，来当第一个 👋'
+      roster.appendChild(li)
+      return
+    }
+    // 队长：以 team.captain（后台转让后的 name_key）为准；没设 / 已退队则默认第一个报名的人。
+    // 唯一的队员也算队长——个人赛道就是靠这个拿到编辑主题的权限。
+    let captainIndex = -1
+    const captainKey = team.captain ? team.captain.toLowerCase() : null
+    if (captainKey) {
+      captainIndex = team.members.findIndex((m) => m.name.toLowerCase() === captainKey)
+    }
+    if (captainIndex < 0) captainIndex = 0
+
+    // 队长排在名单最前面，其余人保持原来的报名顺序。
+    const ordered = [
+      team.members[captainIndex],
+      ...team.members.filter((_, index) => index !== captainIndex)
+    ]
+    ordered.forEach((member, index) => {
+      const li = document.createElement('li')
+      li.className = 'roster-chip'
+      // 一个个从下往上弹出来，像依次上台一样——用 --i 错开每个人的入场时机。
+      li.style.setProperty('--i', String(index))
+      if (index === 0) {
+        li.classList.add('is-captain')
+        li.appendChild(captainIcon())
+      }
+      const nameSpan = document.createElement('span')
+      nameSpan.textContent = member.name // textContent — 用户输入不会被当 HTML 解析
+      li.appendChild(nameSpan)
+      if (member.note) li.title = member.note
+      roster.appendChild(li)
+    })
+  }
+
+  // 队长标记：Lucide 皇冠（描边款，继承文字色，用 CSS 染成琥珀色）。
+  function captainIcon(): SVGSVGElement {
+    const ns = 'http://www.w3.org/2000/svg'
+    const svg = document.createElementNS(ns, 'svg')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('width', '12')
+    svg.setAttribute('height', '12')
+    svg.setAttribute('fill', 'none')
+    svg.setAttribute('stroke', 'currentColor')
+    svg.setAttribute('stroke-width', '2')
+    svg.setAttribute('stroke-linecap', 'round')
+    svg.setAttribute('stroke-linejoin', 'round')
+    svg.setAttribute('role', 'img')
+    svg.setAttribute('aria-label', '队长')
+    svg.classList.add('roster-crown')
+    const p1 = document.createElementNS(ns, 'path')
+    p1.setAttribute(
+      'd',
+      'M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z'
+    )
+    svg.appendChild(p1)
+    const p2 = document.createElementNS(ns, 'path')
+    p2.setAttribute('d', 'M5 21h14')
+    svg.appendChild(p2)
+    const title = document.createElementNS(ns, 'title')
+    title.textContent = '队长'
+    svg.appendChild(title)
+    return svg
+  }
+
+  // 标题 / 简介 / 标签以 DB 为准，每次拉到数据都覆盖到卡上（预渲染值只是首屏兜底）。
+  function renderMeta(card: HTMLElement, team: Team) {
+    card.dataset.capacity = team.capacity != null ? String(team.capacity) : ''
+
+    const title = card.querySelector<HTMLElement>('[data-title]')
+    if (title) title.textContent = team.title
+    const summary = card.querySelector<HTMLElement>('[data-summary]')
+    if (summary) summary.textContent = team.summary
+    // 缓存完整简介，供「查看详细介绍」弹窗展示（卡面上的那份被裁成 2 行）。
+    card.dataset.summary = team.summary
+
+    const tags = card.querySelector<HTMLElement>('[data-tags]')
+    if (!tags) return
+    if (team.tags && team.tags.length > 0) {
+      tags.replaceChildren(
+        ...team.tags.map((tag) => {
+          const span = document.createElement('span')
+          span.className = 'rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'
+          span.textContent = '#' + tag
+          return span
+        })
+      )
+    } else {
+      tags.remove() // 无标签就移除容器，避免空 flex 项撑出多余间距
+    }
+  }
+
+  // 自定义赛道没有预渲染的卡：克隆一张静态卡当模板，重置后填入新赛道信息。
+  function buildCard(pristine: HTMLElement, team: Team): HTMLElement {
+    const card = pristine.cloneNode(true) as HTMLElement
+    card.dataset.teamId = team.id
+    delete card.dataset.full
+    delete card.dataset.detail
+    delete card.dataset.githubUrl
+    delete card.dataset.searchText
+
+    renderMeta(card, team)
+
+    const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
+    if (detailToggle) {
+      detailToggle.hidden = true
+      detailToggle.classList.add('hidden')
+    }
+    return card
+  }
+
+  // 「查看详细介绍」弹窗：全站共用一个 <dialog>，点开哪张卡就把标题/正文填进去再弹出。
+  function openDetailDialog(board: HTMLElement, card: HTMLElement) {
+    const dialog = board.querySelector<HTMLDialogElement>('[data-detail-dialog]')
+    if (!dialog) return
+    const titleEl = dialog.querySelector<HTMLElement>('[data-detail-dialog-title]')
+    const bodyEl = dialog.querySelector<HTMLElement>('[data-detail-dialog-body]')
+    if (titleEl) titleEl.textContent = card.querySelector('[data-title]')?.textContent ?? ''
+    if (bodyEl) {
+      bodyEl.replaceChildren()
+      const summary = card.dataset.summary ?? ''
+      const detail = card.dataset.detail ?? ''
+      if (summary) {
+        const p = document.createElement('p')
+        p.className = 'detail-dialog-summary'
+        p.textContent = summary // textContent — 用户输入不当 HTML 解析
+        bodyEl.appendChild(p)
+      }
+      if (detail) {
+        const d = document.createElement('div')
+        d.className = 'detail-dialog-detail'
+        d.textContent = detail
+        bodyEl.appendChild(d)
+      }
+    }
+    dialog.showModal()
+  }
+
+  function wireCard(card: HTMLElement, board: HTMLElement) {
+    card
+      .querySelector<HTMLButtonElement>('[data-detail-toggle]')
+      ?.addEventListener('click', () => openDetailDialog(board, card))
+
+    const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
+    const form = card.querySelector<HTMLFormElement>('[data-signup-form]')
+    if (!toggle || !form) return
+
+    toggle.addEventListener('click', () => {
+      if (board.dataset.configured !== 'true') return
+      const open = form.hasAttribute('data-open')
+      if (open) {
+        form.removeAttribute('data-open')
+        form.hidden = true
+        toggle.setAttribute('aria-expanded', 'false')
+      } else {
+        form.setAttribute('data-open', '')
+        form.hidden = false
+        toggle.setAttribute('aria-expanded', 'true')
+        form.querySelector<HTMLInputElement>('input[name="name"]')?.focus()
+        fireAnalytics('open', card.dataset.teamId || '')
+      }
+    })
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const teamId = card.dataset.teamId || ''
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+      const data = new FormData(form)
+      const payload = {
+        teamId,
+        name: String(data.get('name') || ''),
+        contact: String(data.get('contact') || ''),
+        note: String(data.get('note') || ''),
+        passcode: String(data.get('passcode') || ''),
+        hp: String(data.get('hp') || '')
+      }
+
+      if (submitBtn) submitBtn.disabled = true
+      setMsg(form, '提交中…')
+      try {
+        const res = await fetch('/api/agent-teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        const body = await res.json()
+        if (res.ok && body.ok) {
+          renderRoster(card, body.roster as Team)
+          form.reset()
+          form.removeAttribute('data-open')
+          form.hidden = true
+          toggle.setAttribute('aria-expanded', 'false')
+          setMsg(form, '报名成功！', 'success')
+          fireAnalytics('submit', teamId)
+        } else {
+          setMsg(form, (body && body.message) || '提交失败，请稍后再试', 'error')
+        }
+      } catch {
+        setMsg(form, '网络错误，请稍后再试', 'error')
+      } finally {
+        if (submitBtn) submitBtn.disabled = false
+      }
+    })
+
+    // 「收起」按钮：把报名表单收回去
+    form.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
+      form.removeAttribute('data-open')
+      form.hidden = true
+      toggle.setAttribute('aria-expanded', 'false')
+    })
+
+    const manageToggle = card.querySelector<HTMLButtonElement>('[data-manage-toggle]')
+    const managePanel = card.querySelector<HTMLDialogElement>('[data-manage-panel]')
+    const leaveForm = card.querySelector<HTMLFormElement>('[data-leave-form]')
+    const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
+    const setManageOpen = (open: boolean) => {
+      if (!managePanel || !manageToggle) return
+      if (open && !managePanel.open) managePanel.showModal()
+      if (!open && managePanel.open) managePanel.close()
+      manageToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+      if (open && detailForm) {
+        const textarea = detailForm.querySelector<HTMLTextAreaElement>('textarea[name="detail"]')
+        const githubInput = detailForm.querySelector<HTMLInputElement>('input[name="githubUrl"]')
+        if (textarea) textarea.value = card.dataset.detail || ''
+        if (githubInput) githubInput.value = card.dataset.githubUrl || ''
+      }
+    }
+
+    manageToggle?.addEventListener('click', () => {
+      if (board.dataset.configured !== 'true') return
+      setManageOpen(!(managePanel?.open ?? false))
+    })
+    managePanel?.querySelector<HTMLButtonElement>('[data-manage-close]')?.addEventListener('click', () => {
+      setManageOpen(false)
+    })
+    managePanel?.addEventListener('close', () => {
+      manageToggle?.setAttribute('aria-expanded', 'false')
+    })
+    managePanel?.addEventListener('click', (event) => {
+      if (event.target === managePanel) setManageOpen(false)
+    })
+
+    // 退出 / 退赛：按昵称软删除自己的有效报名。
+    if (leaveForm) {
+
+      leaveForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const teamId = card.dataset.teamId || ''
+        const submitBtn = leaveForm.querySelector<HTMLButtonElement>('button[type="submit"]')
+        const data = new FormData(leaveForm)
+        const payload = {
+          teamId,
+          name: String(data.get('name') || ''),
+          passcode: String(data.get('passcode') || '')
+        }
+
+        if (submitBtn) submitBtn.disabled = true
+        setMsg(leaveForm, '处理中…', '', '[data-leave-msg]')
+        try {
+          const res = await fetch('/api/agent-teams', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          const body = await res.json()
+          if (res.ok && body.ok) {
+            renderRoster(card, body.roster as Team)
+            leaveForm.reset()
+            setManageOpen(false)
+            setMsg(leaveForm, '已退出', 'success', '[data-leave-msg]')
+            board.dispatchEvent(new CustomEvent('agent-teams:reload'))
+          } else {
+            setMsg(leaveForm, (body && body.message) || '操作失败，请稍后再试', 'error', '[data-leave-msg]')
+          }
+        } catch {
+          setMsg(leaveForm, '网络错误，请稍后再试', 'error', '[data-leave-msg]')
+        } finally {
+          if (submitBtn) submitBtn.disabled = false
+        }
+      })
+
+    }
+
+    // 队长维护项目资料、转让队长、移除队员。
+    if (detailForm) {
+      detailForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const teamId = card.dataset.teamId || ''
+        const saveBtn = detailForm.querySelector<HTMLButtonElement>('button[type="submit"]')
+        const data = new FormData(detailForm)
+        const passcode = String(data.get('passcode') || '')
+        const captainName = String(data.get('captain') || '').trim()
+        const kickName = String(data.get('kick') || '').trim()
+        const detailPayload = {
+          teamId,
+          detail: String(data.get('detail') || ''),
+          githubUrl: String(data.get('githubUrl') || ''),
+          passcode
+        }
+
+        if (saveBtn) saveBtn.disabled = true
+        setMsg(detailForm, '保存中…', '', '[data-detail-msg]')
+        try {
+          const res = await fetch('/api/agent-teams', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(detailPayload)
+          })
+          const body = await res.json()
+          if (!(res.ok && body.ok)) {
+            setMsg(detailForm, (body && body.message) || '保存失败，请稍后再试', 'error', '[data-detail-msg]')
+            return
+          }
+          renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
+          renderGithub(card, typeof body.githubUrl === 'string' ? body.githubUrl : null)
+
+          if (captainName) {
+            const cres = await fetch('/api/agent-teams', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'captain', teamId, name: captainName, passcode })
+            })
+            const cbody = await cres.json()
+            if (!(cres.ok && cbody.ok)) {
+              setMsg(detailForm, (cbody && cbody.message) || '队长转让失败', 'error', '[data-detail-msg]')
+              return
+            }
+          }
+
+          if (kickName) {
+            const kres = await fetch('/api/agent-teams', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'kick', teamId, name: kickName, passcode })
+            })
+            const kbody = await kres.json()
+            if (!(kres.ok && kbody.ok)) {
+              setMsg(detailForm, (kbody && kbody.message) || '移除队员失败', 'error', '[data-detail-msg]')
+              return
+            }
+          }
+
+          if (captainName || kickName) board.dispatchEvent(new CustomEvent('agent-teams:reload'))
+
+          setMsg(detailForm, '队伍资料已更新', 'success', '[data-detail-msg]')
+        } catch {
+          setMsg(detailForm, '网络错误，请稍后再试', 'error', '[data-detail-msg]')
+        } finally {
+          if (saveBtn) saveBtn.disabled = false
+        }
+      })
+
+    }
+  }
+
+  function renderPagination(board: HTMLElement, cards: Map<string, HTMLElement>) {
+    const pager = board.querySelector<HTMLElement>('[data-board-pagination]')
+    if (!pager) return
+
+    const cardEls = [...cards.values()]
+    const query = normalizeTeamSearch(board.dataset.query ?? '').replace(/^#/, '')
+    const matchingCards = cardEls.filter((card) => (card.dataset.searchText ?? '').includes(query))
+    const requestedPage = Number.parseInt(board.dataset.page ?? '0', 10)
+    const pageSize = pageSizeForWidth(window.innerWidth)
+    const { page, pageCount, start, end } = paginationFor(matchingCards.length, requestedPage, pageSize)
+    board.dataset.page = String(page)
+
+    const matchingSet = new Set(matchingCards)
+    cardEls.forEach((card) => {
+      const matches = matchingSet.has(card)
+      card.toggleAttribute('data-search-hidden', !matches)
+      if (!matches) delete card.dataset.pageHidden
+    })
+    matchingCards.forEach((card, index) => {
+      const onPage = index >= start && index < end
+      // 不用 .hidden/[hidden]：team-card 自带 .flex，二者优先级打不过，切换了也白切换。
+      if (onPage) {
+        delete card.dataset.pageHidden
+        // 卡片刚从隐藏切到显示，简介的 scrollHeight 这时才量得准——重判一次「查看详细介绍」的显隐。
+        refreshDetailToggle(card)
+      } else {
+        card.dataset.pageHidden = ''
+      }
+    })
+
+    const status = board.querySelector<HTMLElement>('[data-search-status]')
+    if (status) status.textContent = `${matchingCards.length} 支队伍`
+    const empty = board.querySelector<HTMLElement>('[data-search-empty]')
+    if (empty) {
+      empty.hidden = matchingCards.length > 0
+      empty.classList.toggle('hidden', matchingCards.length > 0)
+    }
+
+    pager.replaceChildren()
+    if (pageCount <= 1) {
+      pager.hidden = true
+      return
+    }
+    pager.hidden = false
+
+    const pagerBtnClass =
+      'inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40'
+
+    const goTo = (next: number) => {
+      const target = Math.min(pageCount - 1, Math.max(0, next))
+      board.dataset.page = String(target)
+      renderPagination(board, cards)
+      // 翻页后卷回赛道网格顶部——不然人还停在页面底部的翻页按钮旁边，看不到新一页的卡片。
+      // 页面顶部有个 sticky header（top:1rem、约 44px 高），scrollIntoView 的默认对齐
+      // 会把网格顶端顶到 viewport 最上面，正好被这个 header 挡住，所以手动减一个偏移量。
+      const gridEl = board.querySelector<HTMLElement>('[data-team-grid]')
+      if (gridEl) {
+        const top = gridEl.getBoundingClientRect().top + window.scrollY - 76
+        window.scrollTo({ top, behavior: 'smooth' })
+      }
+    }
+
+    const prev = document.createElement('button')
+    prev.type = 'button'
+    prev.className = pagerBtnClass
+    prev.textContent = '← 上一页'
+    prev.disabled = page === 0
+    prev.addEventListener('click', () => goTo(page - 1))
+
+    const pageButtons = document.createElement('span')
+    pageButtons.className = 'hidden flex-wrap items-center justify-center gap-1.5 sm:inline-flex'
+    const pageBtnClass =
+      'inline-flex size-8 items-center justify-center rounded-lg border text-sm font-medium transition-colors hover:bg-muted'
+    for (let index = 0; index < pageCount; index += 1) {
+      const pageButton = document.createElement('button')
+      const pageNumber = index + 1
+      const current = index === page
+      pageButton.type = 'button'
+      pageButton.className = current
+        ? `${pageBtnClass} border-foreground bg-foreground text-background`
+        : `${pageBtnClass} text-foreground`
+      pageButton.textContent = String(pageNumber)
+      pageButton.setAttribute('aria-label', current ? `当前第 ${pageNumber} 页` : `跳转到第 ${pageNumber} 页`)
+      if (current) pageButton.setAttribute('aria-current', 'page')
+      else pageButton.addEventListener('click', () => goTo(index))
+      pageButtons.appendChild(pageButton)
+    }
+
+    const pageSelect = document.createElement('select')
+    pageSelect.className = 'rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground sm:hidden'
+    pageSelect.setAttribute('aria-label', '跳转到指定页')
+    for (let index = 0; index < pageCount; index += 1) {
+      const option = document.createElement('option')
+      option.value = String(index)
+      option.textContent = `第 ${index + 1} / ${pageCount} 页`
+      option.selected = index === page
+      pageSelect.appendChild(option)
+    }
+    pageSelect.addEventListener('change', () => goTo(Number(pageSelect.value)))
+
+    const next = document.createElement('button')
+    next.type = 'button'
+    next.className = pagerBtnClass
+    next.textContent = '下一页 →'
+    next.disabled = page === pageCount - 1
+    next.addEventListener('click', () => goTo(page + 1))
+
+    pager.append(prev, pageButtons, pageSelect, next)
+  }
+
+  function applyState(
+    board: HTMLElement,
+    grid: HTMLElement | null,
+    pristine: HTMLElement | null,
+    cards: Map<string, HTMLElement>,
+    data: BoardData
+  ) {
+    board.dataset.configured = data.configured ? 'true' : 'false'
+    board.dataset.passcodeRequired = data.passcodeRequired ? 'true' : 'false'
+    signupClosed = data.signupClosed ?? false
+
+    // 只有至少一位队员报名的队伍才能参加最终评选。数据库降级时名单未知，
+    // 保留静态兜底卡片和计数骨架，避免把「加载失败」误判成「无人报名」。
+    const eligibleTeams = data.degraded ? data.teams : data.teams.filter((team) => team.count > 0)
+
+    const banner = board.querySelector<HTMLElement>('[data-board-banner]')
+    if (banner) {
+      if (!data.configured) {
+        banner.textContent = '报名系统正在配置中，稍后开放，先看看有哪些主题吧。'
+        banner.hidden = false
+        banner.classList.remove('hidden')
+      } else if (data.degraded) {
+        banner.textContent = '名单暂时加载不出来，请稍后刷新重试。'
+        banner.hidden = false
+        banner.classList.remove('hidden')
+      } else {
+        banner.hidden = true
+        banner.classList.add('hidden')
+      }
+    }
+
+    if (!data.degraded) {
+      const eligibleIds = new Set(eligibleTeams.map((team) => team.id))
+      for (const [id, card] of cards) {
+        if (eligibleIds.has(id)) continue
+        card.remove()
+        cards.delete(id)
+      }
+    }
+
+    for (const team of eligibleTeams) {
+      let card = cards.get(team.id)
+      if (!card) {
+        // 自定义赛道：动态建卡并接线
+        if (!pristine || !grid) continue
+        card = buildCard(pristine, team)
+        grid.appendChild(card)
+        cards.set(team.id, card)
+        wireCard(card, board)
+      }
+      renderMeta(card, team) // 标题/简介/标签以 DB 为准，覆盖预渲染值
+      renderRoster(card, team)
+      renderDetail(card, team.detail)
+      renderGithub(card, team.githubUrl)
+      updateCardSearchText(card, team)
+      card.dataset.loaded = 'true'
+    }
+
+    // 与下方实际展示保持一致：只数有报名队员、可以参加评选的队伍。
+    if (!data.degraded) revealTeamCount(board, eligibleTeams.length)
+
+    // 未配置或组队已截止：禁用「创建赛道」入口
+    const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
+    if (createToggle) createToggle.disabled = !data.configured || signupClosed
+
+    // 组队截止：隐藏建队卡片，收起所有报名表单（报名按钮文案由 renderRoster 统一处理）
+    if (signupClosed) {
+      const createCard = board.querySelector<HTMLElement>('[data-create-card]')
+      if (createCard) createCard.hidden = true
+      for (const card of cards.values()) {
+        const form = card.querySelector<HTMLElement>('[data-signup-form]')
+        if (form) form.hidden = true
+      }
+    }
+
+    for (const card of cards.values()) {
+      const captainManagement = card.querySelector<HTMLElement>('[data-captain-management]')
+      if (captainManagement) captainManagement.hidden = !data.detailEditable
+    }
+
+    // 未配置：禁用报名与队伍管理入口。
+    if (!data.configured) {
+      for (const card of cards.values()) {
+        card
+          .querySelectorAll<HTMLButtonElement>('[data-signup-toggle], [data-manage-toggle]')
+          .forEach((toggle) => (toggle.disabled = true))
+      }
+    }
+
+    // 需要口令：显示报名表单里的口令输入；退出与队长管理的口令始终必填。
+    if (data.passcodeRequired) {
+      for (const card of cards.values()) {
+        card.querySelectorAll<HTMLElement>('[data-passcode-field]').forEach((field) => {
+          field.dataset.show = ''
+          field.hidden = false
+          const input = field.querySelector<HTMLInputElement>('input[name="passcode"]')
+          if (input) input.required = true
+        })
+      }
+    }
+
+    renderPagination(board, cards)
+  }
+
+  // 「创建赛道」表单：提交成功后 reload 重新拉一次名单，新卡就会出现。
+  function wireCreateCard(board: HTMLElement, reload: () => Promise<void>) {
+    const wrap = board.querySelector<HTMLElement>('[data-create-card]')
+    if (!wrap) return
+    const toggle = wrap.querySelector<HTMLButtonElement>('[data-create-toggle]')
+    const form = wrap.querySelector<HTMLFormElement>('[data-create-form]')
+    if (!toggle || !form) return
+
+    // 昵称现在两种类型都要填（创建者自动加入并当队长）；名额上限只有「组队」才需要。
+    const capacityField = form.querySelector<HTMLElement>('[data-team-capacity-field]')
+    const syncKind = () => {
+      const solo = form.querySelector<HTMLInputElement>('input[name="kind"]:checked')?.value === 'solo'
+      if (capacityField) {
+        if (solo) {
+          delete capacityField.dataset.show
+          capacityField.hidden = true
+        } else {
+          capacityField.dataset.show = ''
+          capacityField.hidden = false
+        }
+      }
+    }
+    form
+      .querySelectorAll<HTMLInputElement>('input[name="kind"]')
+      .forEach((r) => r.addEventListener('change', syncKind))
+
+    toggle.addEventListener('click', () => {
+      if (board.dataset.configured !== 'true') return
+      const open = form.hasAttribute('data-open')
+      if (open) {
+        form.removeAttribute('data-open')
+        form.hidden = true
+        toggle.setAttribute('aria-expanded', 'false')
+      } else {
+        form.setAttribute('data-open', '')
+        form.hidden = false
+        toggle.setAttribute('aria-expanded', 'true')
+        form.querySelector<HTMLInputElement>('input[name="title"]')?.focus()
+      }
+    })
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+      const data = new FormData(form)
+      const kind = data.get('kind') === 'solo' ? 'solo' : 'team'
+      const capacityRaw = String(data.get('capacity') || '').trim()
+      const payload = {
+        action: 'create',
+        kind,
+        title: String(data.get('title') || ''),
+        summary: String(data.get('summary') || ''),
+        name: String(data.get('name') || ''),
+        // 只有「组队」才带名额上限；留空就交给后端按不限处理。
+        capacity: kind === 'team' && capacityRaw ? Number(capacityRaw) : undefined,
+        passcode: String(data.get('passcode') || ''),
+        hp: String(data.get('hp') || '')
+      }
+
+      if (submitBtn) submitBtn.disabled = true
+      setMsg(form, '创建中…', '', '[data-create-msg]')
+      try {
+        const res = await fetch('/api/agent-teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        const body = await res.json()
+        if (res.ok && body.ok) {
+          form.reset()
+          syncKind() // 复位到「组队」并把名额字段收回默认值
+          form.removeAttribute('data-open')
+          form.hidden = true
+          toggle.setAttribute('aria-expanded', 'false')
+          setMsg(form, '创建成功！已加到下面', 'success', '[data-create-msg]')
+          await reload()
+        } else {
+          setMsg(form, (body && body.message) || '创建失败，请稍后再试', 'error', '[data-create-msg]')
+        }
+      } catch {
+        setMsg(form, '网络错误，请稍后再试', 'error', '[data-create-msg]')
+      } finally {
+        if (submitBtn) submitBtn.disabled = false
+      }
+    })
+
+    form.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
+      form.removeAttribute('data-open')
+      form.hidden = true
+      toggle.setAttribute('aria-expanded', 'false')
+    })
+  }
+
+  function initBoard(board: HTMLElement) {
+    const grid = board.querySelector<HTMLElement>('[data-team-grid]')
+    // 在任何改动前，克隆第一张静态卡当作自定义卡的模板。
+    const pristine = board.querySelector<HTMLElement>('[data-team-id]')?.cloneNode(true) as
+      | HTMLElement
+      | undefined
+
+    const cards = new Map<string, HTMLElement>()
+    board.querySelectorAll<HTMLElement>('[data-team-id]').forEach((card) => {
+      const id = card.dataset.teamId
+      if (!id) return
+      cards.set(id, card)
+      wireCard(card, board)
+    })
+
+    const search = board.querySelector<HTMLInputElement>('[data-team-search]')
+    search?.addEventListener('input', () => {
+      board.dataset.query = search.value
+      board.dataset.page = '0'
+      renderPagination(board, cards)
+    })
+    window.matchMedia('(max-width: 640px)').addEventListener('change', () => {
+      board.dataset.page = '0'
+      renderPagination(board, cards)
+    })
+
+    const qqWrap = board.querySelector<HTMLElement>('[data-qq-group-wrap]')
+    const qqToggle = board.querySelector<HTMLButtonElement>('[data-qq-group-toggle]')
+    qqToggle?.addEventListener('click', () => {
+      const open = !qqWrap?.hasAttribute('data-open')
+      qqWrap?.toggleAttribute('data-open', open)
+      qqToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+    })
+    document.addEventListener('click', (event) => {
+      if (!qqWrap?.hasAttribute('data-open') || qqWrap.contains(event.target as Node)) return
+      qqWrap.removeAttribute('data-open')
+      qqToggle?.setAttribute('aria-expanded', 'false')
+    })
+    // 数据到手前先按 SSR 渲染出的静态赛道分页，首屏就不会把几十张卡全堆出来。
+    renderPagination(board, cards)
+
+    const showBannerError = () => {
+      const banner = board.querySelector<HTMLElement>('[data-board-banner]')
+      if (banner) {
+        banner.textContent = '名单暂时加载不出来，请稍后刷新重试。'
+        banner.hidden = false
+        banner.classList.remove('hidden')
+      }
+    }
+
+    const hideLoadingBar = () => {
+      const bar = board.querySelector<HTMLElement>('[data-board-loading]')
+      if (bar) bar.dataset.done = ''
+    }
+
+    const reload = () =>
+      fetch('/api/agent-teams', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data: BoardData) => applyState(board, grid, pristine ?? null, cards, data))
+        .catch(showBannerError)
+        .finally(hideLoadingBar)
+
+    board.addEventListener('agent-teams:reload', reload)
+    wireCreateCard(board, reload)
+    reload()
+  }
+
+  const board = document.querySelector<HTMLElement>('[data-agent-board]')
+  if (board) initBoard(board)
+</script>

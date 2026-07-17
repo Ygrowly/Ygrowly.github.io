@@ -1,0 +1,25 @@
+---
+import { getCollection } from 'astro:content'
+import { sortCuratedEntries } from '@/lib/curated'
+
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import CuratedLibrary from '@/components/curated/CuratedLibrary.astro'
+
+export const prerender = true
+
+const allCurated = sortCuratedEntries(
+  (await getCollection('curated')).filter((entry) => !entry.data.draft)
+)
+---
+
+<PageLayout
+  meta={{
+    title: 'Curated',
+    description: '筛选过的技术博客、论文、报告和 repo。'
+  }}
+  highlightColor='#659EB9'
+>
+  <Button title='Back' href='/' style='back' />
+  <CuratedLibrary items={allCurated} lang='zh' />
+</PageLayout>
