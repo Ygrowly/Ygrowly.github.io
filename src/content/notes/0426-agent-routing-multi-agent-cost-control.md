@@ -160,7 +160,7 @@ routing 就已经是 multi-agent system 的调度中枢。
 - 输出一个结构化路由结果，比如：
 
 ```json
-{"next_agent":"research_agent","reason":"user asks for competitor info before writing report"}
+{ "next_agent": "research_agent", "reason": "user asks for competitor info before writing report" }
 ```
 
 优点：
@@ -302,16 +302,19 @@ Botpress 那篇 cost optimization 文章虽然不是专门讲 multi-agent，但�
 但如果从工程角度看，它其实是在做三件彼此冲突的优化：
 
 #### 正确性
+
 - 选对 agent
 - 传对上下文
 - 在必要时 fallback / escalate
 
 #### 延迟
+
 - 少绕路
 - 少多余调用
 - 让用户尽快拿到结果
 
 #### 成本
+
 - 少调用不必要模型
 - 少做重复 reasoning
 - 控制 token、工具和外部 API 开销
@@ -382,12 +385,14 @@ Gemini 总结和 Botpress 路由文章都比较偏 LLM-based routing。
 如果以后自己要设计 agent system，我觉得 routing 层至少该先回答清楚这些问题：
 
 ### 1. 路由单位是什么？
+
 - 路由到 agent
 - 路由到 tool
 - 路由到 workflow
 - 还是路由到 human
 
 ### 2. 路由依据是什么？
+
 - 关键词
 - schema
 - embeddings
@@ -396,6 +401,7 @@ Gemini 总结和 Botpress 路由文章都比较偏 LLM-based routing。
 - 混合策略
 
 ### 3. handoff 最小上下文是什么？
+
 - 目标
 - 约束
 - 已完成步骤
@@ -403,12 +409,14 @@ Gemini 总结和 Botpress 路由文章都比较偏 LLM-based routing。
 - 禁止事项
 
 ### 4. fallback 怎么做？
+
 - 澄清问题
 - 换 agent
 - 降级规则流
 - 升级人工
 
 ### 5. cost policy 是什么？
+
 - 哪些请求不值得走多 agent
 - 哪些请求必须保守路由
 - 哪些请求才值得调用高成本模型

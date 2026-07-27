@@ -62,6 +62,7 @@ Hermes 的记忆系统遵循几条关键设计哲学：
 **Hermes 的取舍**：用**写入延迟到下一 session** 的代价，换**前缀缓存全程命中**的经济收益。工具响应里实时返回 live state（"成功写入了 X"），模型知道自己写过什么，逻辑层面不会出错。
 
 **核心三角权衡**：记忆架构本质上是在 **latency / cost / consistency** 之间做选择。
+
 - 想要实时性（低 latency）→ 牺牲缓存（高 cost）
 - 想要省钱（低 cost）→ 牺牲实时（高 latency）
 - 想要多 agent 一致 → 通常两边都要牺牲
@@ -73,6 +74,7 @@ Hermes 选了 cost 优先，这对 CLI agent 场景是合理的。但任何要�
 **机制**：`run_agent.py` 中的 `_build_system_prompt()` 方法在 session 启动时组装系统提示词。
 
 **组成内容**（按顺序）：
+
 1. Agent 身份定义（`SOUL.md` 或默认身份）
 2. 用户/系统消息（如提供）
 3. L1 记忆块：`MEMORY.md` 和 `USER.md` 的**冻结快照**（见 L1 节）
@@ -84,6 +86,7 @@ Hermes 选了 cost 优先，这对 CLI agent 场景是合理的。但任何要�
 **缓存策略**：系统提示词缓存在 `_cached_system_prompt` 中，只在上下文压缩时重建——常规 turn 不变。这保留了模型提供商的**前缀缓存**（prompt caching），大幅降低延迟和成本。
 
 **Per-turn 上下文注入**：在每次 API 调用前，外部记忆提供者的 `prefetch()` 结果作为一个 `<memory-context>...</memory-context>` 围栏块注入到当前用户消息中。
+
 - 关键设计：只在 API 调用时注入，原始消息永不突变，不会泄漏到 session 持久化中
 - 使用 `build_memory_context_block()` 封装，配合流式响应中的 `StreamingContextScrubber` 处理分界围栏
 
@@ -92,10 +95,12 @@ Hermes 选了 cost 优先，这对 CLI agent 场景是合理的。但任何要�
 ### L1: 持久化记忆（memory_tool）
 
 **存储**：两个 markdown 文件在 `$HERMES_HOME/memories/`：
+
 - `MEMORY.md`——agent 的个人笔记（环境事实、项目约定、经验教训）
 - `USER.md`——用户画像（偏好、沟通风格、习惯）
 
 **工具接口**：单一 `memory` 工具，三个操作：
+
 - `memory(target="memory"|"user", action="add", content="...")`
 - `memory(action="replace", old_text="...", content="...")`
 - `memory(action="remove", old_text="...")`
@@ -118,10 +123,12 @@ Session 运行中 → 写入更新磁盘文件（即时持久化）
 ```
 
 这是最精妙的设计决策：**内存写入是即时持久的，但快照是冻结的**。两个状态并行存在：
+
 - **冻结快照**（`_system_prompt_snapshot`）→ 用于系统提示词注入，session 内不变
 - **活跃条目**（`self.entries`）→ 用于工具调用的返回结果，实时反映最新状态
 
 **安全机制**（详见 `0504-hermes-memory-safety-mechanisms`）：
+
 1. 注入扫描：13 种威胁模式正则 + 不可见 Unicode 检测
 2. 文件锁定：`fcntl.flock`（Unix）/ `msvcrt`（Windows）通过独立 `.lock` 文件
 3. 锁下重读：写入前在锁下重新读取磁盘状态，防止丢失更新
@@ -134,10 +141,12 @@ Session 运行中 → 写入更新磁盘文件（即时持久化）
 ### L1.5: 外部记忆插件架构
 
 **MemoryProvider ABC**（`agent/memory_provider.py`）定义了完整生命周期：
+
 - 核心：`is_available()`、`initialize()`、`system_prompt_block()`、`prefetch()`、`queue_prefetch()`、`sync_turn()`、`get_tool_schemas()`、`handle_tool_call()`、`shutdown()`
 - 可选钩子：`on_turn_start()`、`on_session_end()`、`on_session_switch()`、`on_pre_compress()`、`on_delegation()`、`on_memory_write()`、`get_config_schema()`、`save_config()`
 
 **MemoryManager**（`agent/memory_manager.py`）管理所有记忆提供者：
+
 - 总是先注册 `BuiltinMemoryProvider`（不可移除）
 - 最多允许**一个**外部提供者（第二个会被拒绝并警告）
 - 通过 `tool_name → provider` 索引路由工具调用
@@ -147,16 +156,16 @@ Session 运行中 → 写入更新磁盘文件（即时持久化）
 
 **已打包的插件**（`plugins/memory/`）：
 
-| 插件 | 说明 |
-|------|------|
-| honcho | Honcho API 后端 |
-| mem0 | Mem0 记忆后端 |
-| supermemory | Supermemory API |
-| retaindb | RetainDB 存储 |
-| hindsight | 可插拔的 hindsight 召回 |
-| holographic | 全息记忆 + 检索存储 |
-| openviking | 文件记忆，自行定义 L0/L1/L2 三层 |
-| byterover | 字节级记忆存储 |
+| 插件        | 说明                             |
+| ----------- | -------------------------------- |
+| honcho      | Honcho API 后端                  |
+| mem0        | Mem0 记忆后端                    |
+| supermemory | Supermemory API                  |
+| retaindb    | RetainDB 存储                    |
+| hindsight   | 可插拔的 hindsight 召回          |
+| holographic | 全息记忆 + 检索存储              |
+| openviking  | 文件记忆，自行定义 L0/L1/L2 三层 |
+| byterover   | 字节级记忆存储                   |
 
 **加载机制**：扫描两个位置——内置 `plugins/memory/<name>/` 和用户安装的 `$HERMES_HOME/plugins/<name>/`。内置优先。启发式检测：在 `__init__.py` 中查找 `MemoryProvider` 子类或 `register_memory_provider`。
 
@@ -169,6 +178,7 @@ Session 运行中 → 写入更新磁盘文件（即时持久化）
 `~/.hermes/state.db` 中的 `messages` 表，开 WAL 模式（多读单写）。所有 CLI / Telegram / Discord / cron session 的每条消息落地。
 
 `state.db` 包含五张核心表：
+
 - `sessions` —— session 元数据（ID、来源、模型、时间戳、token 数、成本、标题、parent_session_id）
 - `messages` —— 完整对话历史（角色、内容、tool_calls、reasoning）
 - `messages_fts` —— unicode61 tokenizer 的 FTS5 虚拟表
@@ -237,19 +247,20 @@ agent 调 `session_search` 工具时的完整流程：
 Query-focused summary 实际上是**带推理的软 rerank**：小模型读 100k 字符窗口，被要求"针对 query X 总结"——它在做语义匹配，而且是带推理的 rerank，不是相似度打分。
 
 **核心收益**：
+
 - **信息密度从 ~10% 拉到 ~80%**。无关 token 不进主模型 context。
 - **吸收了一部分语义泛化的需要**。FTS5 不会把"死锁"和"ReAct loop 卡住"匹配起来，但如果"死锁"这个 query 在另一个 session 里有过字面命中，FTS5 召回那个 session，然后摘要 prompt 让 LLM 在读到 "ReAct loop 卡住"时——它知道这就是用户问的死锁，会在摘要里翻译成"用户之前用 max_iter 解决了 ReAct loop 卡死的问题"。
 - 语义泛化的工作从**召回阶段**被推迟到了**摘要阶段**。
 
 #### 非对称成本结构
 
-| 操作 | 频率 | 单次成本 |
-|------|------|---------|
-| FTS5 写入 | 每条消息 | 接近零 |
-| FTS5 检索 | 每次 session_search | 接近零 |
-| LLM 摘要 | 每次有匹配的 session | 调用 Gemini Flash |
-| 向量写入 | 每条消息 | 中（embedding 推理） |
-| 向量检索 | 每次搜索 | 中（ANN 索引） |
+| 操作      | 频率                 | 单次成本             |
+| --------- | -------------------- | -------------------- |
+| FTS5 写入 | 每条消息             | 接近零               |
+| FTS5 检索 | 每次 session_search  | 接近零               |
+| LLM 摘要  | 每次有匹配的 session | 调用 Gemini Flash    |
+| 向量写入  | 每条消息             | 中（embedding 推理） |
+| 向量检索  | 每次搜索             | 中（ANN 索引）       |
 
 **关键不对称性**：FTS5 召回是廉价的，因此可以用更宽的召回口径而不心疼成本。甚至可以用 OR 扩展 query 来拉宽召回——因为进入摘要阶段后，LLM 会自己过滤。如果召回是昂贵的（比如每次都要算 embedding），就必须把召回口径收窄，而这恰恰是导致漏召回的原因。
 
@@ -325,15 +336,16 @@ Session 结束
 
 ## 各层关系
 
-| 层 | 名称 | 机制 | 范围 | 持久化 | 注入点 |
-|----|------|------|------|--------|--------|
-| **L0** | 系统提示词 + 上下文注入 | `_build_system_prompt()` 装配，L1 块 + 提供者块 | 当前 session | 压缩时重建 | 系统提示词；每轮 `<memory-context>` 围栏块 |
-| **L1** | 持久化记忆 | `memory_tool.py`，MEMORY.md / USER.md | 跨 session | 磁盘文件，session 启动时快照 | 系统提示词（session 开始时冻结） |
-| **L1.5** | 外部记忆提供者 | `MemoryProvider` 插件 via `MemoryManager` | 跨 session | 因插件而异（API、本地 DB 等） | 提供者 `system_prompt_block()` + `prefetch()` 上下文 |
-| **L2** | 会话搜索 | `session_search_tool.py`，SQLite FTS5 | 跨 session（全部历史） | SQLite state.db | 按需通过工具调用 |
-| **压缩** | 上下文窗口管理 | `context_compressor.py` | 当前 session 过往轮次 | 摘要作为压缩消息持久化 + session 分裂 | 替换压缩消息为紧凑摘要 |
+| 层       | 名称                    | 机制                                            | 范围                   | 持久化                                | 注入点                                               |
+| -------- | ----------------------- | ----------------------------------------------- | ---------------------- | ------------------------------------- | ---------------------------------------------------- |
+| **L0**   | 系统提示词 + 上下文注入 | `_build_system_prompt()` 装配，L1 块 + 提供者块 | 当前 session           | 压缩时重建                            | 系统提示词；每轮 `<memory-context>` 围栏块           |
+| **L1**   | 持久化记忆              | `memory_tool.py`，MEMORY.md / USER.md           | 跨 session             | 磁盘文件，session 启动时快照          | 系统提示词（session 开始时冻结）                     |
+| **L1.5** | 外部记忆提供者          | `MemoryProvider` 插件 via `MemoryManager`       | 跨 session             | 因插件而异（API、本地 DB 等）         | 提供者 `system_prompt_block()` + `prefetch()` 上下文 |
+| **L2**   | 会话搜索                | `session_search_tool.py`，SQLite FTS5           | 跨 session（全部历史） | SQLite state.db                       | 按需通过工具调用                                     |
+| **压缩** | 上下文窗口管理          | `context_compressor.py`                         | 当前 session 过往轮次  | 摘要作为压缩消息持久化 + session 分裂 | 替换压缩消息为紧凑摘要                               |
 
 这五层不是互斥的，而是**协同工作**：
+
 - L0 是**常驻**上下文：agent 始终"知道"这些信息
 - L1 是**有意写入**的记忆：agent 判断"这值得记住"
 - L1.5 是**外部扩展**：用第三方服务扩展记忆能力
@@ -347,6 +359,7 @@ Session 结束
 之前的 `0504-hermes-memory-safety-mechanisms` 从**安全角度**详细分析了 L1 `memory_tool.py` 的六项安全机制（注入扫描、文件锁、锁下重读、容量拒绝、原子写入、子串匹配）。
 
 这张卡片从**架构角度**覆盖了整个记忆系统的四个层次及其交互，包括：
+
 - L0 系统提示词装配与缓存策略
 - L1 的 frozen snapshot pattern（0504 未涉及）
 - L1.5 外部记忆插件架构
@@ -379,16 +392,17 @@ Hermes 的 consolidation（记忆整理）方案是**最薄弱的环节**。核�
 
 ### 3. 与替代方案的对比
 
-| 方案 | 核心机制 | 缓存友好度 | 扩展性 | 实现复杂度 | 适用场景 |
-|------|----------|-----------|--------|-----------|---------|
-| **Hermes (L1 frozen snapshot)** | 文件 → system prompt 快照，session 内冻结 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | 单用户、慢变记忆、CLI agent |
-| **Sliding window + summary** | 保留最近 N 轮，更早的压缩成 summary | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | 长对话，记忆需求集中在"最近发生了什么" |
-| **Letta / MemGPT (分层)** | working/recall/archival 三层，模型主动搬运 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | 长 horizon、单 agent、高记忆密度 |
-| **向量 RAG** | 每轮按 query 检索 top-k 注入 | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | 可扩展几乎无限，但偏好类记忆难召回 |
-| **知识图谱** | entity-relation 三元组 → 图查询 | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | 事实型精确检索，多跳推理 |
-| **混合方案（生产级）** | snapshot + 向量 + KV + 关键词 多路召回 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | 多用户、跨 session、生产系统 |
+| 方案                            | 核心机制                                   | 缓存友好度 | 扩展性     | 实现复杂度 | 适用场景                               |
+| ------------------------------- | ------------------------------------------ | ---------- | ---------- | ---------- | -------------------------------------- |
+| **Hermes (L1 frozen snapshot)** | 文件 → system prompt 快照，session 内冻结  | ⭐⭐⭐⭐⭐ | ⭐⭐       | ⭐⭐⭐⭐⭐ | 单用户、慢变记忆、CLI agent            |
+| **Sliding window + summary**    | 保留最近 N 轮，更早的压缩成 summary        | ⭐⭐⭐     | ⭐⭐⭐     | ⭐⭐⭐⭐   | 长对话，记忆需求集中在"最近发生了什么" |
+| **Letta / MemGPT (分层)**       | working/recall/archival 三层，模型主动搬运 | ⭐⭐       | ⭐⭐⭐⭐   | ⭐⭐       | 长 horizon、单 agent、高记忆密度       |
+| **向量 RAG**                    | 每轮按 query 检索 top-k 注入               | ⭐         | ⭐⭐⭐⭐⭐ | ⭐⭐⭐     | 可扩展几乎无限，但偏好类记忆难召回     |
+| **知识图谱**                    | entity-relation 三元组 → 图查询            | ⭐         | ⭐⭐⭐⭐⭐ | ⭐         | 事实型精确检索，多跳推理               |
+| **混合方案（生产级）**          | snapshot + 向量 + KV + 关键词 多路召回     | ⭐⭐⭐     | ⭐⭐⭐⭐⭐ | ⭐         | 多用户、跨 session、生产系统           |
 
 **混合方案的 insight**：不同类型的记忆有不同的访问 pattern，应该用不同的存储
+
 - 稳定的偏好/身份信息 → snapshot 进 system prompt（保缓存）
 - 会话内的临时状态 → 留在 conversation history
 - 跨会话的事实记忆 → 向量库 + 关键词索引双路召回
@@ -414,6 +428,7 @@ Hermes 的记忆系统最有价值的不是某一种技术选择（FTS5 vs 向�
 这是单用户 Agent 场景下，比"embedding 一把梭"的 vector RAG 方案更适合的实际可运行设计。
 
 **未来可考虑的方向**：
+
 1. L2 查询扩展（用 LLM 把用户 query 扩展成多个 FTS5 子查询）
 2. Session 级别的元数据过滤（时间范围、source 过滤）
 3. 摘要质量的评估和改进（当前用的 Gemini Flash 够不够好）

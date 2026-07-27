@@ -3,59 +3,59 @@ version: alpha
 name: Joye Personal Blog
 description: A solo engineer's blog and portfolio (Astro). Calm, editorial, technical on the main reading surfaces — chrome stays quiet so writing and project work are the subject. A separate, deliberately playful terminal/dev-mode/mascot layer exists as an easter egg and does not follow these tokens (see Sub-themes).
 colors:
-  background: "hsl(210 33% 99%)"
-  foreground: "hsl(240 10% 3.9%)"
-  card: "hsl(0 0% 100%)"
-  card-foreground: "hsl(240 10% 3.9%)"
-  popover: "hsl(0 0% 100%)"
-  popover-foreground: "hsl(240 10% 3.9%)"
-  primary: "hsl(200 29% 45%)"
-  primary-foreground: "hsl(0 0% 92.5%)"
-  secondary: "hsl(240 4.8% 95.9%)"
-  secondary-foreground: "hsl(240 5.9% 10%)"
-  muted: "hsl(240 4.8% 95%)"
-  muted-foreground: "hsl(240 3.8% 28.1%)"
-  accent: "hsl(240 4.8% 95.9%)"
-  accent-foreground: "hsl(240 5.9% 10%)"
-  destructive: "hsl(0 72.22% 50.59%)"
-  destructive-foreground: "hsl(0 0% 98%)"
-  border: "hsl(240 5.9% 88%)"
-  input: "hsl(240 5.9% 90%)"
-  ring: "hsl(240 5.9% 10%)"
-  term-surface: "hsl(210 20% 97%)"
-  term-chrome: "hsl(210 20% 95%)"
-  term-ok: "hsl(142 50% 40%)"
-  code-bg: "hsl(220 14% 93%)"
-  code-fg: "hsl(220 13% 18%)"
+  background: 'hsl(210 33% 99%)'
+  foreground: 'hsl(240 10% 3.9%)'
+  card: 'hsl(0 0% 100%)'
+  card-foreground: 'hsl(240 10% 3.9%)'
+  popover: 'hsl(0 0% 100%)'
+  popover-foreground: 'hsl(240 10% 3.9%)'
+  primary: 'hsl(200 29% 45%)'
+  primary-foreground: 'hsl(0 0% 92.5%)'
+  secondary: 'hsl(240 4.8% 95.9%)'
+  secondary-foreground: 'hsl(240 5.9% 10%)'
+  muted: 'hsl(240 4.8% 95%)'
+  muted-foreground: 'hsl(240 3.8% 28.1%)'
+  accent: 'hsl(240 4.8% 95.9%)'
+  accent-foreground: 'hsl(240 5.9% 10%)'
+  destructive: 'hsl(0 72.22% 50.59%)'
+  destructive-foreground: 'hsl(0 0% 98%)'
+  border: 'hsl(240 5.9% 88%)'
+  input: 'hsl(240 5.9% 90%)'
+  ring: 'hsl(240 5.9% 10%)'
+  term-surface: 'hsl(210 20% 97%)'
+  term-chrome: 'hsl(210 20% 95%)'
+  term-ok: 'hsl(142 50% 40%)'
+  code-bg: 'hsl(220 14% 93%)'
+  code-fg: 'hsl(220 13% 18%)'
 # colorsDark is a non-normative extension (not part of the base design.md
 # spec): the site is dual-theme, and we keep both themes in one file rather
 # than splitting into a second design.dark.md. Same keys as `colors` above,
 # values applied when `.dark` is set on <html>.
 colorsDark:
-  background: "hsl(240 20.54% 5.2%)"
-  foreground: "hsl(0 0% 98%)"
-  card: "hsl(240 10% 3.9%)"
-  card-foreground: "hsl(0 0% 98%)"
-  popover: "hsl(240 10% 3.9%)"
-  popover-foreground: "hsl(0 0% 98%)"
-  primary: "hsl(195 95% 85%)"
-  primary-foreground: "hsl(240 3.7% 15.9%)"
-  secondary: "hsl(240 3.7% 15.9%)"
-  secondary-foreground: "hsl(0 0% 98%)"
-  muted: "hsl(240 5.9% 12%)"
-  muted-foreground: "hsl(240 5% 74.9%)"
-  accent: "hsl(240 3.7% 15.9%)"
-  accent-foreground: "hsl(0 0% 98%)"
-  destructive: "hsl(0 62.8% 30.6%)"
-  destructive-foreground: "hsl(0 0% 98%)"
-  border: "hsl(240 3.7% 19.9%)"
-  input: "hsl(240 3.7% 15.9%)"
-  ring: "hsl(240 4.9% 83.9%)"
-  term-surface: "hsl(240 18% 7%)"
-  term-chrome: "hsl(240 18% 4%)"
-  term-ok: "hsl(142 60% 65%)"
-  code-bg: "hsl(240 5.9% 12%)"
-  code-fg: "hsl(0 0% 92%)"
+  background: 'hsl(240 20.54% 5.2%)'
+  foreground: 'hsl(0 0% 98%)'
+  card: 'hsl(240 10% 3.9%)'
+  card-foreground: 'hsl(0 0% 98%)'
+  popover: 'hsl(240 10% 3.9%)'
+  popover-foreground: 'hsl(0 0% 98%)'
+  primary: 'hsl(195 95% 85%)'
+  primary-foreground: 'hsl(240 3.7% 15.9%)'
+  secondary: 'hsl(240 3.7% 15.9%)'
+  secondary-foreground: 'hsl(0 0% 98%)'
+  muted: 'hsl(240 5.9% 12%)'
+  muted-foreground: 'hsl(240 5% 74.9%)'
+  accent: 'hsl(240 3.7% 15.9%)'
+  accent-foreground: 'hsl(0 0% 98%)'
+  destructive: 'hsl(0 62.8% 30.6%)'
+  destructive-foreground: 'hsl(0 0% 98%)'
+  border: 'hsl(240 3.7% 19.9%)'
+  input: 'hsl(240 3.7% 15.9%)'
+  ring: 'hsl(240 4.9% 83.9%)'
+  term-surface: 'hsl(240 18% 7%)'
+  term-chrome: 'hsl(240 18% 4%)'
+  term-ok: 'hsl(142 60% 65%)'
+  code-bg: 'hsl(240 5.9% 12%)'
+  code-fg: 'hsl(0 0% 92%)'
 typography:
   body:
     fontFamily: Satoshi
@@ -70,7 +70,7 @@ typography:
     fontFamily: Satoshi
     fontWeight: 500
   ui-label:
-    fontFamily: "JetBrains Mono"
+    fontFamily: 'JetBrains Mono'
     fontSize: 12px
     fontWeight: 400
     lineHeight: 20px
@@ -112,17 +112,17 @@ All color is driven by HSL-triplet CSS variables in
 store a raw `H S% L%` triplet (no `hsl()` wrapper) so they can be consumed
 with an alpha channel: `hsl(var(--primary) / 0.25)`.
 
-| Token | Light | Dark | Used for |
-| --- | --- | --- | --- |
-| `background` / `foreground` | `210 33% 99%` / `240 10% 3.9%` | `240 20.54% 5.2%` / `0 0% 98%` | Page base |
-| `card` / `card-foreground` | `0 0% 100%` / `240 10% 3.9%` | `240 10% 3.9%` / `0 0% 98%` | Cards, popovers |
-| `primary` / `primary-foreground` | `200 29% 45%` (muted teal-blue) | `195 95% 85%` (bright cyan) | Links, accents, active state |
-| `secondary` / `muted` / `accent` | `240 4.8% 95.9%` / `95%` / `95.9%` | `240 3.7% 15.9%` / `5.9% 12%` / `3.7% 15.9%` | Low-emphasis fills |
-| `muted-foreground` | `240 3.8% 28.1%` | `240 5% 74.9%` | Secondary text |
-| `destructive` / `destructive-foreground` | `0 72.22% 50.59%` / `0 0% 98%` | `0 62.8% 30.6%` / `0 0% 98%` | Errors |
-| `border` / `input` / `ring` | `240 5.9% 88%` / `90%` / `10%` | `240 3.7% 19.9%` / `15.9%` / `4.9% 83.9%` | Structural lines, focus |
-| `term-surface` / `term-chrome` / `term-ok` | terminal sub-theme (see below) | | Terminal widget |
-| `code-bg` / `code-fg` | `220 14% 93%` / `220 13% 18%` | `240 5.9% 12%` / `0 0% 92%` | Code blocks |
+| Token                                      | Light                              | Dark                                         | Used for                     |
+| ------------------------------------------ | ---------------------------------- | -------------------------------------------- | ---------------------------- |
+| `background` / `foreground`                | `210 33% 99%` / `240 10% 3.9%`     | `240 20.54% 5.2%` / `0 0% 98%`               | Page base                    |
+| `card` / `card-foreground`                 | `0 0% 100%` / `240 10% 3.9%`       | `240 10% 3.9%` / `0 0% 98%`                  | Cards, popovers              |
+| `primary` / `primary-foreground`           | `200 29% 45%` (muted teal-blue)    | `195 95% 85%` (bright cyan)                  | Links, accents, active state |
+| `secondary` / `muted` / `accent`           | `240 4.8% 95.9%` / `95%` / `95.9%` | `240 3.7% 15.9%` / `5.9% 12%` / `3.7% 15.9%` | Low-emphasis fills           |
+| `muted-foreground`                         | `240 3.8% 28.1%`                   | `240 5% 74.9%`                               | Secondary text               |
+| `destructive` / `destructive-foreground`   | `0 72.22% 50.59%` / `0 0% 98%`     | `0 62.8% 30.6%` / `0 0% 98%`                 | Errors                       |
+| `border` / `input` / `ring`                | `240 5.9% 88%` / `90%` / `10%`     | `240 3.7% 19.9%` / `15.9%` / `4.9% 83.9%`    | Structural lines, focus      |
+| `term-surface` / `term-chrome` / `term-ok` | terminal sub-theme (see below)     |                                              | Terminal widget              |
+| `code-bg` / `code-fg`                      | `220 14% 93%` / `220 13% 18%`      | `240 5.9% 12%` / `0 0% 92%`                  | Code blocks                  |
 
 `--primary` is not held constant across themes — it flips from a muted
 mid-tone in light mode to a bright near-foreground tone in dark mode, rather
@@ -340,7 +340,7 @@ not a bug to normalize away:
 - `devmode.css` explicitly switches `mix-blend-mode` between `multiply`
   (light) and `screen` (dark) for its scanline effect
   ([`devmode.css:41-46`](src/components/terminal/devmode.css)) — a rare case
-  where light/dark need different *blend modes*, not just different colors.
+  where light/dark need different _blend modes_, not just different colors.
 - `jojo.css`'s speech bubble uses theme tokens (`--card`/`--foreground`/
   `--border`) for color but its own literal `10px` radius / `6px 10px`
   padding — color follows the system, geometry doesn't.

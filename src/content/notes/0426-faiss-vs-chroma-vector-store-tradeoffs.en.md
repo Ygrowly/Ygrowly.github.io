@@ -1,6 +1,6 @@
 ---
-title: "Faiss vs Chroma: Vector Store Selection Tradeoffs"
-description: "Notes on how Faiss, Chroma, and adjacent vector stores position themselves for RAG / vector retrieval, plus the tradeoffs across ANN index algorithms."
+title: 'Faiss vs Chroma: Vector Store Selection Tradeoffs'
+description: 'Notes on how Faiss, Chroma, and adjacent vector stores position themselves for RAG / vector retrieval, plus the tradeoffs across ANN index algorithms.'
 date: 2026-04-16
 updatedDate: 2026-05-20
 tags:
@@ -142,6 +142,7 @@ If you want to do one complete selection comparison, here's how the 6 mainstream
 Data source: 2025-2026 benchmarks show Milvus and Faiss leading at hundred-million scale; Chroma and pgvector are good for getting to production fast; Qdrant/Weaviate have unique advantages in filtering and hybrid search.
 
 One-line positioning:
+
 - Want extreme speed + large scale → Faiss (low-level) or Milvus
 - Want the fastest start → Chroma or pgvector
 - Want filtering / hybrid search → Qdrant or Weaviate
@@ -152,17 +153,21 @@ One-line positioning:
 This material compresses down to the following decision framework:
 
 #### Want the fastest start
+
 - **Chroma**
 - Or, if you already have Postgres, **pgvector** directly
 
 #### Want peak performance / large scale
+
 - **Faiss** (low-level)
 - Or **Milvus** (a more complete production solution)
 
 #### Want strong filtering / payload retrieval
+
 - **Qdrant**
 
 #### Want hybrid search / graph-structured semantic retrieval
+
 - **Weaviate**
 
 So the real-world question isn't "which is best," it's:
@@ -176,25 +181,30 @@ The single biggest chunk worth keeping from this discussion is that it lands the
 Exact search (Flat / brute-force) becomes O(N) once the data grows, so production almost always goes through ANN: you sacrifice a tiny bit of accuracy (Recall is usually 95%+) in exchange for a 10–1000x speedup. The mainstream algorithms fall into three big categories:
 
 #### Flat (exact / Brute Force)
+
 - Store all vectors as an array, compute cosine / Euclidean distance dimension by dimension, then sort and take Top-k
 - 100% recall, but O(N) — grows linearly with the data
 - Only suitable for <100K vectors, or as a submodule of IVF / HNSW
 - The IVF_FLAT in Faiss/Milvus is Flat underneath; Chroma/Qdrant automatically fall back to Flat on small collections (<10K)
 
 #### IVF (Inverted File index)
+
 Core idea: cluster first, then invert.
 
 Build phase: use K-means to split all vectors into `nlist` clusters (each cluster has one centroid), and each vector is recorded only in the inverted list of the cluster it belongs to.
 
 Query phase:
+
 1. Compute the distance from the query vector to all nlist centroids, and pick the nearest `nprobe` clusters
 2. Do exact (or compressed) search only within those nprobe clusters
 
 Key parameters:
+
 - **nlist**: number of clusters — larger is finer-grained but makes the index bigger
 - **nprobe**: number of clusters checked at query time — can be tuned dynamically at runtime; larger means higher Recall
 
 Variants (compression / quantization):
+
 - **IVF_FLAT**: no compression — most accurate but most memory-hungry
 - **IVF_PQ (Product Quantization)**: split the vector into subspaces, encode each subspace with a codebook; compression up to 64:1, Recall 70–90%
 - **IVF_SQ8**: scalar quantization (8-bit per dimension), 4:1 compression, Recall 90%+
@@ -204,11 +214,13 @@ Pros and cons: fast to build, low memory, stable under filtering (filter cluster
 Who uses it: Milvus natively supports the full IVF family (most flexible); pgvector's IVFFlat; Faiss is the inventor of IVF.
 
 #### HNSW (Hierarchical Navigable Small World graph)
+
 The most mainstream ANN algorithm in 2026.
 
 Core idea: build the vector space into a layered graph, like "highways + country roads."
 
 Build phase: every vector is a node in the graph:
+
 - The top layer has only a few nodes with very "broad" connections (the small-world property: any two points are a few hops apart)
 - Going down layer by layer, the node count grows and connections get "denser"
 - Each node has at most m edges (typically 8–64)
@@ -216,6 +228,7 @@ Build phase: every vector is a node in the graph:
 Query phase: start from the entry point at the top layer, greedily hop toward the nearest neighbor, walk down layer by layer, and finally find the exact Top-k at the bottom layer. Search complexity ≈ O(log N).
 
 Key parameters (tunable in Qdrant/Chroma/Milvus):
+
 - **m**: max connections per node (larger means higher Recall, but memory ↑)
 - **ef_construct**: candidate count during graph building (larger means higher graph quality, slower build)
 - **hnsw_ef (or ef_search)**: candidate count at query time (larger means higher Recall, slower query)
@@ -225,11 +238,13 @@ Pros and cons: highest Recall (98%+), extremely fast queries, friendly to real-t
 Who uses it: Qdrant (Rust, heavily optimized HNSW + on-disk); Weaviate (default); Chroma (default HNSW, with SPANN being its cloud variant); Milvus (optional); pgvector (HNSW); Faiss (also supports it).
 
 #### Other advanced techniques (general)
+
 - **Quantization**: PQ (product quantization), SQ (scalar quantization), Binary Quantization — compress float32 vectors down to int8/int4/bit, for huge memory and speed wins with a slight Recall drop
 - **DiskANN / SPANN**: disk-friendly versions of HNSW (Chroma cloud, pgvector extension), solving the memory bottleneck
 - **Hybrid indexing**: many databases support "vector + scalar filter," coarse-filtering first and then doing a refined search
 
 #### Algorithm selection cheat sheet (2026 field experience)
+
 - Data <100K → Flat is enough
 - Want lowest memory + heavy filtering → IVF (Milvus/pgvector)
 - Want highest Recall + speed → HNSW (Qdrant/Weaviate/Chroma)

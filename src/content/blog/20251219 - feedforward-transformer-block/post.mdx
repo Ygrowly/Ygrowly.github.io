@@ -12,6 +12,7 @@ tags: ['LLM', 'Transformer', 'MiniMind', 'FeedForward', 'SwiGLU', 'Architecture'
 [MiniMind](https://github.com/jingyaogong/minimind) 是一个简洁但完整的大语言模型训练项目，包含从数据处理、模型训练到推理部署的完整流程。我在学习这个项目的过程中，将核心技术点整理成了 [minimind-notes](https://github.com/joyehuang/minimind-notes) 仓库，并产出了这个4篇系列博客，系统性地讲解 Transformer 的核心组件。
 
 本系列包括：
+
 1. **归一化机制** - 为什么需要RMSNorm
 2. **RoPE位置编码** - 如何让模型理解词序
 3. **Attention机制** - Transformer的核心引擎
@@ -24,11 +25,13 @@ tags: ['LLM', 'Transformer', 'MiniMind', 'FeedForward', 'SwiGLU', 'Architecture'
 ### 1.1 被忽视的另一半
 
 提到 Transformer，大家都会想到：
+
 - ✅ Attention 机制（明星组件）
 - ✅ 位置编码（RoPE）
 - ❓ FeedForward？那是什么？
 
 **事实**：
+
 - FeedForward 占 Transformer Block 代码的 40%
 - FeedForward 的参数量占总参数的 **2/3**！
 - 没有 FeedForward，只有 Attention 是训练不出好模型的
@@ -58,6 +61,7 @@ tags: ['LLM', 'Transformer', 'MiniMind', 'FeedForward', 'SwiGLU', 'Architecture'
 > "对每个词的向量进行复杂的非线性变换"
 
 **关键特点**：
+
 - ✅ 每个词**独立处理**（没有词与词的交互）
 - ✅ 输入维度 = 输出维度（768 维）
 - ✅ 但内容完全改变（经过非线性变换）
@@ -113,9 +117,9 @@ class SimpleFeedForward(nn.Module):
 ```
 
 **类比**：
+
 - Attention = 开会讨论（大家交换信息）
 - FeedForward = 各自思考（独立消化信息）
-
 
 ---
 
@@ -130,6 +134,7 @@ class SimpleFeedForward(nn.Module):
 ### 3.2 直觉理解：表达能力
 
 **方案 1：直接变换**
+
 ```python
 # 768 → 768
 output = W @ x  # W 是 [768, 768] 矩阵
@@ -139,6 +144,7 @@ output = W @ x  # W 是 [768, 768] 矩阵
 ```
 
 **方案 2：扩张-压缩**
+
 ```python
 # 768 → 2048 → 768
 h = W1 @ x           # [2048, 768] @ [768] = [2048]
@@ -161,6 +167,7 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
 - **压缩回原维（2048 → 768）**：保留高维空间学到的复杂模式
 
 **实验验证**：拟合复杂函数（如 y = sin(x) + cos(2x)）时：
+
 - 直接变换 `Linear(1, 1)`：只能拟合线性函数，误差大 ❌
 - 扩张-压缩 `Linear(1, 64) → ReLU → Linear(64, 1)`：可以拟合非线性函数，误差小 ✅
 - **结论**：扩张-压缩 = 表达能力++
@@ -168,6 +175,7 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
 ### 3.4 类比理解
 
 **类比 1：做菜**
+
 ```
 直接变换（768 → 768）:
   生食材 → 装盘
@@ -179,6 +187,7 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
 ```
 
 **类比 2：照片处理**
+
 ```
 直接变换:
   原图 → 简单滤镜 → 输出
@@ -189,19 +198,19 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
   可以实现降噪、超分辨率等复杂操作 ✅
 ```
 
-
 ### 3.5 为什么是 2048 维（而不是 1024 或 4096）？
 
 **经验规则**：intermediate_size ≈ **hidden_size × 2.67 ~ 4**
 
-| 模型 | hidden_size | intermediate_size | 比例 |
-|------|-------------|-------------------|------|
-| BERT-Base | 768 | 3072 | 4.0 |
-| GPT-2 | 768 | 3072 | 4.0 |
-| Llama-7B | 4096 | 11008 | 2.69 |
-| MiniMind | 768 | 2048 | 2.67 |
+| 模型      | hidden_size | intermediate_size | 比例 |
+| --------- | ----------- | ----------------- | ---- |
+| BERT-Base | 768         | 3072              | 4.0  |
+| GPT-2     | 768         | 3072              | 4.0  |
+| Llama-7B  | 4096        | 11008             | 2.69 |
+| MiniMind  | 768         | 2048              | 2.67 |
 
 **为什么不是更大？**
+
 - 更大 = 更多参数 = 更慢、更耗显存
 - 2.67-4 倍是实验验证的最佳平衡点
 
@@ -212,18 +221,21 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
 ### 4.1 FeedForward 的演进
 
 **第1代（GPT-2/BERT，2018-2019）**：
+
 ```python
 h = ReLU(W1 @ x)
 output = W2 @ h
 ```
 
 **第2代（GPT-3，2020）**：
+
 ```python
 h = GELU(W1 @ x)  # 更平滑的激活函数
 output = W2 @ h
 ```
 
 **第3代（Llama/MiniMind，2023）**：
+
 ```python
 gate = SiLU(W_gate @ x)
 up = W_up @ x
@@ -264,6 +276,7 @@ class SwiGLU(nn.Module):
 ```
 
 **维度变化**：
+
 ```
 输入:  [batch, seq, 768]
   ↓
@@ -287,12 +300,11 @@ def silu(x):
 
 **对比常见激活函数**：
 
-| 激活函数 | 公式 | 特点 |
-|---------|------|------|
-| ReLU | `max(0, x)` | 简单但梯度可能为 0 |
-| GELU | `x * Φ(x)` | 平滑但计算稍慢 |
-| SiLU/Swish | `x * σ(x)` | **平滑且计算快** ✅ |
-
+| 激活函数   | 公式        | 特点                |
+| ---------- | ----------- | ------------------- |
+| ReLU       | `max(0, x)` | 简单但梯度可能为 0  |
+| GELU       | `x * Φ(x)`  | 平滑但计算稍慢      |
+| SiLU/Swish | `x * σ(x)`  | **平滑且计算快** ✅ |
 
 ### 4.4 门控机制的威力
 
@@ -313,6 +325,7 @@ hidden = gate * up
 ```
 
 **类比**：
+
 ```
 普通 FFN:
   所有信息都通过同一个"门"（单一激活函数）
@@ -324,15 +337,15 @@ SwiGLU:
 
 ### 4.5 普通 FFN vs SwiGLU 对比
 
-| 特性 | 普通 FFN | SwiGLU |
-|------|---------|--------|
-| **分支数** | 1 个 | 2 个（gate + up）|
-| **激活函数** | ReLU/GELU | SiLU |
-| **门控** | 无 | 有（gate × up）|
-| **参数量** | 2 × 768 × 2048 | 3 × 768 × 2048（**多 50%**）|
-| **计算量** | 较少 | 稍多 |
-| **效果** | 好 | **更好**（实验证明）|
-| **使用模型** | GPT-2, BERT | Llama, MiniMind, PaLM |
+| 特性         | 普通 FFN       | SwiGLU                       |
+| ------------ | -------------- | ---------------------------- |
+| **分支数**   | 1 个           | 2 个（gate + up）            |
+| **激活函数** | ReLU/GELU      | SiLU                         |
+| **门控**     | 无             | 有（gate × up）              |
+| **参数量**   | 2 × 768 × 2048 | 3 × 768 × 2048（**多 50%**） |
+| **计算量**   | 较少           | 稍多                         |
+| **效果**     | 好             | **更好**（实验证明）         |
+| **使用模型** | GPT-2, BERT    | Llama, MiniMind, PaLM        |
 
 ### 4.6 为什么参数增加但值得？
 
@@ -358,6 +371,7 @@ SwiGLU 参数:
 ```
 
 **实验结果**（Llama 论文）：
+
 - 同等参数量下，SwiGLU 比 GELU 好 **5-10%**
 - 同等效果下，SwiGLU 训练更快（梯度更稳定）
 
@@ -367,33 +381,36 @@ SwiGLU 参数:
 
 ### 5.1 完整对比
 
-| 特性 | Attention | FeedForward |
-|------|-----------|-------------|
-| **处理方式** | 词与词交互 | 每个词独立 |
-| **作用** | 信息交换（开会）| 深度思考（独立消化）|
-| **输入** | [seq, 768] | [seq, 768] |
-| **中间维度** | [seq, seq]（分数矩阵）| [seq, 2048]（扩张）|
-| **输出** | [seq, 768] | [seq, 768] |
-| **位置编码** | 需要（RoPE）| 不需要 |
-| **参数量** | 约 33% | 约 67% |
-| **计算瓶颈** | seq² （序列长度平方）| batch×seq （线性）|
-| **类比** | 查字典、开会 | 做数学题、思考 |
+| 特性         | Attention              | FeedForward          |
+| ------------ | ---------------------- | -------------------- |
+| **处理方式** | 词与词交互             | 每个词独立           |
+| **作用**     | 信息交换（开会）       | 深度思考（独立消化） |
+| **输入**     | [seq, 768]             | [seq, 768]           |
+| **中间维度** | [seq, seq]（分数矩阵） | [seq, 2048]（扩张）  |
+| **输出**     | [seq, 768]             | [seq, 768]           |
+| **位置编码** | 需要（RoPE）           | 不需要               |
+| **参数量**   | 约 33%                 | 约 67%               |
+| **计算瓶颈** | seq² （序列长度平方）  | batch×seq （线性）   |
+| **类比**     | 查字典、开会           | 做数学题、思考       |
 
 ### 5.2 为什么两者缺一不可？
 
 **只有 Attention**：
+
 - ✅ 词之间可以交互
 - ❌ 缺少"深度理解"
 - 就像只开会讨论，没有独立思考
 - 模型学不到复杂的模式
 
 **只有 FeedForward**：
+
 - ✅ 每个词可以复杂变换
 - ❌ 不知道上下文
 - 就像闭门造车，不听别人意见
 - 模型不知道词与词的关系
 
 **两者结合**：
+
 ```
 Step 1: Attention
   → 让模型知道"哪些词相关"
@@ -406,7 +423,6 @@ Step 2: FeedForward
 Step 3: 重复 N 次
   → 逐层提炼理解
 ```
-
 
 ### 5.3 完整流程示例
 
@@ -521,10 +537,10 @@ FeedForward (SwiGLU)  ← 独立深化
 输出 x: [batch, seq_len, 768]
 ```
 
-
 ### 6.4 残差连接（Residual Connection）
 
 **公式**：
+
 ```python
 y = x + F(x)
 
@@ -555,6 +571,7 @@ y = F(x)  # F 必须学会从零构建 y
 ```
 
 **类比**：
+
 ```
 没有残差：每次修图完全覆盖原图
   原图 → 滤镜 → 新图（丢失原图）
@@ -577,10 +594,10 @@ dy/dx = 1  # 梯度还能传回去！✅
 dy/dx = dF/dx  # 消失就彻底断了 ❌
 ```
 
-
 ### 6.5 Pre-Norm vs Post-Norm
 
 **Post-Norm（原始 Transformer，2017）**：
+
 ```python
 # 归一化在子层之后
 x = x + Attention(x)
@@ -590,6 +607,7 @@ x = Norm(x)
 ```
 
 **Pre-Norm（现代 Transformer，Llama/MiniMind）**：
+
 ```python
 # 归一化在子层之前
 x = x + Attention(Norm(x))
@@ -598,15 +616,14 @@ x = x + FeedForward(Norm(x))
 
 **Pre-Norm 的优势**：
 
-| 特性 | Post-Norm | Pre-Norm |
-|------|-----------|----------|
-| **训练稳定性** | 深层网络困难 | 更稳定 ✅ |
-| **梯度传播** | 可能被 Norm 打断 | 残差路径更干净 ✅ |
-| **学习率** | 需要 warmup | 可以用更大学习率 ✅ |
-{/* | **适用场景** | 浅层网络（&lt; 12 层）| 深层网络（&gt; 12 层）✅ | */}
+| 特性           | Post-Norm        | Pre-Norm               |
+| -------------- | ---------------- | ---------------------- | ------------------------ | ---- |
+| **训练稳定性** | 深层网络困难     | 更稳定 ✅              |
+| **梯度传播**   | 可能被 Norm 打断 | 残差路径更干净 ✅      |
+| **学习率**     | 需要 warmup      | 可以用更大学习率 ✅    |
+| **适用场景**     | 浅层网络（< 12 层） | 深层网络（> 12 层）✅ |
 
 **现代 LLM 全部使用 Pre-Norm**（GPT-3, Llama, MiniMind, Mistral...）
-
 
 ---
 
@@ -708,6 +725,7 @@ lm_head: 768 × 6400 = 4,915,200
 ```
 
 **观察**：
+
 - FeedForward 参数（4.7M）是 Attention 参数（2.4M）的 **2 倍**！
 - FeedForward 占每个 Block 的 **67%** 参数
 
@@ -767,12 +785,14 @@ Norm → FeedForward → 残差
 恭喜你完成了 MiniMind 核心架构的学习！
 
 **4 篇博客回顾**：
+
 1. ✅ **RMSNorm**：归一化原理，为什么比 LayerNorm 快 7.7 倍
 2. ✅ **RoPE**：位置编码，多频率机制的深入分析
 3. ✅ **Attention**：Q、K、V，Multi-Head 的完整理解
 4. ✅ **FeedForward + 架构**：扩张-压缩，完整组装
 
 **你现在掌握了**：
+
 - ✅ Transformer 的所有核心组件
 - ✅ 每个组件的数学原理和代码实现
 - ✅ 组件之间如何配合
@@ -782,6 +802,7 @@ Norm → FeedForward → 残差
 ### 9.4 下一步建议
 
 #### 1. 动手实践
+
 ```bash
 # 克隆 MiniMind
 git clone https://github.com/jingyaogong/minimind
@@ -793,12 +814,14 @@ python train_pretrain.py
 ```
 
 #### 2. 深入学习
+
 - GQA (Grouped Query Attention)：节省显存
 - Flash Attention：优化计算效率
 - MoE (Mixture of Experts)：提升容量
 - KV Cache：加速推理
 
 #### 3. 实现挑战
+
 ```python
 # 挑战：从零实现 MiniMind
 class MyMiniMind(nn.Module):
@@ -812,16 +835,19 @@ class MyMiniMind(nn.Module):
 ## 十、参考资料
 
 ### 论文
+
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762) - Transformer 原始论文
 - [GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202) - SwiGLU 论文
 - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) - ResNet/残差连接
 
 ### 代码
+
 - MiniMind 源码：[github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
 - 本文学习材料：`learning_materials/feedforward_explained.py`
 - Transformer Block：`model/model_minimind.py:359-380`
 
 ### 相关阅读
+
 - [第1篇：为什么Transformer需要归一化？从梯度消失到RMSNorm](/blog/20251216---normalization/post)
 - [第2篇：RoPE位置编码：从排列不变性到多频率机制](/blog/20251217---rope-position-encoding/post)
 - [第3篇：Attention机制详解](/blog/20251218---attention-mechanism/post)
@@ -834,6 +860,7 @@ class MyMiniMind(nn.Module):
 **系列文章**：MiniMind 学习笔记（4/4）
 
 如果觉得有帮助，欢迎：
+
 - ⭐ Star 原项目 [MiniMind](https://github.com/jingyaogong/minimind)
 - ⭐ Star 我的学习笔记 [minimind-notes](https://github.com/joyehuang/minimind-notes)
 - 💬 留言讨论你的学习心得

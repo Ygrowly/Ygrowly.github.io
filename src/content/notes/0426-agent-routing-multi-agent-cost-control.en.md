@@ -160,7 +160,7 @@ This is also the most common approach now:
 - output a structured routing result, for example:
 
 ```json
-{"next_agent":"research_agent","reason":"user asks for competitor info before writing report"}
+{ "next_agent": "research_agent", "reason": "user asks for competitor info before writing report" }
 ```
 
 Pros:
@@ -301,16 +301,19 @@ Conceptually, routing looks a lot like "smart dispatch."
 But from an engineering angle, it's actually optimizing three things that conflict with one another:
 
 #### Correctness
+
 - pick the right agent
 - pass the right context
 - fall back / escalate when necessary
 
 #### Latency
+
 - fewer detours
 - fewer redundant calls
 - get the user a result as fast as possible
 
 #### Cost
+
 - fewer unnecessary model calls
 - less repeated reasoning
 - control token, tool, and external-API spend
@@ -380,12 +383,14 @@ What's most worth committing to memory here isn't the definition but a few judgm
 If I ever design an agent system myself, I think the routing layer should at minimum answer these questions clearly first:
 
 ### 1. What is the unit of routing?
+
 - route to an agent
 - route to a tool
 - route to a workflow
 - or route to a human
 
 ### 2. What is routing based on?
+
 - keywords
 - schema
 - embeddings
@@ -394,6 +399,7 @@ If I ever design an agent system myself, I think the routing layer should at min
 - a hybrid strategy
 
 ### 3. What is the minimal context for handoff?
+
 - the goal
 - the constraints
 - completed steps
@@ -401,12 +407,14 @@ If I ever design an agent system myself, I think the routing layer should at min
 - prohibited actions
 
 ### 4. How does fallback work?
+
 - ask a clarifying question
 - switch agents
 - downgrade to a rule-based flow
 - escalate to a human
 
 ### 5. What is the cost policy?
+
 - which requests aren't worth going multi-agent for
 - which requests must be routed conservatively
 - which requests are worth calling a high-cost model for

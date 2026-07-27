@@ -71,7 +71,13 @@ export const GET: APIRoute = async ({ url }) => {
         contributionsCollection?: {
           contributionCalendar?: {
             totalContributions: number
-            weeks: { contributionDays: { date: string; contributionCount: number; contributionLevel: string }[] }[]
+            weeks: {
+              contributionDays: {
+                date: string
+                contributionCount: number
+                contributionLevel: string
+              }[]
+            }[]
           }
         }
       }

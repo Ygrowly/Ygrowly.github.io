@@ -15,7 +15,7 @@ Claude Code 是 TypeScript 写的闭源产品，代码还做了混淆。作为�
 
 这对我来说简直是天降甘霖。
 
-> **什么是 Harness？** 如果你看过 OpenAI 和 Anthropic 最近关于 Agent 的论文，应该知道一个共识：**模型负责智能，Harness 负责一切其他**。Harness 是包裹在 LLM 外面的完整基础设施——工具、记忆、权限、上下文、多 Agent 协作。用项目作者的话说：*"The model is the agent. The code is the harness."*
+> **什么是 Harness？** 如果你看过 OpenAI 和 Anthropic 最近关于 Agent 的论文，应该知道一个共识：**模型负责智能，Harness 负责一切其他**。Harness 是包裹在 LLM 外面的完整基础设施——工具、记忆、权限、上下文、多 Agent 协作。用项目作者的话说：_"The model is the agent. The code is the harness."_
 
 这篇文章是我花一天时间啃完 OpenHarness 核心架构的学习笔记。我会带你走完整个 Phase 1：**从你敲下 `oh` 命令的那一刻起，一直到 Agent Loop 的心脏**。
 
@@ -165,10 +165,10 @@ process = await asyncio.create_subprocess_exec(
 
 这是整个启动流程里最有意思的架构决策。说白了就是**语言生态的选择**：
 
-| 需求 | 最好的工具 |
-|------|-----------|
-| 复杂终端 UI（语法高亮、弹窗、动画） | React/Ink（Node.js 生态） |
-| AI Agent 引擎（LLM SDK、asyncio、文件系统） | Python 生态 |
+| 需求                                        | 最好的工具                |
+| ------------------------------------------- | ------------------------- |
+| 复杂终端 UI（语法高亮、弹窗、动画）         | React/Ink（Node.js 生态） |
+| AI Agent 引擎（LLM SDK、asyncio、文件系统） | Python 生态               |
 
 两个需求最好的工具在不同的语言里。与其在一个语言里凑合，不如让两个进程各做各最擅长的事，通过 JSON 通信。
 
@@ -424,6 +424,7 @@ else:
 为什么要区分？**性能和用户体验的平衡**。
 
 想象 AI 同时要求读 3 个文件：
+
 - 顺序执行：100ms + 100ms + 100ms = **300ms**
 - 并行执行：max(100, 100, 100) ≈ **100ms**
 

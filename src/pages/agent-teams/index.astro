@@ -1,9 +1,10 @@
 ---
+import { activity } from '@/data/agent-teams'
+
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import Comment from '@/components/comment/Comment.astro'
 import AgentTeamsBoard from '@/components/agent-teams/AgentTeamsBoard.astro'
-import { activity } from '@/data/agent-teams'
+import Comment from '@/components/comment/Comment.astro'
 
 // 静态壳：队伍卡与表单结构预渲染，实时名单由客户端拉 /api/agent-teams 填充。
 export const prerender = true

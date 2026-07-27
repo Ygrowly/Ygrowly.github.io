@@ -1,6 +1,6 @@
 ---
-title: "Modern Next.js Stack Tradeoffs: ORM, Auth, and State"
-description: "Working through a Grok conversation to lay out the real tradeoffs and decision criteria for ORM, auth, and state management in a modern Next.js project."
+title: 'Modern Next.js Stack Tradeoffs: ORM, Auth, and State'
+description: 'Working through a Grok conversation to lay out the real tradeoffs and decision criteria for ORM, auth, and state management in a modern Next.js project.'
 date: 2026-03-30
 updatedDate: 2026-03-30
 tags:

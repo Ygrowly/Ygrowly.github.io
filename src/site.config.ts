@@ -3,11 +3,11 @@ import type { Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/
 export const theme: ThemeUserConfig = {
   // === Basic configuration ===
   /** Title for your website. Will be used in metadata and as browser tab title. */
-  title: 'Joye Personal Blog',
+  title: '刘宇广 | AI 应用开发',
   /** Will be used in index page & copyright declaration */
-  author: 'Joye',
+  author: '刘宇广',
   /** Description metadata for your website. Can be used in page metadata. */
-  description: 'Stay hungry, stay foolish',
+  description: '专注将 AI、数据系统与企业业务结合，构建可靠、可观测、可持续迭代的 AI 应用',
   /** The default favicon for your site which should be a path to an image in the `public/` directory. */
   favicon: '/favicon/favicon.ico',
   /** Specify the default language for this site. */
@@ -49,9 +49,7 @@ export const theme: ThemeUserConfig = {
     menu: [
       { title: 'Blog', link: '/blog' },
       { title: 'Notes', link: '/notes' },
-      { title: 'Talks', link: '/talks' },
       { title: 'Projects', link: '/projects' },
-      { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' },
       { title: 'Contact', link: '/contact' }
     ]
@@ -60,11 +58,11 @@ export const theme: ThemeUserConfig = {
   /** Configure the footer of your site. */
   footer: {
     links: [],
-    /** Enable displaying a “Astro & Pure theme powered” link in your site’s footer. */
+    /** Enable displaying a "Astro & Pure theme powered" link in your site's footer. */
     credits: true,
     /** Optional details about the social media accounts for this site. */
     social: {
-      github: 'https://github.com/joyehuang'
+      github: 'https://github.com/Ygrowly'
       // linkedin: 'https://www.linkedin.com/in/joyehuang/'
     }
   },
@@ -149,11 +147,11 @@ export const integ: IntegrationUserConfig = {
     }
   },
   waline: {
-    enable: true,
+    enable: false,
     server: 'https://waline.joyehuang.me',
     additionalConfigs: {
-      pageview: true,
-      comment: true
+      pageview: false,
+      comment: false
     }
   }
 }

@@ -36,9 +36,7 @@ const takeawayHtml = (title: string, desc?: string) =>
   <section class='tk-hero'>
     <p class='tk-kicker'>分享会 · Talks</p>
     <h2 class='tk-intro-title'>一起聊聊</h2>
-    <p class='tk-intro-sub'>
-      每周一次的线上分享会，和大家聊聊技术、求职，还有最近在想的那些事。
-    </p>
+    <p class='tk-intro-sub'>每周一次的线上分享会，和大家聊聊技术、求职，还有最近在想的那些事。</p>
     <div class='tk-hero-foot'>
       <div class='tk-stats'>
         <span>已记录 <b>{publishedCount}</b> 期</span>
@@ -54,8 +52,8 @@ const takeawayHtml = (title: string, desc?: string) =>
         href='/contact'
         data-analytics-event='talk_join_intent'
         data-analytics-surface='talks_hero'
-        data-analytics-target='contact'
-      >想来参加？→</a>
+        data-analytics-target='contact'>想来参加？→</a
+      >
     </div>
   </section>
 
@@ -145,7 +143,12 @@ const takeawayHtml = (title: string, desc?: string) =>
               </span>
               <span class='tk-chevron' aria-hidden='true'>
                 <svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor'>
-                  <path d='M6 9l6 6 6-6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' />
+                  <path
+                    d='M6 9l6 6 6-6'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                  />
                 </svg>
               </span>
             </button>
@@ -248,7 +251,9 @@ const takeawayHtml = (title: string, desc?: string) =>
                       打开这期幻灯片 →
                     </a>
                   )}
-                  {d.slideCount && <span class='tk-cta-note'>共 {d.slideCount} 页 · 方向键翻页</span>}
+                  {d.slideCount && (
+                    <span class='tk-cta-note'>共 {d.slideCount} 页 · 方向键翻页</span>
+                  )}
                 </div>
 
                 <p class='tk-brand'>分享人 Joye · joyehuang.me · AI Agent &amp; Full-Stack Dev</p>
@@ -259,31 +264,37 @@ const takeawayHtml = (title: string, desc?: string) =>
       })
     }
 
-    {/* next session — guide people to join the group via Contact.
-        Hidden when a concrete upcoming teaser is already shown above. */}
-    {!hasUpcoming && (
-      <article class='tk-entry tk-upcoming'>
-        <div class='tk-rail' aria-hidden='true'>
-          <span class='tk-ep tk-ep-ghost'>下一期</span>
-          <span class='tk-rail-date'>待定</span>
-        </div>
-        <a
-          class='tk-upcoming-row'
-          href='/contact'
-          data-analytics-event='talk_join_intent'
-          data-analytics-surface='talks_upcoming'
-          data-analytics-target='contact'
-        >
-          <span class='tk-node tk-node-ghost' aria-hidden='true'></span>
-          <span class='tk-upcoming-tag'>下一期 · 待定</span>
-          <span class='tk-upcoming-main'>
-            <span class='tk-upcoming-title'>第 {latestEpisode + 1} 期 · 主题征集中</span>
-            <span class='tk-upcoming-desc'>每周同一时间，轮到下一位群友分享。想听、想讲都欢迎——</span>
-          </span>
-          <span class='tk-upcoming-cta'>想来参加？→</span>
-        </a>
-      </article>
-    )}
+    {
+      /* next session — guide people to join the group via Contact.
+        Hidden when a concrete upcoming teaser is already shown above. */
+    }
+    {
+      !hasUpcoming && (
+        <article class='tk-entry tk-upcoming'>
+          <div class='tk-rail' aria-hidden='true'>
+            <span class='tk-ep tk-ep-ghost'>下一期</span>
+            <span class='tk-rail-date'>待定</span>
+          </div>
+          <a
+            class='tk-upcoming-row'
+            href='/contact'
+            data-analytics-event='talk_join_intent'
+            data-analytics-surface='talks_upcoming'
+            data-analytics-target='contact'
+          >
+            <span class='tk-node tk-node-ghost' aria-hidden='true' />
+            <span class='tk-upcoming-tag'>下一期 · 待定</span>
+            <span class='tk-upcoming-main'>
+              <span class='tk-upcoming-title'>第 {latestEpisode + 1} 期 · 主题征集中</span>
+              <span class='tk-upcoming-desc'>
+                每周同一时间，轮到下一位群友分享。想听、想讲都欢迎——
+              </span>
+            </span>
+            <span class='tk-upcoming-cta'>想来参加？→</span>
+          </a>
+        </article>
+      )
+    }
   </div>
 
   <p class='tk-foot'>每周更新一期 · 往前翻就是第一期</p>
@@ -400,11 +411,7 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-feed-head .tk-line {
     flex: 1;
     height: 1px;
-    background: repeating-linear-gradient(
-      to right,
-      var(--tk-border) 0 6px,
-      transparent 6px 11px
-    );
+    background: repeating-linear-gradient(to right, var(--tk-border) 0 6px, transparent 6px 11px);
   }
   .tk-feed-head em {
     font-style: normal;
@@ -423,12 +430,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     top: 6px;
     bottom: 14px;
     width: 1px;
-    background: linear-gradient(
-      to bottom,
-      var(--tk-accent-dim),
-      var(--tk-border) 55%,
-      transparent
-    );
+    background: linear-gradient(to bottom, var(--tk-accent-dim), var(--tk-border) 55%, transparent);
     opacity: 0.6;
   }
   .tk-entry {
@@ -822,13 +824,12 @@ const takeawayHtml = (title: string, desc?: string) =>
     border: 1px solid var(--tk-accent-dim);
     border-radius: 14px;
     padding: 1.15rem 1.3rem 1.05rem;
-    background:
-      linear-gradient(
-        180deg,
-        var(--tk-accent-soft),
-        hsl(var(--muted) / 0.16) 60%,
-        transparent
-      );
+    background: linear-gradient(
+      180deg,
+      var(--tk-accent-soft),
+      hsl(var(--muted) / 0.16) 60%,
+      transparent
+    );
     overflow: hidden;
   }
   .tk-preview::before {

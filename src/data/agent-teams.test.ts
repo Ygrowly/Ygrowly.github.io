@@ -4,6 +4,7 @@
 // 一旦撞车或被改动，报名名单就会串。这些是纯数据断言，`bun test` 直接跑，无需 DB。
 
 import { describe, expect, test } from 'bun:test'
+
 import { activity, isSignupClosed, teams } from './agent-teams'
 
 describe('teams 配置', () => {

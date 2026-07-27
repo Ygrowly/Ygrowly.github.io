@@ -132,23 +132,27 @@ The candidate gave some stuff about "prompt isolation, focusing on its own task,
 **How you should answer**:
 
 **Advantages of multi-Agent / Router orchestration**:
+
 - Context isolation — each Agent only sees the content relevant to its own task and isn't distracted by irrelevant information
 - Each subtask can have its prompt optimized separately and its model swapped separately
 - **Parallelism** — independent tasks can run concurrently
 - Good observability, you know which step went wrong — but this one **requires you to actively design a whole observability system**, otherwise when something goes wrong you're still flying blind. If your project did **replay** (replayable debugging), that's genuinely a big bonus
 
 **Disadvantages of multi-Agent / Router orchestration**:
+
 - Higher overall latency (every extra call is another network round trip)
 - Token consumption multiplies (context has to be passed between Agents)
 - The routing itself can be wrong (if intent recognition is wrong, everything is wrong)
 
 **Advantages of a single Agent**:
+
 - Simple, low latency, low cost
 - The model sees all the context itself and can make more global judgments
 - Modern large models' function calling is already strong enough that a single Agent is enough for most scenarios
 - **Boosted by Skills** — the single-Agent + Skills combo basically became the new paradigm after Claude Code (I'll expand on this in 3.5)
 
 **Disadvantages of a single Agent**:
+
 - The context easily explodes
 - The model tends to lose early information in long contexts
 - Cramming all responsibilities into one prompt easily turns it into a pile of spaghetti
@@ -203,6 +207,7 @@ W's expansion was very practical:
 **Why this question matters**: this is a substantive shift in backend technology choices in 2025–2026. If your résumé says "familiar with MySQL" but you don't know Postgres's standing in new projects now, your understanding is out of date.
 
 **Direction to improve**:
+
 - Spin up a new project with PostgreSQL and run RAG with pgvector
 - Learn about full-stack solutions built on Postgres like Supabase, and understand why Postgres has captured the "default database of choice for small projects" niche
 
@@ -265,16 +270,19 @@ The candidate couldn't answer, and admitted "this was done pretty crudely."
 Memory writing needs to consider —
 
 1. **Factual vs. derived vs. preference**:
+
    - Factual: "My name is Joye, I study in Melbourne." → write directly, high confidence.
    - Derived: "I often work overtime on weekends." → no need to write; it can be derived from historical sessions.
    - Preference: "I like spicy food." → needs to be written, but tagged with **confidence and recency**.
 
 2. **Short-term vs. long-term**:
+
    - Short-term preference ("want spicy today") → write to session-level memory, decay or discard after the session ends.
    - Long-term preference (mentioned multiple times, a stable preference) → promote to long-term memory.
    - This promotion mechanism can be based on "number of occurrences + time span."
 
 3. **Contradiction detection**:
+
    - The user has said both "I like spicy food" and "I can't eat spicy food" — how do you handle it?
    - Timestamps + context to judge which is the current fact.
 
@@ -296,6 +304,7 @@ I corrected him immediately: **that's exactly backwards — it goes at the very 
 - **If you put memory at the end**, every memory update breaks the cache for the entire prefix, and token cost skyrockets.
 
 **Follow-up question**: how often should your memory update?
+
 - Update too frequently → too many prefix-cache misses → cost skyrockets
 - Update too slowly → the user feels the Agent "can't remember things" → poor experience
 - This trade-off needs to be clearly explained in your project
@@ -313,6 +322,7 @@ W asked this, and the candidate couldn't answer.
 - **Open-source CLI Agents' approaches**: represented by Hermes, OpenCode, OpenClaude, Aider — basically all use Markdown files as the memory carrier (memory.md / user.md), and the Agent restores context by explicitly reading them. The biggest advantage of this route is that "memory is fully readable, editable, and versionable."
 
 **Direction to improve**:
+
 - Actually use these companies' products for a while and feel the differences firsthand. If you don't use them, at least learn about them through blogs or explainer videos — to prove you're genuinely curious about Agents
 - Read [Claude's Skills documentation](https://docs.claude.com) and Anthropic's article on [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
 - Follow the code of open-source CLI Agents like Hermes / OpenCode / OpenClaude / Aider
@@ -325,14 +335,15 @@ The candidate answered reasonably well: MCP provides data-source connections, an
 
 **How you should answer** (more complete):
 
-| | What problem it solves | Form | Example |
-|--|--|--|--|
-| **Function Calling** | Gives the model executable capability | A single function definition (schema + implementation) | `get_weather(city)` |
-| **MCP** | Standardizes the "model ↔ tool/data-source" connection protocol | An MCP server exposing a set of tools / resources | Asana MCP, GitHub MCP |
-| **Skills** | Gives the model a programmatic guide on "how to complete a class of task" | A folder (SKILL.md + resources) | docx skill, pdf skill |
-| **CLI tools** (Lark CLI / Playwright / OpenCLI) | Lets the model operate the real world via the command line | Shell commands | `lark message send ...` |
+|                                                 | What problem it solves                                                    | Form                                                   | Example                 |
+| ----------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------- |
+| **Function Calling**                            | Gives the model executable capability                                     | A single function definition (schema + implementation) | `get_weather(city)`     |
+| **MCP**                                         | Standardizes the "model ↔ tool/data-source" connection protocol          | An MCP server exposing a set of tools / resources      | Asana MCP, GitHub MCP   |
+| **Skills**                                      | Gives the model a programmatic guide on "how to complete a class of task" | A folder (SKILL.md + resources)                        | docx skill, pdf skill   |
+| **CLI tools** (Lark CLI / Playwright / OpenCLI) | Lets the model operate the real world via the command line                | Shell commands                                         | `lark message send ...` |
 
 **Key insights**:
+
 - MCP and Skill are **complementary**: MCP provides data, Skill provides methodology.
 - Skill's biggest advantage is **turning things into SOPs / processes**: encoding domain experts' best practices into a guide the model can read.
 - Skill uses **Progressive Disclosure**: the first layer only loads the skill's metadata (name + description); only after a hit does it load the full content, avoiding context explosion.
@@ -372,6 +383,7 @@ The two of us griped on the spot: **an answer like "reduce the number of calls" 
 As described above. Put the least-changing content at the front so the cache hits as often as possible.
 
 Concrete actions:
+
 - Put the system prompt, long-term memory, and tool descriptions at the front
 - Put the current query and the latest message at the end
 - Don't update memory too frequently — every update invalidates the prefix
@@ -386,6 +398,7 @@ Use a cheap small model for simple tasks (intent recognition, classification, su
 An Agent's token cost grows **exponentially** — every extra step means the entire conversation history is sent as input again.
 
 Concrete actions:
+
 - Don't split into two steps what can be done in one
 - Tool design should be "wide-aperture" — one tool solves a class of problems; don't make a separate tool for every fine-grained task
 - Make the Plan phase as complete as possible, avoiding "think as you go"
@@ -482,6 +495,7 @@ I think W's section here is especially worth pulling out on its own:
 > "The richest people in the world are all in the US, and the highest SaaS paying rates are in the US too. So **the developer world should only be divided into China and overseas.**"
 
 The specific skill stack:
+
 - How to integrate Google OAuth, AWS, and Stripe payments
 - Vercel deployment, Cloudflare attack protection (not the robot Turnstile kind)
 - How to write a Vercel template, how to make an open-source project one-click deployable for others
@@ -524,6 +538,7 @@ My answer:
 > "I really don't intend to recommend any project. Now that we have AI, the cost of building a project from scratch is already very low. I'd suggest you discover the needs in your daily life around you — that way, when you tell the whole story in an interview, it'll be more sincere and more convincing. Or you can heavily use Hermes Agent like I do, and wherever you think its code is bad, go change it — so far I haven't met an interviewer who understands the Hermes Agent source better than I do, and that kind of depth is itself scarce. But copying an open-source project directly is something I personally can't really accept."
 
 The reasons:
+
 1. A copied project — you can't explain "why it's designed this way," so all the "why" questions crash and burn
 2. A copied project has no real motivation of your own for using it — you can't tell the use case
 3. AI coding tools have already driven the cost of "writing from scratch" down to a few hours — there's no need to copy
@@ -554,18 +569,21 @@ One more thing W and I observed: **sometimes the candidate had actually reached 
 Condensing all the lessons from this interview into a checklist:
 
 ### Project layer
+
 - [ ] Does my project solve a problem that chatting directly with ChatGPT / Doubao / Claude **can't** solve?
 - [ ] Does my multi-Agent design give a substantive benefit over a single Agent?
 - [ ] Is my project deployed and live? Can the interviewer try it?
 - [ ] Is my project complete with Agent + frontend + backend + evaluation + observability + docs?
 
 ### Tech-choice layer
+
 - [ ] For every technology I used (Redis / vector DB / graph DB / fine-tuning / RAG), can I clearly explain "why this one and not X / Y / Z"?
 - [ ] Do I know that PostgreSQL + pgvector can replace a standalone vector DB in many scenarios?
 - [ ] Do I know why Claude Code uses grep instead of RAG?
 - [ ] Did I use different models tiered for different tasks?
 
 ### Agent-knowledge layer
+
 - [ ] Can I clearly explain the relationship between Function Calling / MCP / Skills / CLI tools?
 - [ ] Do I know how Skill's progressive disclosure / Claude Code's tool_search work?
 - [ ] Can I clearly explain prefix-caching-friendly context design?
@@ -573,11 +591,13 @@ Condensing all the lessons from this interview into a checklist:
 - [ ] Have I studied the Memory evolution of OpenAI / Claude / Hermes / OpenCode?
 
 ### AI-workflow layer
+
 - [ ] Do I have my own AI coding workflow? How do I use AGENTS.md / Skills / Memory?
 - [ ] Beyond coding scenarios, how else do I weave AI into daily life (scheduling, information feeds, content creation)?
 - [ ] Can I write Agent evaluations?
 
 ### Soft-skill layer
+
 - [ ] What are my first-hand information sources? Do I read X, HN, and official changelogs every day?
 - [ ] Do I understand the overseas developer ecosystem (Vercel / Stripe / Cloudflare / OAuth)?
 - [ ] When answering, can I cut to the core in 30 seconds? Do I use technical terms?
@@ -604,4 +624,4 @@ I'm currently taking paid 1-on-1 mock interviews and résumé coaching for the A
 
 I'll keep writing up more mock-interview retrospectives going forward — feel free to follow along.
 
-*All names and sensitive information in this article have been de-identified.*
+_All names and sensitive information in this article have been de-identified._

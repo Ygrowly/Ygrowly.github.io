@@ -1,11 +1,11 @@
 ---
 import { getCollection } from 'astro:content'
+import { sortTalks } from '@/lib/talks'
 
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import Comment from '@/components/comment/Comment.astro'
 import TalksSeries from '@/components/talks/TalksSeries.astro'
-import { sortTalks } from '@/lib/talks'
 
 export const prerender = true
 

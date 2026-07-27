@@ -1,6 +1,6 @@
 ---
 title: "A Sophomore Intern's Field Guide to Agent Dev Interviews"
-description: "After interviewing nearly 10 AI startups, what Agent-role interviews actually test, and the things that matter a hundred times more than memorizing answers."
+description: 'After interviewing nearly 10 AI startups, what Agent-role interviews actually test, and the things that matter a hundred times more than memorizing answers.'
 publishDate: 2026-03-09 00:00:00
 tags: ['internship', 'Agent', 'LLM', 'interview', 'AI']
 language: en
@@ -46,6 +46,7 @@ The first layer comes from experience, the second from understanding, the third 
 I sorted the questions I ran into over this period by theme. Together they cover most of what gets probed in an Agent development interview:
 
 **RAG and Retrieval Augmentation**
+
 - The difference between multi-RAG and single-RAG, and when each fits
 - How to do Retrieval Augmentation
 - When RAG should use vector retrieval versus graph-database retrieval
@@ -53,6 +54,7 @@ I sorted the questions I ran into over this period by theme. Together they cover
 - The evolution path of RAG → Agentic Search → Agentic Memory
 
 **Agent Architecture and Orchestration**
+
 - Agent routing design: how to decide which Sub-Agent to call
 - Designing the Agent's fallback mechanism
 - Are Sub-Agents parallel or asynchronous? Can they communicate with each other?
@@ -63,6 +65,7 @@ I sorted the questions I ran into over this period by theme. Together they cover
 - How to build a callback mechanism
 
 **Context Engineering and Token Management**
+
 - How to save tokens
 - What to do when the context overflows (beyond FIFO, what other options are there?)
 - How to convert short-term memory into long-term memory
@@ -70,6 +73,7 @@ I sorted the questions I ran into over this period by theme. Together they cover
 - Where to place Prompt Cache hits
 
 **Prompt Engineering and Security**
+
 - Why a structured Prompt helps improve response quality
 - How to design a subtle, emotionally-aware CoT for affective tasks
 - How to prevent malicious prompt injection
@@ -78,6 +82,7 @@ I sorted the questions I ran into over this period by theme. Together they cover
 - The downside of one-shot: examples that aren't differentiated enough constrain the model's thinking
 
 **LLM Fundamentals and Model Engineering**
+
 - The Attention mechanism (general knowledge)
 - Pretraining and LoRA fine-tuning
 - The design and limitations of LLM-as-a-Judge
@@ -86,12 +91,14 @@ I sorted the questions I ran into over this period by theme. Together they cover
 - How to handle LLM hallucination
 
 **AI Infra and Productionization**
+
 - Designing a model gateway / Agent gateway
 - Building an Eval platform
 - Evaluating DPO / APO algorithms
 - Why use the Vercel AI SDK
 
 **Industry Awareness and System Design**
+
 - How Manus, OpenClaw, and OpenCode each approach their architecture
 - The main application scenarios for Agents: AI search, Chat-to-BI chart generation, Vibe Coding
 - The relationship and difference between Skill and MCP
@@ -243,4 +250,4 @@ Finally, a line for friends walking the same path:
 
 ---
 
-*If this article helped you, feel free to share your own interview experiences in the comments, and you can also find me on [GitHub](https://github.com/joyehuang).*
+_If this article helped you, feel free to share your own interview experiences in the comments, and you can also find me on [GitHub](https://github.com/joyehuang)._

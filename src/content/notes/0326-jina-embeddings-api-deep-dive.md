@@ -46,6 +46,7 @@ draft: false
 ### 1. Jina 的几个核心卖点
 
 #### 多语言检索能力强
+
 Jina 在多语言 embedding 排行里长期表现很强，尤其适合：
 
 - 中文语料
@@ -55,6 +56,7 @@ Jina 在多语言 embedding 排行里长期表现很强，尤其适合：
 如果应用不是纯英文，而是面向中文用户、国际化内容或混合语料库，这个点很重要。
 
 #### 长文本支持更友好
+
 整理里提到：
 
 - Jina v3 已支持 `8192 tokens`
@@ -71,6 +73,7 @@ Jina 在多语言 embedding 排行里长期表现很强，尤其适合：
 这意味着它天然更适合和长文档 RAG 工作流结合，而不只是处理短 chunk。
 
 #### Late Chunking 是 Jina 特别值得注意的能力点
+
 Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计里单独讨论。
 
 在这张卡里，先记住和 Jina 更直接相关的一点：
@@ -80,7 +83,9 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 如果之后要系统化整理 chunking、embedding recall、reranker、hybrid search 这些 retrieval 细节，可以直接看相关卡：
 
 - `0426-rag-retrieval-details-and-pipeline-design`
+
 #### Matryoshka 支持很适合生产环境
+
 整理里提到它支持通过 `dimensions` 参数把高维向量压到更低维，比如：
 
 - `1024 -> 128`
@@ -101,6 +106,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 基于这次对话里的总结，可以先形成一个粗判断：
 
 #### Jina 更适合的点
+
 - 多语言检索
 - 长文本处理
 - 多模态方向（尤其 v4）
@@ -108,11 +114,13 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 - 性价比
 
 #### OpenAI embedding 更适合的点
+
 - 生态稳定
 - 接入门槛低
 - 英文体系里默认选项更常见
 
 #### Voyage 的印象
+
 - 也是很强的 embedding 供应商
 - 但在这次整理语境里，Jina 的“检索工具箱感”更强
 
@@ -125,6 +133,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 ### 3. v4 vs v5 的理解
 
 #### Jina v4：更偏多模态
+
 关键词：
 
 - Multimodal
@@ -142,6 +151,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 如果未来产品里会出现图片、UI 截图、设计稿、视觉素材检索，v4 的价值会比较明显。
 
 #### 官方补充：v4 比我最初理解更“重工程能力”
+
 看完官方 release note 后，v4 有几个点值得单独补充：
 
 - 它不是简单的“支持图片 embedding”，而是一个 **3.8B** 的统一图文 embedding 模型
@@ -168,6 +178,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 > 模型原生可以到 32K，但官方托管 Embedding API 目前对 v4 的在线输入长度仍有资源限制，正文里提到 **当前 API 侧先支持到 8K**。如果真的要吃更长上下文或做重度 Late Chunking，可能要上 CSP/self-hosting。
 
 #### Jina v5：更偏文本 RAG 生产化
+
 关键词：
 
 - Compact
@@ -189,6 +200,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 - **v5 = 纯文本 RAG / 性价比方向**
 
 #### 官方补充：v5 比“compact”更像生产环境优化版
+
 看完 v5 官方文章后，我会把它理解得更具体一点：
 
 - `v5-text-small`：**677M** 参数
@@ -198,7 +210,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
   - **teacher-student distillation**
   - **task-specific contrastive learning**
   - **4 个 LoRA adapters**
-来做“质量接近大模型，但体积小很多”的 embedding 系统
+    来做“质量接近大模型，但体积小很多”的 embedding 系统
 
 这 4 个 task adapter 对应：
 
@@ -212,12 +224,14 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 另外有几个我觉得特别值得你记住的点：
 
 ##### 1. v5-small 基本就是“小模型打大模型”
+
 官方给的核心叙事很明确：
 
 - v5-small 在 retrieval 上接近甚至追平 `jina-embeddings-v4`
 - 但体积只有它的约 **1/5.6**
 
 也就是说，如果你当前明确是：
+
 - 纯文本
 - 想要生产环境性价比
 - 想降低推理和存储成本
@@ -225,6 +239,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 那 v5 的吸引力可能反而比 v4 更大。
 
 ##### 2. decoder-only + last-token pooling 是它的风格差异
+
 官方提到 v5-text 采用：
 
 - decoder-only backbone
@@ -233,6 +248,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 这跟很多传统 embedding 体系不完全一样。它更像是在吸收新一代基座模型体系之后，做了一套针对 embedding 任务重新蒸馏出来的小型化方案。
 
 ##### 3. 量化和边缘部署友好度很高
+
 官方文章里这一点挺强：
 
 - 支持 GGUF
@@ -253,6 +269,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 ## 对项目的启发
 
 ### 对 Agent / SaaS 场景
+
 如果系统里既有：
 
 - query embedding
@@ -272,6 +289,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 这比“一个 embedding 向量打天下”更像真实 Agent / 检索系统的形态。
 
 ### 对快速原型开发
+
 整理里提到 Jina 的开发者体验比较友好，比如免费额度、接口兼容性等。
 
 尤其是它兼容 OpenAI 风格接口这一点，意味着：
@@ -283,9 +301,11 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 这对快速试原型是加分项。
 
 ### 新增：这次实际读到的官网信息
+
 这次我不是只看 URL 标题，而是直接用浏览器读了产品页与两篇 release note。几个之前没写扎实、现在可以明确落下来的点：
 
 #### 1. `jina.ai/embeddings/` 产品页透露的，不只是“有 API”
+
 产品页本身是个可交互的 API playground，不只是 marketing landing page。实际能看到：
 
 - 页面直接把 embeddings 定位成 **search / RAG / agent** 的底层能力
@@ -316,6 +336,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 > Jina 把 embeddings 当成一层可运营、可计费、可部署、可调参数的检索基础设施，而不是一个孤立模型页面。
 
 #### 2. `v4` release note 的重点比“多模态”更窄也更准
+
 这次读完后，我会把 v4 理解成：
 
 > **面向 visually rich retrieval 的多模态 / 多语言 embedding 基础设施。**
@@ -353,6 +374,7 @@ Late Chunking 仍然非常重要，但它更适合放在通用 RAG 检索设计�
 - 更适合需要 late interaction 的高质量检索
 
 #### 3. `v5` release note 确实更偏“生产环境优化”
+
 这次读下来，我更确信 v5 的主叙事不是“规模更大”，而是：
 
 > **把接近大模型质量的 retrieval 能力，蒸馏到 sub-1B、可量化、可本地部署的文本 embedding 模型里。**
@@ -398,31 +420,32 @@ benchmark 叙事也比之前更具体：
 
 ### 对比表
 
-| 维度 | Jina Embeddings | Qwen3-Embedding |
-| --- | --- | --- |
-| 核心定位 | 高效、长文档、生产友好的 embedding 基础设施 | 高精度优先，尤其适合中文和多语言场景 |
-| 更强项 | 长文档检索、Late Chunking、多模态、部署性价比 | 中文 / 多语言精度、指令感知、reranker 配套 |
-| 语言优势 | 多语言强，适合国际化或混合语料 | 中文尤其强，多语言也更偏效果优先 |
-| 长上下文 | 很强，v5 明显偏向长文本 RAG | 也支持长上下文，但这次对比里更突出的是精度侧 |
-| 多模态 | v4 支持文本 + 图像 + visually rich documents | 纯文本为主，多模态要看 Qwen 其他系列 |
-| 工程特性 | Late Chunking、Matryoshka、task adapters、边缘部署友好 | instruction-aware embedding，且和 Qwen reranker 组合完整 |
-| 成本 / 部署 | v5-small / nano 很适合成本敏感场景 | 高精度版本更像效果优先，部署成本通常更高 |
-| 最适合的任务 | 长文档知识库、PDF / 图表 / 表格检索、生产级 recall | 中文知识库、中文问答、多语言高质量检索、rerank 敏感场景 |
-| 如果只能一句话概括 | 更像高效万金油 | 更像高精度王者 |
+| 维度               | Jina Embeddings                                        | Qwen3-Embedding                                          |
+| ------------------ | ------------------------------------------------------ | -------------------------------------------------------- |
+| 核心定位           | 高效、长文档、生产友好的 embedding 基础设施            | 高精度优先，尤其适合中文和多语言场景                     |
+| 更强项             | 长文档检索、Late Chunking、多模态、部署性价比          | 中文 / 多语言精度、指令感知、reranker 配套               |
+| 语言优势           | 多语言强，适合国际化或混合语料                         | 中文尤其强，多语言也更偏效果优先                         |
+| 长上下文           | 很强，v5 明显偏向长文本 RAG                            | 也支持长上下文，但这次对比里更突出的是精度侧             |
+| 多模态             | v4 支持文本 + 图像 + visually rich documents           | 纯文本为主，多模态要看 Qwen 其他系列                     |
+| 工程特性           | Late Chunking、Matryoshka、task adapters、边缘部署友好 | instruction-aware embedding，且和 Qwen reranker 组合完整 |
+| 成本 / 部署        | v5-small / nano 很适合成本敏感场景                     | 高精度版本更像效果优先，部署成本通常更高                 |
+| 最适合的任务       | 长文档知识库、PDF / 图表 / 表格检索、生产级 recall     | 中文知识库、中文问答、多语言高质量检索、rerank 敏感场景  |
+| 如果只能一句话概括 | 更像高效万金油                                         | 更像高精度王者                                           |
 
 ### 一个很实用的结论
 
 如果只想先记住最短版本，可以直接记这三条：
 
-| 场景 | 更推荐 |
-| --- | --- |
-| 中文精度、多语言精度、强 reranker 生态 | Qwen3 |
-| 长文档、Late Chunking、多模态、生产部署性价比 | Jina |
-| 想兼顾速度、成本和最终效果 | `Jina recall + Qwen rerank` |
+| 场景                                          | 更推荐                      |
+| --------------------------------------------- | --------------------------- |
+| 中文精度、多语言精度、强 reranker 生态        | Qwen3                       |
+| 长文档、Late Chunking、多模态、生产部署性价比 | Jina                        |
+| 想兼顾速度、成本和最终效果                    | `Jina recall + Qwen rerank` |
 
 ### 读完这份对比后，我更认可的判断
 
 #### 1. Qwen3 更像效果优先路线
+
 它在这份整理里最突出的点是：
 
 - 中文 / 多语言任务更强
@@ -439,6 +462,7 @@ benchmark 叙事也比之前更具体：
 那 Qwen3 应该是优先放进评测盘的对象。
 
 #### 2. Jina 更像工程落地优先路线
+
 Jina 的优势并不只是“小模型便宜”，而是整套检索工程能力更完整：
 
 - 长文档处理更稳
@@ -454,6 +478,7 @@ Jina 的优势并不只是“小模型便宜”，而是整套检索工程能力
 - 对部署成本敏感的生产环境
 
 #### 3. 真正实用的往往不是二选一
+
 我最认同的其实是这个混合方案：
 
 - **粗召回** 用 Jina v5-small
@@ -470,6 +495,7 @@ Jina 的优势并不只是“小模型便宜”，而是整套检索工程能力
 这次重新读完官方页面、再补上与 Qwen3-Embedding 的对比后，我对 Jina Embeddings 的判断是：
 
 ### 适合认真尝试的情况
+
 - 中文或多语言 RAG
 - 长文档检索
 - 需要更高 retrieval quality
@@ -480,12 +506,14 @@ Jina 的优势并不只是“小模型便宜”，而是整套检索工程能力
 - 未来可能做多模态检索
 
 ### 暂时不一定优先的情况
+
 - 只是做一个很小、纯英文、短文本的 demo
 - 没有明显长文档 / 多语言 / 检索质量诉求
 - 只想最短路径验证“能不能搜到”，还没到精排阶段
 - 更看重“最省事的默认接入”而不是检索细节优化
 
 ### 目前最值得记住的几个关键词
+
 - `Late Chunking`
 - `Matryoshka`
 - `Task-specific Adapters`

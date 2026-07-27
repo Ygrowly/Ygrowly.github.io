@@ -58,7 +58,9 @@
       ...propertiesFromDataset(target)
     }
     if (eventName === 'article_contact_reveal' && !properties.article_slug) {
-      properties.article_slug = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() ?? '')
+      properties.article_slug = decodeURIComponent(
+        location.pathname.split('/').filter(Boolean).pop() ?? ''
+      )
     }
     const key = `${eventName}:${location.pathname}:${JSON.stringify(properties)}`
     if (revealed.has(key)) return

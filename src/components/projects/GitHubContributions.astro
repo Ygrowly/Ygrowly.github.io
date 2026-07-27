@@ -41,9 +41,7 @@ contributions = contributions.filter((c) => c.date <= todayISO)
 // Pad the start so the first column begins on Sunday (getUTCDay()===0).
 // Use UTC to avoid local-TZ drift turning Sunday into Saturday.
 const leadingEmpty =
-  contributions.length > 0
-    ? new Date(contributions[0].date + 'T00:00:00Z').getUTCDay()
-    : 0
+  contributions.length > 0 ? new Date(contributions[0].date + 'T00:00:00Z').getUTCDay() : 0
 
 const weeks: (Contribution | null)[][] = []
 let column: (Contribution | null)[] = Array(leadingEmpty).fill(null)
@@ -146,15 +144,19 @@ const formattedTotal = total.toLocaleString('en-US')
       </a>
     </figcaption>
   </div>
-  {/* Tooltip lives OUTSIDE the card so it's never clipped by overflow:hidden
-      or the rounded corners. Positioned absolutely against the figure. */}
+  {
+    /* Tooltip lives OUTSIDE the card so it's never clipped by overflow:hidden
+      or the rounded corners. Positioned absolutely against the figure. */
+  }
   <div class='gh-tooltip' data-tooltip aria-hidden='true'>
     <span class='gh-tooltip-row'>
       <span class='gh-tooltip-count' data-odo aria-hidden='true'>
         {
           [0, 1, 2, 3].map(() => (
             <span class='gh-odo-col' data-odo-col>
-              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-spacer' aria-hidden='true'>
+                0
+              </span>
               <span class='gh-odo-reel' data-odo-reel>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                   <span class='gh-odo-digit'>{d}</span>
@@ -173,7 +175,9 @@ const formattedTotal = total.toLocaleString('en-US')
         {
           [0, 1].map(() => (
             <span class='gh-odo-col' data-odo-col>
-              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-spacer' aria-hidden='true'>
+                0
+              </span>
               <span class='gh-odo-reel' data-odo-reel>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                   <span class='gh-odo-digit'>{d}</span>
@@ -187,7 +191,9 @@ const formattedTotal = total.toLocaleString('en-US')
         {
           [0, 1, 2, 3].map(() => (
             <span class='gh-odo-col' data-odo-col>
-              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-spacer' aria-hidden='true'>
+                0
+              </span>
               <span class='gh-odo-reel' data-odo-reel>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                   <span class='gh-odo-digit'>{d}</span>
@@ -331,16 +337,34 @@ const formattedTotal = total.toLocaleString('en-US')
     visibility: hidden;
     pointer-events: none;
   }
-  .gh-contrib-base .gh-cell { --cell-base: var(--gh-base-empty); }
-  .gh-contrib-base .gh-cell[data-level='1'] { --cell-base: var(--gh-base-1); }
-  .gh-contrib-base .gh-cell[data-level='2'] { --cell-base: var(--gh-base-2); }
-  .gh-contrib-base .gh-cell[data-level='3'] { --cell-base: var(--gh-base-3); }
-  .gh-contrib-base .gh-cell[data-level='4'] { --cell-base: var(--gh-base-4); }
+  .gh-contrib-base .gh-cell {
+    --cell-base: var(--gh-base-empty);
+  }
+  .gh-contrib-base .gh-cell[data-level='1'] {
+    --cell-base: var(--gh-base-1);
+  }
+  .gh-contrib-base .gh-cell[data-level='2'] {
+    --cell-base: var(--gh-base-2);
+  }
+  .gh-contrib-base .gh-cell[data-level='3'] {
+    --cell-base: var(--gh-base-3);
+  }
+  .gh-contrib-base .gh-cell[data-level='4'] {
+    --cell-base: var(--gh-base-4);
+  }
 
-  .gh-contrib-bright .gh-cell { --cell-base: var(--gh-bright-empty); }
-  .gh-contrib-bright .gh-cell[data-level='1'] { --cell-base: var(--gh-bright-1); }
-  .gh-contrib-bright .gh-cell[data-level='2'] { --cell-base: var(--gh-bright-2); }
-  .gh-contrib-bright .gh-cell[data-level='3'] { --cell-base: var(--gh-bright-3); }
+  .gh-contrib-bright .gh-cell {
+    --cell-base: var(--gh-bright-empty);
+  }
+  .gh-contrib-bright .gh-cell[data-level='1'] {
+    --cell-base: var(--gh-bright-1);
+  }
+  .gh-contrib-bright .gh-cell[data-level='2'] {
+    --cell-base: var(--gh-bright-2);
+  }
+  .gh-contrib-bright .gh-cell[data-level='3'] {
+    --cell-base: var(--gh-bright-3);
+  }
   .gh-contrib-bright .gh-cell[data-level='4'] {
     --cell-base: var(--gh-bright-4);
     box-shadow: 0 0 8px var(--gh-bright-glow);
@@ -481,8 +505,12 @@ const formattedTotal = total.toLocaleString('en-US')
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .gh-odo-reel { transition: none; }
-    .gh-cell { transition: none; }
+    .gh-odo-reel {
+      transition: none;
+    }
+    .gh-cell {
+      transition: none;
+    }
   }
 </style>
 
@@ -524,7 +552,8 @@ const formattedTotal = total.toLocaleString('en-US')
     const yearOdo = figure.querySelector('[data-year-odo]')
     const monthLabel = figure.querySelector('[data-month-label]')
     const noun = figure.querySelector('[data-noun]')
-    if (!card || !cells || !tooltip || !countOdo || !dayOdo || !yearOdo || !monthLabel || !noun) continue
+    if (!card || !cells || !tooltip || !countOdo || !dayOdo || !yearOdo || !monthLabel || !noun)
+      continue
 
     card.style.setProperty('--gh-weeks', String(totalWeeks))
 
@@ -586,9 +615,7 @@ const formattedTotal = total.toLocaleString('en-US')
       const desiredX = cellRect.left + cellRect.width / 2 - figRect.left
       // If the card is too narrow to fit the tooltip even at its straight
       // edges, fall back to viewport clamp instead of inverting the bounds.
-      const x = minX <= maxX
-        ? Math.max(minX, Math.min(maxX, desiredX))
-        : desiredX
+      const x = minX <= maxX ? Math.max(minX, Math.min(maxX, desiredX)) : desiredX
 
       // Smart vertical flip
       const cardTopInFig = cardRect.top - figRect.top
@@ -600,12 +627,10 @@ const formattedTotal = total.toLocaleString('en-US')
 
       if (useBelow) {
         tooltip.dataset.position = 'below'
-        tooltip.style.transform =
-          `translate(${x}px, ${cellBottomInFig + gap}px) translate(-50%, 0)`
+        tooltip.style.transform = `translate(${x}px, ${cellBottomInFig + gap}px) translate(-50%, 0)`
       } else {
         tooltip.dataset.position = 'above'
-        tooltip.style.transform =
-          `translate(${x}px, ${cellTopInFig - gap}px) translate(-50%, -100%)`
+        tooltip.style.transform = `translate(${x}px, ${cellTopInFig - gap}px) translate(-50%, -100%)`
       }
       tooltip.dataset.visible = 'true'
     }
@@ -632,9 +657,10 @@ const formattedTotal = total.toLocaleString('en-US')
       cells.style.setProperty('--mx', `${e.clientX - rect.left}px`)
       cells.style.setProperty('--my', `${e.clientY - rect.top}px`)
 
-      const cell = e.target instanceof Element
-        ? e.target.closest('.gh-contrib-base .gh-cell[data-date]')
-        : null
+      const cell =
+        e.target instanceof Element
+          ? e.target.closest('.gh-contrib-base .gh-cell[data-date]')
+          : null
       if (cell) {
         setActive(cell)
         showTooltip(cell)

@@ -1,5 +1,5 @@
 ---
-title: "Hermes Agent Memory: A Four-Layer L0–L2 Design"
+title: 'Hermes Agent Memory: A Four-Layer L0–L2 Design'
 description: "Hermes Agent's memory system: system-prompt assembly (L0), persistent memory (L1), external plugins (L1.5), session search (L2), and compression. No vector DB."
 date: 2026-05-24
 updatedDate: 2026-05-24
@@ -64,6 +64,7 @@ The key to understanding the Hermes memory architecture is understanding the **e
 **Hermes's choice**: it pays the price of **deferring writes to the next session** in exchange for the economic benefit of **prefix-cache hits the whole way through**. The tool response returns the live state in real time ("successfully wrote X"), so the model knows what it wrote and won't go wrong at the logical level.
 
 **The core triangle tradeoff**: a memory architecture is fundamentally a choice among **latency / cost / consistency**.
+
 - Want real-time updates (low latency) → sacrifice cache (high cost)
 - Want to save money (low cost) → sacrifice immediacy (high latency)
 - Want multi-agent consistency → you usually have to sacrifice on both sides
@@ -75,6 +76,7 @@ Hermes chose cost first, which is reasonable for the CLI-agent scenario. But any
 **Mechanism**: the `_build_system_prompt()` method in `run_agent.py` assembles the system prompt at session startup.
 
 **What it's made of** (in order):
+
 1. The agent's identity definition (`SOUL.md`, or the default identity)
 2. The user/system message (if provided)
 3. L1 memory blocks: a **frozen snapshot** of `MEMORY.md` and `USER.md` (see the L1 section)
@@ -86,6 +88,7 @@ Hermes chose cost first, which is reasonable for the CLI-agent scenario. But any
 **Caching strategy**: the system prompt is cached in `_cached_system_prompt` and only rebuilt during context compression — it stays constant on ordinary turns. This preserves the model provider's **prefix cache** (prompt caching), substantially reducing latency and cost.
 
 **Per-turn context injection**: before each API call, the `prefetch()` results from external memory providers are injected into the current user message as a `<memory-context>...</memory-context>` fence block.
+
 - Key design point: it's injected only at API-call time. The original message is never mutated, so nothing leaks into session persistence.
 - Wrapped via `build_memory_context_block()`, working together with the `StreamingContextScrubber` in streaming responses to handle the boundary fences.
 
@@ -94,10 +97,12 @@ Hermes chose cost first, which is reasonable for the CLI-agent scenario. But any
 ### L1: Persistent memory (memory_tool)
 
 **Storage**: two markdown files under `$HERMES_HOME/memories/`:
+
 - `MEMORY.md` — the agent's personal notes (environment facts, project conventions, lessons learned)
 - `USER.md` — a user profile (preferences, communication style, habits)
 
 **Tool interface**: a single `memory` tool with three actions:
+
 - `memory(target="memory"|"user", action="add", content="...")`
 - `memory(action="replace", old_text="...", content="...")`
 - `memory(action="remove", old_text="...")`
@@ -120,10 +125,12 @@ Next session → re-read the files → new snapshot → new prompt
 ```
 
 This is the most elegant design decision: **memory writes are persisted immediately, but the snapshot is frozen**. Two states coexist in parallel:
+
 - **The frozen snapshot** (`_system_prompt_snapshot`) → used for system-prompt injection, unchanging within the session
 - **The live entries** (`self.entries`) → used for the return value of tool calls, reflecting the latest state in real time
 
 **Safety mechanisms** (see `/en/notes/0504-hermes-memory-safety-mechanisms` for details):
+
 1. Injection scanning: regex for 13 threat patterns + invisible-Unicode detection
 2. File locking: `fcntl.flock` (Unix) / `msvcrt` (Windows) via a separate `.lock` file
 3. Re-read under lock: re-read the on-disk state under the lock before writing, to prevent lost updates
@@ -136,10 +143,12 @@ This is the most elegant design decision: **memory writes are persisted immediat
 ### L1.5: External memory plugin architecture
 
 **The MemoryProvider ABC** (`agent/memory_provider.py`) defines the full lifecycle:
+
 - Core: `is_available()`, `initialize()`, `system_prompt_block()`, `prefetch()`, `queue_prefetch()`, `sync_turn()`, `get_tool_schemas()`, `handle_tool_call()`, `shutdown()`
 - Optional hooks: `on_turn_start()`, `on_session_end()`, `on_session_switch()`, `on_pre_compress()`, `on_delegation()`, `on_memory_write()`, `get_config_schema()`, `save_config()`
 
 **The MemoryManager** (`agent/memory_manager.py`) manages all memory providers:
+
 - Always registers `BuiltinMemoryProvider` first (it can't be removed)
 - Allows at most **one** external provider (a second one is rejected with a warning)
 - Routes tool calls via a `tool_name → provider` index
@@ -149,16 +158,16 @@ This is the most elegant design decision: **memory writes are persisted immediat
 
 **Bundled plugins** (`plugins/memory/`):
 
-| Plugin | Description |
-|--------|-------------|
-| honcho | Honcho API backend |
-| mem0 | Mem0 memory backend |
-| supermemory | Supermemory API |
-| retaindb | RetainDB storage |
-| hindsight | Pluggable hindsight recall |
-| holographic | Holographic memory + retrieval store |
-| openviking | File-based memory, defining its own L0/L1/L2 three-layer scheme |
-| byterover | Byte-level memory store |
+| Plugin      | Description                                                     |
+| ----------- | --------------------------------------------------------------- |
+| honcho      | Honcho API backend                                              |
+| mem0        | Mem0 memory backend                                             |
+| supermemory | Supermemory API                                                 |
+| retaindb    | RetainDB storage                                                |
+| hindsight   | Pluggable hindsight recall                                      |
+| holographic | Holographic memory + retrieval store                            |
+| openviking  | File-based memory, defining its own L0/L1/L2 three-layer scheme |
+| byterover   | Byte-level memory store                                         |
 
 **Loading mechanism**: it scans two locations — the built-in `plugins/memory/<name>/` and the user-installed `$HERMES_HOME/plugins/<name>/`. Built-in takes precedence. Heuristic detection: it looks for a `MemoryProvider` subclass or `register_memory_provider` in `__init__.py`.
 
@@ -171,6 +180,7 @@ This is the most elegant design decision: **memory writes are persisted immediat
 The `messages` table in `~/.hermes/state.db`, with WAL mode on (multi-reader, single-writer). Every message from every CLI / Telegram / Discord / cron session lands here.
 
 `state.db` contains five core tables:
+
 - `sessions` — session metadata (ID, source, model, timestamps, token count, cost, title, parent_session_id)
 - `messages` — the complete conversation history (role, content, tool_calls, reasoning)
 - `messages_fts` — an FTS5 virtual table with the unicode61 tokenizer
@@ -239,19 +249,20 @@ At this step, most RAG systems either return chunks (and let the main model read
 A query-focused summary is effectively a **soft rerank with reasoning**: a small model reads a 100k-character window and is asked to "summarize with respect to query X" — it's doing semantic matching, and it's a rerank with reasoning, not a similarity score.
 
 **The core benefits**:
+
 - **Information density goes from ~10% up to ~80%**. Irrelevant tokens never enter the main model's context.
 - **It absorbs part of the need for semantic generalization.** FTS5 won't match "deadlock" with "the ReAct loop got stuck," but if the query "deadlock" had a literal hit in another session, FTS5 recalls that session, and then the summary prompt has the LLM — when it reads "the ReAct loop got stuck" — recognize that this is the deadlock the user asked about, and translate it in the summary into "the user previously solved a ReAct-loop hang with max_iter."
 - The work of semantic generalization is **deferred from the recall stage to the summarization stage**.
 
 #### The asymmetric cost structure
 
-| Operation | Frequency | Cost per call |
-|-----------|-----------|---------------|
-| FTS5 write | per message | near zero |
-| FTS5 retrieval | per session_search | near zero |
-| LLM summarization | per session with a match | a Gemini Flash call |
-| Vector write | per message | medium (embedding inference) |
-| Vector retrieval | per search | medium (ANN index) |
+| Operation         | Frequency                | Cost per call                |
+| ----------------- | ------------------------ | ---------------------------- |
+| FTS5 write        | per message              | near zero                    |
+| FTS5 retrieval    | per session_search       | near zero                    |
+| LLM summarization | per session with a match | a Gemini Flash call          |
+| Vector write      | per message              | medium (embedding inference) |
+| Vector retrieval  | per search               | medium (ANN index)           |
 
 **The key asymmetry**: FTS5 recall is cheap, so you can use a wider recall aperture without worrying about cost. You can even widen recall by OR-expanding the query — because once you reach the summarization stage, the LLM filters it itself. If recall were expensive (e.g., having to compute embeddings every time), you'd have to narrow the recall aperture, and that's exactly what causes missed recall.
 
@@ -327,15 +338,16 @@ Session end
 
 ## How the layers relate
 
-| Layer | Name | Mechanism | Scope | Persistence | Injection point |
-|-------|------|-----------|-------|-------------|-----------------|
-| **L0** | System prompt + context injection | `_build_system_prompt()` assembly, L1 blocks + provider blocks | Current session | Rebuilt on compression | System prompt; per-turn `<memory-context>` fence block |
-| **L1** | Persistent memory | `memory_tool.py`, MEMORY.md / USER.md | Cross-session | Disk files, snapshotted at session startup | System prompt (frozen at session start) |
-| **L1.5** | External memory providers | `MemoryProvider` plugins via `MemoryManager` | Cross-session | Varies by plugin (API, local DB, etc.) | Provider `system_prompt_block()` + `prefetch()` context |
-| **L2** | Session search | `session_search_tool.py`, SQLite FTS5 | Cross-session (all history) | SQLite state.db | On demand, via tool call |
-| **Compression** | Context-window management | `context_compressor.py` | Past turns of the current session | Summary persisted as a compressed message + session split | Replaces compressed messages with a compact summary |
+| Layer           | Name                              | Mechanism                                                      | Scope                             | Persistence                                               | Injection point                                         |
+| --------------- | --------------------------------- | -------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| **L0**          | System prompt + context injection | `_build_system_prompt()` assembly, L1 blocks + provider blocks | Current session                   | Rebuilt on compression                                    | System prompt; per-turn `<memory-context>` fence block  |
+| **L1**          | Persistent memory                 | `memory_tool.py`, MEMORY.md / USER.md                          | Cross-session                     | Disk files, snapshotted at session startup                | System prompt (frozen at session start)                 |
+| **L1.5**        | External memory providers         | `MemoryProvider` plugins via `MemoryManager`                   | Cross-session                     | Varies by plugin (API, local DB, etc.)                    | Provider `system_prompt_block()` + `prefetch()` context |
+| **L2**          | Session search                    | `session_search_tool.py`, SQLite FTS5                          | Cross-session (all history)       | SQLite state.db                                           | On demand, via tool call                                |
+| **Compression** | Context-window management         | `context_compressor.py`                                        | Past turns of the current session | Summary persisted as a compressed message + session split | Replaces compressed messages with a compact summary     |
 
 These five layers aren't mutually exclusive — they **work together**:
+
 - L0 is the **resident** context: the agent always "knows" this information
 - L1 is **deliberately written** memory: the agent judges that "this is worth remembering"
 - L1.5 is the **external extension**: a third-party service extends the memory capability
@@ -349,6 +361,7 @@ These five layers aren't mutually exclusive — they **work together**:
 The earlier `/en/notes/0504-hermes-memory-safety-mechanisms` analyzed, from a **security angle**, the six safety mechanisms of L1's `memory_tool.py` in detail (injection scanning, file locks, re-read under lock, capacity rejection, atomic writes, substring matching).
 
 This card covers, from an **architecture angle**, all four layers of the entire memory system and their interactions, including:
+
 - L0 system-prompt assembly and caching strategy
 - L1's frozen snapshot pattern (not covered in 0504)
 - L1.5 external memory plugin architecture
@@ -381,16 +394,17 @@ The main limitations of using just the two files MEMORY.md + USER.md:
 
 ### 3. Comparison with alternatives
 
-| Scheme | Core mechanism | Cache-friendliness | Scalability | Implementation complexity | Suited for |
-|--------|----------------|--------------------|-------------|---------------------------|------------|
-| **Hermes (L1 frozen snapshot)** | File → system-prompt snapshot, frozen within the session | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | Single user, slow-changing memory, CLI agent |
-| **Sliding window + summary** | Keep the most recent N turns, compress earlier ones into a summary | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | Long conversations where the memory need is concentrated on "what happened recently" |
-| **Letta / MemGPT (tiered)** | Three tiers — working/recall/archival — with the model actively moving data | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | Long-horizon, single agent, high memory density |
-| **Vector RAG** | Each turn retrieves top-k by query and injects | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Scales nearly without limit, but preference-type memory is hard to recall |
-| **Knowledge graph** | entity-relation triples → graph queries | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | Factual, precise retrieval; multi-hop reasoning |
-| **Hybrid scheme (production-grade)** | snapshot + vector + KV + keyword, multi-path recall | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | Multi-user, cross-session, production systems |
+| Scheme                               | Core mechanism                                                              | Cache-friendliness | Scalability | Implementation complexity | Suited for                                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------- | ------------------ | ----------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| **Hermes (L1 frozen snapshot)**      | File → system-prompt snapshot, frozen within the session                    | ⭐⭐⭐⭐⭐         | ⭐⭐        | ⭐⭐⭐⭐⭐                | Single user, slow-changing memory, CLI agent                                         |
+| **Sliding window + summary**         | Keep the most recent N turns, compress earlier ones into a summary          | ⭐⭐⭐             | ⭐⭐⭐      | ⭐⭐⭐⭐                  | Long conversations where the memory need is concentrated on "what happened recently" |
+| **Letta / MemGPT (tiered)**          | Three tiers — working/recall/archival — with the model actively moving data | ⭐⭐               | ⭐⭐⭐⭐    | ⭐⭐                      | Long-horizon, single agent, high memory density                                      |
+| **Vector RAG**                       | Each turn retrieves top-k by query and injects                              | ⭐                 | ⭐⭐⭐⭐⭐  | ⭐⭐⭐                    | Scales nearly without limit, but preference-type memory is hard to recall            |
+| **Knowledge graph**                  | entity-relation triples → graph queries                                     | ⭐                 | ⭐⭐⭐⭐⭐  | ⭐                        | Factual, precise retrieval; multi-hop reasoning                                      |
+| **Hybrid scheme (production-grade)** | snapshot + vector + KV + keyword, multi-path recall                         | ⭐⭐⭐             | ⭐⭐⭐⭐⭐  | ⭐                        | Multi-user, cross-session, production systems                                        |
 
 **The insight behind the hybrid scheme**: different types of memory have different access patterns and should use different storage.
+
 - Stable preference/identity information → snapshot into the system prompt (preserve the cache)
 - Temporary in-session state → leave it in the conversation history
 - Cross-session factual memory → vector store + keyword index, dual-path recall
@@ -416,6 +430,7 @@ The most valuable thing about Hermes's memory system isn't any single technical 
 For single-user agent scenarios, this is a practical, runnable design that fits better than the "embedding everything" vector-RAG approach.
 
 **Directions worth considering in the future**:
+
 1. L2 query expansion (use an LLM to expand the user's query into multiple FTS5 sub-queries)
 2. Session-level metadata filtering (time range, source filtering)
 3. Evaluating and improving summary quality (is the Gemini Flash currently in use good enough?)

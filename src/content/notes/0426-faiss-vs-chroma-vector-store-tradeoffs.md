@@ -140,6 +140,7 @@ Chroma 几乎是 Faiss 的反面：
 数据来源：2025-2026 基准测试显示，Milvus 和 Faiss 在亿级规模上领先；Chroma 和 pgvector 适合快速落地；Qdrant/Weaviate 在过滤和混合搜索上有独特优势。
 
 一句话定位：
+
 - 想极致快 + 大规模 → Faiss（底层）或 Milvus
 - 想最快上手 → Chroma 或 pgvector
 - 想过滤/混合搜索 → Qdrant 或 Weaviate
@@ -150,17 +151,21 @@ Chroma 几乎是 Faiss 的反面：
 这次内容可以压成下面这个选择框架：
 
 #### 想最快上手
+
 - **Chroma**
 - 或者已有 Postgres 时直接 **pgvector**
 
 #### 想极致性能 / 大规模
+
 - **Faiss**（底层）
 - 或 **Milvus**（更完整的生产方案）
 
 #### 想要强过滤 / payload 检索
+
 - **Qdrant**
 
 #### 想做混合搜索 / 图结构语义检索
+
 - **Weaviate**
 
 所以真正的现实不是“谁最好”，而是：
@@ -174,25 +179,30 @@ Chroma 几乎是 Faiss 的反面：
 精确搜索（Flat / brute-force）在数据量上来后会变成 O(N)，所以生产里几乎都要走 ANN。牺牲极少准确率（Recall 通常 95%+），换取 10-1000 倍速度。主流算法有三大类：
 
 #### Flat（精确 / Brute Force）
+
 - 所有向量存成数组，逐维度计算余弦/欧氏距离，然后排序取 Top-k
 - 100% recall，但 O(N) 随数据量线性增长
 - 仅适合 <10 万向量，或作为 IVF/HNSW 的子模块
 - Faiss/Milvus 的 IVF_FLAT 底层就是 Flat；Chroma/Qdrant 在小集合（<1 万）会自动 fallback 到 Flat
 
 #### IVF（Inverted File，倒排文件索引）
+
 核心思想：先聚类，再倒排。
 
 构建阶段：用 K-means 把所有向量分成 `nlist` 个簇（每个簇一个中心点/centroid），每个向量只记录在所属簇的倒排列表里。
 
 查询阶段：
+
 1. 计算查询向量到所有 nlist 个中心的距离，选最近的 `nprobe` 个簇
 2. 只在这 nprobe 个簇里做精确（或压缩）搜索
 
 关键参数：
+
 - **nlist**：簇数，越大越细但索引越大
 - **nprobe**：查询时检查的簇数，可运行时动态调整，越大 Recall 越高
 
 变体（压缩量化）：
+
 - **IVF_FLAT**：不压缩，最准但最占内存
 - **IVF_PQ（Product Quantization）**：把向量切成子空间，每子空间用码本编码，压缩率可达 64:1，Recall 70-90%
 - **IVF_SQ8**：标量量化（每个维度 8-bit），压缩 4:1，Recall 90%+
@@ -202,11 +212,13 @@ Chroma 几乎是 Faiss 的反面：
 谁用：Milvus 原生支持全系 IVF（最灵活）；pgvector 的 IVFFlat；Faiss 是 IVF 的发明者。
 
 #### HNSW（Hierarchical Navigable Small World，分层可导航小世界图）
+
 2026 年最主流 ANN 算法。
 
 核心思想：把向量空间建成分层图，像"高速公路 + 乡村路"。
 
 构建阶段：每个向量是图中的节点：
+
 - 最上层只有少量节点，连接很"广"（小世界特性：任意两点跳几步就到）
 - 逐层向下，每层节点数增多，连接变"密"
 - 每个节点最多 m 条边（通常 8-64）
@@ -214,6 +226,7 @@ Chroma 几乎是 Faiss 的反面：
 查询阶段：从顶层入口点开始，贪婪地向最近邻跳跃，一层层往下走，最终在底层精确找 Top-k。搜索复杂度 ≈ O(log N)。
 
 关键参数（Qdrant/Chroma/Milvus 都可调）：
+
 - **m**：每节点最大连接数（越大 Recall 越高，但内存↑）
 - **ef_construct**：建图时候选数（越大图质量越高，构建越慢）
 - **hnsw_ef（或 ef_search）**：查询时候选数（越大 Recall 越高，查询越慢）
@@ -223,11 +236,13 @@ Chroma 几乎是 Faiss 的反面：
 谁用：Qdrant（Rust 高度优化 HNSW + on-disk）；Weaviate（默认）；Chroma（默认 HNSW，云端 SPANN 是其变体）；Milvus（可选）；pgvector（HNSW）；Faiss（也支持）。
 
 #### 其他高级技巧（通用）
+
 - **Quantization（量化）**：PQ（乘积量化）、SQ（标量量化）、Binary Quantization（二值量化）—— 把 float32 向量压成 int8/int4/bit，内存/速度暴增，Recall 略降
 - **DiskANN / SPANN**：磁盘友好版 HNSW（Chroma 云端、pgvector 扩展），解决内存瓶颈
 - **混合索引**：很多库支持"向量 + 标量过滤"先粗筛再精搜
 
 #### 算法选择口诀（2026 实战经验）
+
 - 数据 <10 万 → Flat 就够
 - 追求内存最低 + 过滤多 → IVF（Milvus/pgvector）
 - 追求最高 Recall + 速度 → HNSW（Qdrant/Weaviate/Chroma）

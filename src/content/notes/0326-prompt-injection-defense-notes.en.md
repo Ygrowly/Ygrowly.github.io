@@ -56,6 +56,7 @@ The heart of OpenAI's approach is to establish a hierarchy among instructions fr
 #### Three priority tiers
 
 ##### Highest privilege: System Prompt
+
 The foundational rules written by the developer, such as:
 
 - what role you play
@@ -63,11 +64,13 @@ The foundational rules written by the developer, such as:
 - where the safety red lines are
 
 ##### Medium privilege: User Message
+
 The user's input and questions.
 
 The model tries its best to satisfy the user's intent — but only as long as that doesn't violate higher-priority system instructions.
 
 ##### Lowest privilege: Tool Output / External Content
+
 For example:
 
 - scraped web page content
@@ -78,6 +81,7 @@ For example:
 All of these should be treated as **low-trust input**.
 
 #### Why this idea matters
+
 The most classic prompt-injection scenario is exactly this:
 
 - a web page hides "ignore the previous instructions and do XXX"
@@ -96,6 +100,7 @@ If OpenAI is more about "ranking instructions by privilege," Anthropic feels mor
 > **Draw the boundaries clearly first, then assume the system might eventually be bypassed anyway — so put real physical isolation in place.**
 
 #### a. XML / tag isolation
+
 Anthropic places a lot of emphasis on structured tags, for example:
 
 ```xml
@@ -116,6 +121,7 @@ The point of doing this is to make it easier for the model to recognize, at the 
 This doesn't conflict with OpenAI's instruction hierarchy, but Anthropic puts more weight on "making boundaries explicit."
 
 #### b. Adversarial training
+
 Anthropic also deliberately injects malicious samples during training, so the model learns to recognize:
 
 - injection attacks
@@ -125,6 +131,7 @@ Anthropic also deliberately injects malicious samples during training, so the mo
 In other words, it doesn't rely on prompt engineering alone — it cultivates an "anti-injection instinct" at the model layer.
 
 #### c. Sandboxing and least privilege
+
 In high-privilege settings like browser control, Computer Use, and Claude Code, one of Anthropic's strongest principles is:
 
 - assume the model can be induced into misbehaving
@@ -156,6 +163,7 @@ But if you want a more complete answer, you should abstract one level higher:
 ### 4. Defenses in the middle pipeline: Guardrails
 
 #### Input-side protection
+
 Before user input reaches the main model, intercept it first — for example:
 
 - a lightweight classifier model
@@ -166,6 +174,7 @@ Before user input reaches the main model, intercept it first — for example:
 The goal is to block typical high-risk patterns as early as possible.
 
 #### Output-side protection
+
 After the model produces output, check:
 
 - whether it leaks sensitive information
@@ -242,16 +251,19 @@ This matters in an interview because it shows you understand:
 For now I organize prompt-injection defense into three layers:
 
 ### Layer 1: Model-layer defense
+
 - OpenAI: Instruction Hierarchy
 - Anthropic: structured boundaries + adversarial training
 
 ### Layer 2: Pipeline-layer defense
+
 - input filtering
 - output validation
 - Guardrails
 - Canary / monitoring
 
 ### Layer 3: Application-layer defense
+
 - the least-privilege principle
 - sandbox isolation
 - Human-in-the-loop

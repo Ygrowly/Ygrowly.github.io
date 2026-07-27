@@ -133,18 +133,21 @@ That is:
 The OpenAI team did a few crucial things:
 
 #### a. Let Codex read the UI directly
+
 - Hook into the Chrome DevTools Protocol
 - See DOM snapshots
 - See screenshots
 - Navigate and verify the UI
 
 #### b. Let Codex read observability directly
+
 - Logs are queryable
 - Metrics are queryable
 - Traces are queryable
 - Each worktree maps to a temporary, isolated observability environment
 
 #### c. Let Codex self-serve debugging inside a worktree
+
 - Every change can spin up an isolated instance
 - Reproduce the bug
 - Verify the fix
@@ -247,6 +250,7 @@ This line of thinking is worth remembering:
 My core read on this article is:
 
 ### It's not an "AI makes coding faster" promo piece
+
 What it's really about is:
 
 - What an agent-first repo should look like
@@ -254,16 +258,20 @@ What it's really about is:
 - Where the discipline of software engineering should be placed
 
 ### The most important shift: from code craftsmanship to systems craftsmanship
+
 The old emphasis was:
+
 - How to hand-write better code
 
 What matters more now is:
+
 - How to design a better environment
 - How to make context readable to the agent
 - How to automate the feedback loop
 - How to turn boundaries and taste into an enforceable system
 
 ### The three keywords that resonated most with me
+
 1. **Map, not manual**
    - Give the agent a map, not a verbose manual
 2. **Agent readability**
@@ -276,11 +284,13 @@ What matters more now is:
 If I translate this article into more concrete advice for my own work, the most useful points are:
 
 ### 1. The repo should become a real knowledge system
+
 - Key consensus must go into the repo
 - Docs must be structured
 - AGENTS.md should be short, stable, and map-like
 
 ### 2. Let the agent see the UI and observability directly
+
 - Screenshots
 - DOM
 - Logs
@@ -290,6 +300,7 @@ If I translate this article into more concrete advice for my own work, the most 
 These aren't "nice-to-have extras" — they're core infrastructure for an agent workflow.
 
 ### 3. Write boundaries and taste as code
+
 - lint
 - CI
 - structural tests
@@ -298,11 +309,13 @@ These aren't "nice-to-have extras" — they're core infrastructure for an agent 
 Whatever can be automated shouldn't rely on human memory.
 
 ### 4. Keep doing doc gardening and AI-sludge cleanup
+
 - Docs rot
 - Patterns drift
 - You have to clean continuously
 
 ### 5. The scarcest human resource becomes attention
+
 There's an underlying logic in the article that rings very true:
 
 > The scarcest thing in the future isn't code output — it's human time, attention, and judgment.

@@ -1,7 +1,6 @@
+import { trackSiteEvent } from '@/lib/analytics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-
-import { trackSiteEvent } from '@/lib/analytics'
 
 import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'

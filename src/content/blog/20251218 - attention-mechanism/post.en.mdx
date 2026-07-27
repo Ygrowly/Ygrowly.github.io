@@ -1,6 +1,6 @@
 ---
 title: 'Understanding Attention: From Q, K, V to Multi-Head'
-description: 'A deep dive into Attention, the Transformer''s core engine: grasp Q, K, V via a database-query analogy, master Multi-Head, and clear up Softmax vs RMSNorm.'
+description: "A deep dive into Attention, the Transformer's core engine: grasp Q, K, V via a database-query analogy, master Multi-Head, and clear up Softmax vs RMSNorm."
 publishDate: 2025-12-18 00:00:00
 tags: ['LLM', 'Transformer', 'MiniMind', 'Attention', 'Multi-Head']
 language: en
@@ -14,6 +14,7 @@ translationKey: '20251218---attention-mechanism/post'
 [MiniMind](https://github.com/jingyaogong/minimind) is a concise but complete large-language-model training project, covering the full pipeline from data processing to model training to inference deployment. While working through it, I distilled the key technical points into my [minimind-notes](https://github.com/joyehuang/minimind-notes) repo and produced this four-part series of blog posts that systematically explain the core components of the Transformer.
 
 This series covers:
+
 1. **Normalization** — why we need RMSNorm
 2. **RoPE positional encoding** — how to make the model understand word order
 3. **Attention** (this post) — the core engine of the Transformer
@@ -26,6 +27,7 @@ This series covers:
 ### 1.1 The soul of the Transformer
 
 If the Transformer is a building:
+
 - **Normalization (RMSNorm)** is the foundation — it stabilizes training
 - **Positional encoding (RoPE)** is the coordinate system — it distinguishes positions
 - **Attention** is the core engine — it understands meaning ⭐
@@ -56,6 +58,7 @@ Without Attention, there is no Transformer.
 > "When understanding a word, which other words in the sentence should we pay attention to?"
 
 **Example**:
+
 ```
 Sentence: "Xiaoming loves his cat; it always sleeps by the window"
 
@@ -70,10 +73,10 @@ Final representation of "it" = 0.1×[Xiaoming] + 0.05×[loves] + 0.8×[cat] + 0.
 ```
 
 **What Attention does**:
+
 1. **Compute relevance scores** (between every pair of words)
 2. **Normalize them into a probability distribution** (Softmax — they sum to 1)
 3. **Take a weighted sum** (fuse in the context)
-
 
 ### 2.2 Input vs output
 
@@ -98,6 +101,7 @@ output = [
 ### 2.3 Self-Attention vs Cross-Attention
 
 **Self-Attention (used by MiniMind)**:
+
 ```python
 # The sentence attends to words "within itself"
 sentence = "I love programming"
@@ -105,6 +109,7 @@ sentence = "I love programming"
 ```
 
 **Cross-Attention (used by translation models)**:
+
 ```python
 # Sentence A attends to sentence B
 chinese = "我爱编程"
@@ -113,6 +118,7 @@ english = "I love programming"
 ```
 
 **Why is it called "Self"**?
+
 - Because it computes relationships **within the same sentence**
 - Not "a token with itself" (even though q_i · k_i is also computed)
 
@@ -132,11 +138,11 @@ WHERE key MATCHES query  ← the Key matches the Query
 
 **The correspondence**:
 
-| SQL concept | Attention concept | Role | Analogy |
-|---------|---------------|------|------|
-| **Query** | Query (Q) | "What information am I looking for?" | search condition |
-| **Key** | Key (K) | "What information do I have here?" | index label |
-| **Value** | Value (V) | "My actual content" | data value |
+| SQL concept | Attention concept | Role                                 | Analogy          |
+| ----------- | ----------------- | ------------------------------------ | ---------------- |
+| **Query**   | Query (Q)         | "What information am I looking for?" | search condition |
+| **Key**     | Key (K)           | "What information do I have here?"   | index label      |
+| **Value**   | Value (V)         | "My actual content"                  | data value       |
 
 ### 3.2 A concrete example: understanding "love"
 
@@ -147,10 +153,12 @@ Sentence: "I love programming"
 1. **Query (what "love" wants to know)**: Who are the subject and object? What action am I expressing?
 
 2. **Keys (what information the other words offer)**:
+
    - Key("I") = "I'm the subject, a first-person pronoun"
    - Key("programming") = "I'm the object, denoting an activity"
 
 3. **Compute similarity**:
+
    - Q of "love" · K of "I" = 0.6 (moderately relevant)
    - Q of "love" · K of "programming" = 0.8 (highly relevant!)
 
@@ -159,7 +167,6 @@ Sentence: "I love programming"
 5. **Weighted sum of Values**:
    - New representation of "love" = 0.25×Value("I") + 0.15×Value("love") + 0.60×Value("programming")
    - It has absorbed the context and knows it connects "I" and "programming"
-
 
 ### 3.3 Where do Q, K, V come from?
 
@@ -181,6 +188,7 @@ V = X @ W_V  # Value: "My actual content"
 **A common question**: "Where do W_Q, W_K, W_V come from?"
 
 **The answer**:
+
 - **What they are**: learnable parameters of the neural network
 - **Where they come from**: learned from training data via backpropagation
 - **Where they're stored**: saved in the model file (.pth, .safetensors)
@@ -203,29 +211,35 @@ This single formula captures the entire Attention mechanism!
 ### 4.2 Step by step
 
 **Step 1: Compute similarity (dot product)**
+
 ```python
 scores = Q @ K.T  # [seq_len, seq_len]
 # scores[i, j] = Q[i] · K[j] (the more similar two vectors are, the larger the dot product)
 ```
 
 **Step 2: Scale (divide by √d_k)**
+
 ```python
 scaled_scores = scores / math.sqrt(head_dim)
 ```
+
 **Why scale?** The larger the dimension, the larger the dot products. Without scaling, Softmax becomes too "peaked" and the gradients vanish. After scaling, the distribution is smoother and the gradients are more stable.
 
 **Step 3: Softmax normalization**
+
 ```python
 attn_weights = softmax(scaled_scores, dim=-1)
 ```
+
 This turns the scores into a probability distribution: every weight is ≥ 0, each row sums to 1, and the result can be read as "how much attention" to pay.
 
 **Step 4: Weighted sum of Values**
+
 ```python
 output = attn_weights @ V
 ```
-For example: new representation of "love" = 0.29×Value("I") + 0.36×Value("love") + 0.25×Value("programming")
 
+For example: new representation of "love" = 0.29×Value("I") + 0.36×Value("love") + 0.25×Value("programming")
 
 ### 4.3 Full code implementation
 
@@ -258,9 +272,11 @@ def attention(Q, K, V, mask=None):
 Sentence: "Xiaoming studies artificial intelligence at Tsinghua University in Beijing"
 
 **A single-head Attention might only attend to**:
+
 - Subject-verb-object relations (grammar)
 
 **But we want to attend to all of these at once**:
+
 - Grammatical structure (subject-verb-object)
 - Entity relations (Xiaoming–Tsinghua)
 - Geographic location (Tsinghua–Beijing)
@@ -295,7 +311,6 @@ Head 8: topic glasses 🕶️
 
 Finally: take off all the glasses and fuse the 8 perspectives!
 ```
-
 
 ### 5.3 The Multi-Head implementation pipeline
 
@@ -374,6 +389,7 @@ Key invariant: num_heads × head_dim = 768
 ### 5.6 Why concatenate after splitting?
 
 **Splitting**: lets each head focus on a different aspect
+
 ```python
 # Head 1 learns to attend to grammar
 # Head 2 learns to attend to entities
@@ -381,6 +397,7 @@ Key invariant: num_heads × head_dim = 768
 ```
 
 **Concatenating**: fuses the information from all perspectives
+
 ```python
 # Analogy: 8 experts each analyze the same case
 # Each expert writes a 96-word report
@@ -388,6 +405,7 @@ Key invariant: num_heads × head_dim = 768
 ```
 
 **Why not just average?**
+
 - Concatenating preserves all the information (768 dimensions)
 - Averaging would lose information (still only 96 dimensions)
 - The downstream FFN can learn how to fuse this information
@@ -404,15 +422,15 @@ Key invariant: num_heads × head_dim = 768
 
 ### 6.2 The key differences
 
-| Property | Softmax (inside Attention) | RMSNorm (between blocks) |
-|------|------------------------|---------------------|
-| **Location** | **inside** the Attention computation | **before** Attention/FFN |
-| **What it normalizes** | similarity scores (each row of the score matrix) | word vectors (the magnitude of each vector) |
-| **Purpose** | turn them into a probability distribution | stabilize the values, prevent exploding gradients |
-| **Input** | arbitrary scores (-∞ to +∞) | a 768-dim vector |
-| **Output** | values in [0, 1] that sum to 1 | a normalized vector (direction unchanged) |
-| **Formula** | `exp(x_i) / Σexp(x_j)` | `x / sqrt(mean(x²))` |
-| **Scope** | each row is normalized independently | each vector is normalized independently |
+| Property               | Softmax (inside Attention)                       | RMSNorm (between blocks)                          |
+| ---------------------- | ------------------------------------------------ | ------------------------------------------------- |
+| **Location**           | **inside** the Attention computation             | **before** Attention/FFN                          |
+| **What it normalizes** | similarity scores (each row of the score matrix) | word vectors (the magnitude of each vector)       |
+| **Purpose**            | turn them into a probability distribution        | stabilize the values, prevent exploding gradients |
+| **Input**              | arbitrary scores (-∞ to +∞)                      | a 768-dim vector                                  |
+| **Output**             | values in [0, 1] that sum to 1                   | a normalized vector (direction unchanged)         |
+| **Formula**            | `exp(x_i) / Σexp(x_j)`                           | `x / sqrt(mean(x²))`                              |
+| **Scope**              | each row is normalized independently             | each vector is normalized independently           |
 
 ### 6.3 Where they sit in the code
 
@@ -441,6 +459,7 @@ def forward(self, x):
 ### 6.4 A detailed side-by-side example
 
 **Softmax example**:
+
 ```python
 # One row of the Attention score matrix
 scores = torch.tensor([2.5, 1.3, 3.7, 0.8])
@@ -456,6 +475,7 @@ print(weights)
 ```
 
 **RMSNorm example**:
+
 ```python
 # One word vector
 x = torch.tensor([2.5, 1.3, 3.7, 0.8])
@@ -470,7 +490,6 @@ print(x_norm)
 # - RMS ≈ 1
 # - direction unchanged (only the magnitude is scaled)
 ```
-
 
 ### 6.5 A mnemonic
 
@@ -523,10 +542,12 @@ def forward(self, x, position_embeddings):
 Recall what I covered earlier:
 
 **The reason**:
+
 - Q and K compute **similarity** → they need positional information
 - V represents **content** → it doesn't need positional information
 
 **The flow**:
+
 ```
 1. scores = Q @ K.T  ← compute similarity (needs position)
 2. weights = softmax(scores)
@@ -534,11 +555,11 @@ Recall what I covered earlier:
 ```
 
 **Analogy**:
+
 - Q and K are "map coordinates" → they need RoPE
 - V is the "treasure content" → it doesn't need RoPE
 
 ---
-
 
 ## 8. Hands-on experiments
 
@@ -604,10 +625,12 @@ python softmax_vs_rmsnorm.py
 ### 9.5 Going further
 
 1. **GQA (Grouped Query Attention)**:
+
    - MiniMind uses GQA (`num_key_value_heads=2`)
    - Saves memory and speeds up inference
 
 2. **Flash Attention**:
+
    - Optimizes Attention's computation and memory access
    - 2-3× faster training
 
@@ -620,15 +643,18 @@ python softmax_vs_rmsnorm.py
 ## 10. References
 
 **Papers**:
+
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762) — the original Transformer paper
 - [GQA: Training Generalized Multi-Query Transformer](https://arxiv.org/abs/2305.13245) — the GQA paper
 - [FlashAttention: Fast and Memory-Efficient Exact Attention](https://arxiv.org/abs/2205.14135)
 
 **Code**:
+
 - MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
 - Attention implementation: `model/model_minimind.py:140-220`
 
 **Other posts in this series**:
+
 - [Part 1: Normalization](/en/blog/20251216---normalization/post)
 - [Part 2: RoPE positional encoding](/en/blog/20251217---rope-position-encoding/post)
 - [Part 4: FeedForward and the full architecture](/en/blog/20251219---feedforward-transformer-block/post)
@@ -641,6 +667,7 @@ python softmax_vs_rmsnorm.py
 **Series**: MiniMind learning notes (3/4)
 
 If you found this helpful, feel free to:
+
 - ⭐ Star the original project [MiniMind](https://github.com/jingyaogong/minimind)
 - ⭐ Star my learning notes [minimind-notes](https://github.com/joyehuang/minimind-notes)
 - 💬 Leave a comment with what you've learned

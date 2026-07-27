@@ -1,6 +1,6 @@
 ---
 title: Message Types in the Vercel AI SDK
-description: "Notes on how the Vercel AI SDK layers its Message types, its SSE streaming protocol, and practical state-management advice for real-world development."
+description: 'Notes on how the Vercel AI SDK layers its Message types, its SSE streaming protocol, and practical state-management advice for real-world development.'
 date: 2026-04-10
 updatedDate: 2026-04-10
 tags:
@@ -119,6 +119,7 @@ So more precisely:
 The deeper distinction is this:
 
 #### `ModelMessage` cares about model inference
+
 It's concerned with:
 
 - what the role is
@@ -126,6 +127,7 @@ It's concerned with:
 - whether there's a tool call / tool result
 
 #### `UIMessage` cares about the application process
+
 It's concerned with:
 
 - how this message renders

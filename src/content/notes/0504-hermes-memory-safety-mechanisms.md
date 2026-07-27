@@ -27,6 +27,7 @@ Hermes Agent 的 `memory_tool.py` 不是简单的 markdown 文件读写，它在
 ### 1. Injection scan（memory_tool.py:67-83）
 
 写入前用正则扫描 13 条威胁模式，命中则拒绝写入。覆盖的模式包括：
+
 - `ignore previous instructions`
 - `system prompt override`
 - `curl/wget + $TOKEN/env`
@@ -85,13 +86,13 @@ memory 超出容量时，不是偷偷删掉最旧条目，而是返回错误并�
 
 这六项机制解决的是底层硬问题：
 
-| 机制 | 解决的问题 |
-|------|------------|
-| Injection scan | 防恶意内容进入长期 prompt |
-| 文件锁 | 防多进程并发写坏 |
-| Reload-under-lock | 防旧状态覆盖新状态 |
-| 超容拒绝写 | 防自动规则误删重要 memory |
-| 原子写入 | 防崩溃导致文件半写入 |
+| 机制                | 解决的问题                   |
+| ------------------- | ---------------------------- |
+| Injection scan      | 防恶意内容进入长期 prompt    |
+| 文件锁              | 防多进程并发写坏             |
+| Reload-under-lock   | 防旧状态覆盖新状态           |
+| 超容拒绝写          | 防自动规则误删重要 memory    |
+| 原子写入            | 防崩溃导致文件半写入         |
 | 子串 replace/remove | 让 LLM 更容易精准修改 memory |
 
 它们主要解决的是 **存储一致性和安全边界**，而不是 memory 本身的智能质量。它仍然是“安全一点的文件型长期记忆”，不是完整的高质量 agent memory system。
@@ -99,6 +100,7 @@ memory 超出容量时，不是偷偷删掉最旧条目，而是返回错误并�
 **什么情况下这套足够**：本地单机、多进程共享的个人 agent 场景。
 
 **什么情况下需要升级**：如果想让它变成长期可靠的 AI assistant memory，还需要：
+
 1. 每条 memory 加 metadata（id, type, source, created_at, updated_at, importance）
 2. Atomic write 时同步父目录
 3. Append-only log 而非全量覆盖

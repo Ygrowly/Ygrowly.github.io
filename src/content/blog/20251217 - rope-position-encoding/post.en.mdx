@@ -14,6 +14,7 @@ translationKey: '20251217---rope-position-encoding/post'
 [MiniMind](https://github.com/jingyaogong/minimind) is a concise but complete LLM training project, covering the full pipeline from data processing and model training to inference and deployment. As I worked through it, I distilled the core technical points into my [minimind-notes](https://github.com/joyehuang/minimind-notes) repo and produced this four-part blog series, walking through the core components of the Transformer in a systematic way.
 
 The series includes:
+
 1. **Normalization** - why we need RMSNorm
 2. **RoPE position encoding** (this post) - how to make a model understand word order
 3. **Attention** - the core engine of the Transformer
@@ -74,11 +75,13 @@ This is the **permutation invariance problem of Attention**.
 **Definition**: for a set operation, the order of elements doesn't affect the result.
 
 **Mathematical statement**:
+
 ```
 f({a, b, c}) = f({c, a, b}) = f({b, c, a})
 ```
 
 **Classic examples**:
+
 - Sum: sum([1, 2, 3]) = sum([3, 1, 2]) = 6
 - Mean: mean([1, 2, 3]) = mean([2, 3, 1]) = 2
 
@@ -97,6 +100,7 @@ output = weights @ V
 **A simplified example**:
 
 Suppose we have two sentences:
+
 - Sentence 1: "我 喜欢 你" → Q1, K1
 - Sentence 2: "你 喜欢 我" → Q2, K2 (just a reordering)
 
@@ -158,10 +162,12 @@ class AbsolutePositionEmbedding(nn.Module):
 ```
 
 **Pros**:
+
 - ✅ Simple and direct
 - ✅ Learnable (adjusts to the data)
 
 **Cons**:
+
 - ❌ Can't extrapolate to unseen lengths (train on 512, test on 1024 and it falls apart)
 - ❌ No explicit relative position information
 - ❌ Requires storing a lot of parameters (max_len × hidden_size)
@@ -182,10 +188,12 @@ scores = (Q @ K.T) + bias
 ```
 
 **Pros**:
+
 - ✅ Has relative position information
 - ✅ Can extrapolate to some degree
 
 **Cons**:
+
 - ❌ Requires an extra bias matrix (O(seq_len²) space)
 - ❌ Computationally complex
 - ❌ Tedious to implement
@@ -204,6 +212,7 @@ scores = Q_rot @ K_rot.T
 ```
 
 **Pros**:
+
 - ✅ Naturally includes relative position information (a mathematical property)
 - ✅ Can extrapolate to longer sequences (with YaRN)
 - ✅ Computationally efficient (O(1) extra space)
@@ -212,14 +221,14 @@ scores = Q_rot @ K_rot.T
 
 **Comparison table**:
 
-| Feature | Absolute | Relative | RoPE |
-|------|---------|---------|------|
-| **Relative info** | ❌ | ✅ | ✅ |
-| **Extrapolatable** | ❌ | △ | ✅ |
-| **Compute efficiency** | ✅ | ❌ | ✅ |
-| **Space complexity** | O(L×D) | O(L²) | O(1) |
-| **Implementation difficulty** | Simple | Complex | Medium |
-| **Models** | BERT | T5 | GPT-3+, Llama |
+| Feature                       | Absolute | Relative | RoPE          |
+| ----------------------------- | -------- | -------- | ------------- |
+| **Relative info**             | ❌       | ✅       | ✅            |
+| **Extrapolatable**            | ❌       | △        | ✅            |
+| **Compute efficiency**        | ✅       | ❌       | ✅            |
+| **Space complexity**          | O(L×D)   | O(L²)    | O(1)          |
+| **Implementation difficulty** | Simple   | Complex  | Medium        |
+| **Models**                    | BERT     | T5       | GPT-3+, Llama |
 
 ---
 
@@ -230,6 +239,7 @@ scores = Q_rot @ K_rot.T
 > "Encode position with a rotation angle"
 
 **Intuition**:
+
 ```
 position 0 → rotate 0°
 position 1 → rotate θ°
@@ -256,12 +266,14 @@ v_rot = R(θ) @ v
 ```
 
 **Rotating the word vector at position m**:
+
 ```python
 q_m = R(m × θ) @ q  # rotate Query by m×θ degrees
 k_n = R(n × θ) @ k  # rotate Key by n×θ degrees
 ```
 
 **Computing the Attention score**:
+
 ```python
 score = q_m · k_n
       = (R(mθ) @ q) · (R(nθ) @ k)
@@ -278,6 +290,7 @@ score = q_m · k_n
 #### Advantage 1: it has absolute position information
 
 Every position has a unique rotation angle:
+
 - Query at position 5: rotated to 5θ
 - Query at position 8: rotated to 8θ
 - The model can know "this word is at position 5"
@@ -285,6 +298,7 @@ Every position has a unique rotation angle:
 #### Advantage 2: it has relative position information
 
 The Attention score depends only on the relative distance:
+
 - Position 5 looking at position 8 = `q @ rotate(k, 3θ)` (distance 3)
 - Position 0 looking at position 3 = `q @ rotate(k, 3θ)` (distance 3)
 - The two scores are the same, so the model knows "these two words are 3 positions apart"
@@ -328,13 +342,15 @@ position_1000000 → 360° (back to the start)
 **The key finding**: it works in theory, **but not in engineering**!
 
 When using an ultra-low frequency (one full turn every million tokens):
+
 - cos value at position 0: 1.0
 - cos value at position 1: 0.999999999980261
 - Difference: about `1.97e-11`
 
 **Where the problem lies**:
+
 - float32's precision is about `10^-7`
-{/* - the difference between adjacent positions $1.97 \times 10^{-11} \ll 10^{-7}$ */}
+  {/* - the difference between adjacent positions $1.97 \times 10^{-11} \ll 10^{-7}$ */}
 
 - **The computer can't distinguish adjacent positions!**
 
@@ -345,6 +361,7 @@ After computing in float32, the cos values for position 0 and position 1 are bot
 ### 5.4 Mathematical analysis
 
 A Taylor expansion proves it:
+
 - Angle difference: θ ≈ 6.28e-6 radians
 - cos difference: Δcos ≈ θ²/2 ≈ 2e-11
 - float32 precision: about 10^-7
@@ -359,13 +376,14 @@ It's like measuring millimeter-scale differences with a meter stick — the mark
 
 **Frequency range**:
 
-| Frequency type | Period (tokens) | Role |
-|---------|-------------|------|
-| High (0) | 6.3 | Precisely distinguish adjacent positions (angle difference 57.3°) |
-| Medium (15) | 6,283 | Balance precision and range |
-| Low (31) | 6,283,185 | Identify distant positions |
+| Frequency type | Period (tokens) | Role                                                              |
+| -------------- | --------------- | ----------------------------------------------------------------- |
+| High (0)       | 6.3             | Precisely distinguish adjacent positions (angle difference 57.3°) |
+| Medium (15)    | 6,283           | Balance precision and range                                       |
+| Low (31)       | 6,283,185       | Identify distant positions                                        |
 
 **The combined effect**:
+
 - Position 0 encoding: `[1.0, 1.0, 1.0, ..., 1.0]` (32 values)
 - Position 1 encoding: `[0.5403, 0.9997, 0.9999, ..., 1.0]`
 - The high-frequency components differ noticeably (0.5403 vs. 1.0), so adjacent positions can be distinguished
@@ -378,14 +396,17 @@ It's like measuring millimeter-scale differences with a meter stick — the mark
 It's just like a clock's hour, minute, and second hands:
 
 **Second hand (high frequency)**:
+
 - Completes a turn every minute, precise to the second
 - But returns to the start after an hour, so it can't distinguish on its own
 
 **Minute hand (medium frequency)**:
+
 - Completes a turn every hour, precise to the minute
 - Together with the second hand it can distinguish 3,600 seconds
 
 **Hour hand (low frequency)**:
+
 - Completes a turn every 12 hours, covering a wide range
 
 **Combine all three → you can uniquely identify any moment!** RoPE's multi-frequency mechanism works exactly the same way.
@@ -466,6 +487,7 @@ class Attention(nn.Module):
 The model was trained with a maximum length of 2048, but at inference time you want to handle 8192 tokens — what do you do?
 
 Extrapolating directly runs into trouble:
+
 - **High frequencies**: short period, seen many full turns, extrapolates well ✅
 - **Low frequencies**: long period, only a small slice of angles ever seen, so "unseen angles" appear and quality drops ❌
 
@@ -474,6 +496,7 @@ Extrapolating directly runs into trouble:
 **Core idea**: dynamically adjust the low frequencies so that "unseen angles" become "seen angles," while leaving the high frequencies unchanged.
 
 **Results**:
+
 - Llama 2: trained on 4k → extrapolated to 32k
 - Code Llama: trained on 16k → extrapolated to 100k
 
@@ -535,15 +558,18 @@ python rope_why_multi_frequency.py
 ## 10. References
 
 **Papers**:
+
 - [RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864) - the original RoPE paper
 - [Llama 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) - the Llama technical report
 - [YaRN: Efficient Context Window Extension of Large Language Models](https://arxiv.org/abs/2309.00071) - the YaRN paper
 
 **Code**:
+
 - MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
 - RoPE implementation: `model/model_minimind.py:108-182`
 
 **Other posts in this series**:
+
 - [Part 1: Normalization](/en/blog/20251216---normalization/post)
 - [Part 3: Attention](/en/blog/20251218---attention-mechanism/post)
 - [Part 4: FeedForward and the full architecture](/en/blog/20251219---feedforward-transformer-block/post)
@@ -556,6 +582,7 @@ python rope_why_multi_frequency.py
 **Series**: MiniMind learning notes (2/4)
 
 If you found this helpful, feel free to:
+
 - ⭐ Star the original project [MiniMind](https://github.com/jingyaogong/minimind)
 - ⭐ Star my learning notes [minimind-notes](https://github.com/joyehuang/minimind-notes)
 - 💬 Leave a comment with your own takeaways

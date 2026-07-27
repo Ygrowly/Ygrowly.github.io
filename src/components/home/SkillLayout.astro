@@ -9,11 +9,13 @@ const { title, skills } = Astro.props
     {title}
   </h3>
   <div class='skill-container flex flex-row flex-wrap gap-x-4 gap-y-2 md:w-4/5'>
-    {skills.map((skill: string[], index: number) => (
-      <div class='skill-pill' style={`--skill-index:${index}`}>
-        <Button as='button' title={skill} style='pill' />
-      </div>
-    ))}
+    {
+      skills.map((skill: string[], index: number) => (
+        <div class='skill-pill' style={`--skill-index:${index}`}>
+          <Button as='button' title={skill} style='pill' />
+        </div>
+      ))
+    }
   </div>
 </div>
 
