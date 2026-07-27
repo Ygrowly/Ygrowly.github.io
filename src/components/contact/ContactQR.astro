@@ -40,7 +40,9 @@ const { class: className, items, ...props } = Astro.props
             loading='lazy'
           />
         </div>
-        {item.note && <p class='m-0 max-w-60 text-center text-xs text-muted-foreground'>{item.note}</p>}
+        {item.note && (
+          <p class='m-0 max-w-60 text-center text-xs text-muted-foreground'>{item.note}</p>
+        )}
       </div>
     ))
   }

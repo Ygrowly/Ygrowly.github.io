@@ -67,7 +67,11 @@ const toc = generateToc(headings)
             return
           }
 
-          history.pushState(null, directHeading.textContent || '', link.element.getAttribute('href'))
+          history.pushState(
+            null,
+            directHeading.textContent || '',
+            link.element.getAttribute('href')
+          )
 
           // User-initiated jump: move the sidebar straight to the target once and mute
           // the intermediate active-heading chase, so the TOC doesn't keep sliding after
@@ -139,7 +143,10 @@ const toc = generateToc(headings)
 
         element.classList.toggle('highlight', inView)
         element.classList.toggle('highlight-bg-translucent', inView)
-        element.classList.toggle('rounded-t-2xl', inView && (index === 0 || !previousProgress?.inView))
+        element.classList.toggle(
+          'rounded-t-2xl',
+          inView && (index === 0 || !previousProgress?.inView)
+        )
         element.classList.toggle(
           'rounded-b-2xl',
           inView && (index === this.tocLinks.length - 1 || !nextProgress?.inView)

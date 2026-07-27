@@ -1,6 +1,6 @@
 ---
-title: "Hermes Agent Memory: Engineering Safety Mechanisms"
-description: "Six safety designs in Hermes memory_tool.py: injection scan, file lock, reload-under-lock, refuse-on-overflow, atomic write, and substring-match delete."
+title: 'Hermes Agent Memory: Engineering Safety Mechanisms'
+description: 'Six safety designs in Hermes memory_tool.py: injection scan, file lock, reload-under-lock, refuse-on-overflow, atomic write, and substring-match delete.'
 date: 2026-05-04
 updatedDate: 2026-05-04
 tags:
@@ -29,6 +29,7 @@ The Hermes Agent's `memory_tool.py` isn't just reading and writing a markdown fi
 ### 1. Injection scan (memory_tool.py:67-83)
 
 Before writing, it scans the content against 13 threat patterns with regexes and refuses the write on any match. The patterns it covers include:
+
 - `ignore previous instructions`
 - `system prompt override`
 - `curl/wget + $TOKEN/env`
@@ -87,20 +88,21 @@ When deleting or replacing a memory, the model only needs to supply a uniquely i
 
 These six mechanisms tackle the hard, low-level problems:
 
-| Mechanism | Problem it solves |
-|------|------------|
-| Injection scan | Keeps malicious content out of the long-term prompt |
-| File locking | Prevents concurrent multi-process corruption |
-| Reload-under-lock | Prevents stale state from overwriting new state |
-| Refuse-on-overflow | Prevents an automatic rule from deleting important memory |
-| Atomic writes | Prevents a crash from leaving the file half-written |
-| Substring replace/remove | Makes it easier for the LLM to precisely edit memory |
+| Mechanism                | Problem it solves                                         |
+| ------------------------ | --------------------------------------------------------- |
+| Injection scan           | Keeps malicious content out of the long-term prompt       |
+| File locking             | Prevents concurrent multi-process corruption              |
+| Reload-under-lock        | Prevents stale state from overwriting new state           |
+| Refuse-on-overflow       | Prevents an automatic rule from deleting important memory |
+| Atomic writes            | Prevents a crash from leaving the file half-written       |
+| Substring replace/remove | Makes it easier for the LLM to precisely edit memory      |
 
 They primarily address **storage consistency and safety boundaries**, not the intelligence quality of the memory itself. It remains "slightly safer file-based long-term memory," not a complete, high-quality agent memory system.
 
 **When this is enough**: a local, single-machine personal agent scenario with multiple processes sharing the same store.
 
 **When it needs an upgrade**: if you want to turn it into a long-term reliable AI assistant memory, you'd also need:
+
 1. Metadata per memory (id, type, source, created_at, updated_at, importance)
 2. Syncing the parent directory during atomic writes
 3. An append-only log instead of full-file overwrites

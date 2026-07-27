@@ -117,6 +117,7 @@ draft: false
 更底层的区别在于：
 
 #### `ModelMessage` 关心的是模型推理
+
 它关注：
 
 - 角色是什么
@@ -124,6 +125,7 @@ draft: false
 - 有没有 tool call / tool result
 
 #### `UIMessage` 关心的是应用过程
+
 它关注：
 
 - 这条消息如何渲染

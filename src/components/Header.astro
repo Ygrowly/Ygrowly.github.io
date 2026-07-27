@@ -1,8 +1,14 @@
 ---
-import { getLangFromUrl, hasEnAlternate, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
+import {
+  getLangFromUrl,
+  hasEnAlternate,
+  localizedPath,
+  useTranslations,
+  type Lang
+} from '@/i18n/ui'
 
 import { Icon } from 'astro-pure/user'
-import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
+// import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
 import config from '@/site-config'
 
 interface Props {
@@ -76,7 +82,7 @@ const searchHref = localizedPath('/search', lang)
 
     {/* buttons */}
     <div class='z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
-      <LanguageSwitcher lang={lang} />
+      {/* <LanguageSwitcher lang={lang} /> */}
       <button
         id='toggleDevMode'
         class='group/dev box-content h-5 rounded-md border p-1.5 font-mono text-xs leading-5 tracking-tight text-muted-foreground transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
@@ -115,8 +121,9 @@ const searchHref = localizedPath('/search', lang)
   }
 </script>
 <script>
-  import { setTheme, showToast } from 'astro-pure/utils'
   import { trackSiteEvent } from '@/lib/analytics'
+
+  import { setTheme, showToast } from 'astro-pure/utils'
 
   class Header extends HTMLElement {
     private toggleMenuBtn: HTMLElement | null = null

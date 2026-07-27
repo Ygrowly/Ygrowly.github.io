@@ -20,9 +20,8 @@
 //
 // 隐私：contact 与 ip 只落库、永不出现在公开读接口里。公开出去的只有昵称、可选留言、时间戳。
 
-import { neon } from '@neondatabase/serverless'
-
 import { teams as seedTracks } from '@/data/agent-teams'
+import { neon } from '@neondatabase/serverless'
 
 /** 对外暴露的成员（不含联系方式 / IP） */
 export type PublicMember = { name: string; note: string | null; ts: number }
@@ -352,7 +351,10 @@ export async function getDetails(teamIds: string[]): Promise<Record<string, stri
   return out
 }
 
-export function resolveActiveCaptainKey(activeMemberKeys: string[], savedCaptain?: string): string | null {
+export function resolveActiveCaptainKey(
+  activeMemberKeys: string[],
+  savedCaptain?: string
+): string | null {
   if (savedCaptain && activeMemberKeys.includes(savedCaptain)) return savedCaptain
   return activeMemberKeys[0] ?? null
 }
@@ -708,7 +710,11 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
   // 不管组队还是个人，创建时都要带昵称——创建者会自动占一个名额并当队长。
   const creatorName = cleanText(input.name ?? '')
   if (creatorName.length === 0 || creatorName.length > NAME_MAX) {
-    return { ok: false, code: 'invalid', message: `请填你的昵称（1–${NAME_MAX} 个字符），创建后会自动加入并当队长` }
+    return {
+      ok: false,
+      code: 'invalid',
+      message: `请填你的昵称（1–${NAME_MAX} 个字符），创建后会自动加入并当队长`
+    }
   }
 
   let capacity: number | null = kind === 'solo' ? 1 : null
@@ -784,7 +790,12 @@ export async function getCaptains(teamIds: string[]): Promise<Record<string, str
   return out
 }
 
-export type CaptainErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
+export type CaptainErrorCode =
+  | 'not_configured'
+  | 'invalid'
+  | 'not_found'
+  | 'passcode'
+  | 'store_error'
 
 export type CaptainResult =
   | { ok: true; teamId: string; captainKey: string }

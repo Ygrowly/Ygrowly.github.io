@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
-import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import { getEntry } from 'astro:content'
+import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import remarkCjkFriendly from 'remark-cjk-friendly'
 
 /**

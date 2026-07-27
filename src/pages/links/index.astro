@@ -3,10 +3,10 @@ import links from 'public/links.json'
 import config from 'virtual:config'
 
 import { Collapse, Timeline } from 'astro-pure/user'
-import Comment from '@/components/comment/Comment.astro'
 import PageLayout from '@/layouts/CommonPage.astro'
-import FriendList from '@/components/links/FriendList.astro'
+import Comment from '@/components/comment/Comment.astro'
 import FriendConstellation from '@/components/links/FriendConstellation.astro'
+import FriendList from '@/components/links/FriendList.astro'
 
 const headings = [
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
@@ -31,10 +31,12 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     <Timeline events={linksConf.logbook} />
   </Collapse>
 
-  {/*
+  {
+    /*
   <h2 id='special-links'>Special Links</h2>
   <FriendList list={friends[2]} />
-  */}
+  */
+  }
 
   <!-- apply-links -->
   <h2 id='apply-links'>Apply Links</h2>
@@ -65,7 +67,8 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
   </blockquote>
 
   <p>
-    申请时请按上面的字段，<strong>直接发在下方评论区</strong>。评论区也是一个小小的社交场所，大家可以彼此串门、加个好友。几点小说明：
+    申请时请按上面的字段，<strong>直接发在下方评论区</strong
+    >。评论区也是一个小小的社交场所，大家可以彼此串门、加个好友。几点小说明：
   </p>
   <ul>
     <li>在你的友链上添加了本站；</li>

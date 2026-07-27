@@ -9,7 +9,15 @@ interface Props {
   analyticsResource?: 'deck' | 'slide'
 }
 
-const { alt, analyticsEpisode, analyticsResource = 'slide', caption, href, label, src } = Astro.props
+const {
+  alt,
+  analyticsEpisode,
+  analyticsResource = 'slide',
+  caption,
+  href,
+  label,
+  src
+} = Astro.props
 ---
 
 <figure class='talk-slide-figure not-prose'>

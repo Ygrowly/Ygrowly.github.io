@@ -14,6 +14,7 @@ translationKey: '20251219---feedforward-transformer-block/post'
 [MiniMind](https://github.com/jingyaogong/minimind) is a concise yet complete project for training a large language model, covering the full pipeline from data processing and model training to inference and deployment. As I worked through it, I distilled the core technical points into the [minimind-notes](https://github.com/joyehuang/minimind-notes) repository and produced this four-part blog series, walking through the core components of the Transformer in a systematic way.
 
 This series covers:
+
 1. **Normalization** — why we need RMSNorm
 2. **RoPE positional encoding** — how to make the model understand word order
 3. **The Attention mechanism** — the core engine of the Transformer
@@ -26,11 +27,13 @@ This series covers:
 ### 1.1 The neglected other half
 
 When people think of the Transformer, the usual associations are:
+
 - ✅ The Attention mechanism (the star component)
 - ✅ Positional encoding (RoPE)
 - ❓ FeedForward? What's that?
 
 **The facts**:
+
 - FeedForward accounts for 40% of the code in a Transformer Block
 - FeedForward makes up **two-thirds** of the total parameters!
 - You can't train a good model with Attention alone, without FeedForward
@@ -60,6 +63,7 @@ When people think of the Transformer, the usual associations are:
 > "Apply a complex nonlinear transformation to each token's vector."
 
 **Key characteristics**:
+
 - ✅ Each token is processed **independently** (no token-to-token interaction)
 - ✅ Input dimension = output dimension (768)
 - ✅ But the content changes completely (it goes through a nonlinear transformation)
@@ -115,9 +119,9 @@ sentence: "I love coding"
 ```
 
 **An analogy**:
+
 - Attention = a meeting where everyone exchanges information
 - FeedForward = everyone thinking on their own, digesting that information independently
-
 
 ---
 
@@ -132,6 +136,7 @@ That's a great question!
 ### 3.2 The intuition: expressive power
 
 **Option 1: a direct transformation**
+
 ```python
 # 768 → 768
 output = W @ x  # W is a [768, 768] matrix
@@ -141,6 +146,7 @@ output = W @ x  # W is a [768, 768] matrix
 ```
 
 **Option 2: expand then compress**
+
 ```python
 # 768 → 2048 → 768
 h = W1 @ x           # [2048, 768] @ [768] = [2048]
@@ -163,6 +169,7 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
 - **Compressing back to the original dimension (2048 → 768)**: retains the complex patterns learned in the high-dimensional space
 
 **Experimental verification**: when fitting a complex function (such as y = sin(x) + cos(2x)):
+
 - Direct transformation `Linear(1, 1)`: can only fit a linear function, large error ❌
 - Expand-compress `Linear(1, 64) → ReLU → Linear(64, 1)`: can fit nonlinear functions, small error ✅
 - **Conclusion**: expand-compress = expressive power++
@@ -170,6 +177,7 @@ output = W2 @ h      # [768, 2048] @ [2048] = [768]
 ### 3.4 Analogies
 
 **Analogy 1: cooking**
+
 ```
 Direct transformation (768 → 768):
   raw ingredients → plated
@@ -181,6 +189,7 @@ Expand-compress (768 → 2048 → 768):
 ```
 
 **Analogy 2: photo editing**
+
 ```
 Direct transformation:
   original → a simple filter → output
@@ -191,19 +200,19 @@ Expand-compress:
   enables complex operations like denoising and super-resolution ✅
 ```
 
-
 ### 3.5 Why 2048 dimensions (and not 1024 or 4096)?
 
 **Rule of thumb**: intermediate_size ≈ **hidden_size × 2.67 to 4**
 
-| Model | hidden_size | intermediate_size | Ratio |
-|------|-------------|-------------------|------|
-| BERT-Base | 768 | 3072 | 4.0 |
-| GPT-2 | 768 | 3072 | 4.0 |
-| Llama-7B | 4096 | 11008 | 2.69 |
-| MiniMind | 768 | 2048 | 2.67 |
+| Model     | hidden_size | intermediate_size | Ratio |
+| --------- | ----------- | ----------------- | ----- |
+| BERT-Base | 768         | 3072              | 4.0   |
+| GPT-2     | 768         | 3072              | 4.0   |
+| Llama-7B  | 4096        | 11008             | 2.69  |
+| MiniMind  | 768         | 2048              | 2.67  |
 
 **Why not larger?**
+
 - Larger = more parameters = slower and more memory-hungry
 - 2.67–4× is the empirically validated sweet spot
 
@@ -214,18 +223,21 @@ Expand-compress:
 ### 4.1 The evolution of FeedForward
 
 **Generation 1 (GPT-2 / BERT, 2018–2019)**:
+
 ```python
 h = ReLU(W1 @ x)
 output = W2 @ h
 ```
 
 **Generation 2 (GPT-3, 2020)**:
+
 ```python
 h = GELU(W1 @ x)  # a smoother activation function
 output = W2 @ h
 ```
 
 **Generation 3 (Llama / MiniMind, 2023)**:
+
 ```python
 gate = SiLU(W_gate @ x)
 up = W_up @ x
@@ -266,6 +278,7 @@ class SwiGLU(nn.Module):
 ```
 
 **Dimension changes**:
+
 ```
 input:  [batch, seq, 768]
   ↓
@@ -289,12 +302,11 @@ def silu(x):
 
 **Compared with common activation functions**:
 
-| Activation | Formula | Characteristics |
-|---------|------|------|
-| ReLU | `max(0, x)` | simple, but the gradient can be 0 |
-| GELU | `x * Φ(x)` | smooth, but slightly slower to compute |
-| SiLU/Swish | `x * σ(x)` | **smooth and fast to compute** ✅ |
-
+| Activation | Formula     | Characteristics                        |
+| ---------- | ----------- | -------------------------------------- |
+| ReLU       | `max(0, x)` | simple, but the gradient can be 0      |
+| GELU       | `x * Φ(x)`  | smooth, but slightly slower to compute |
+| SiLU/Swish | `x * σ(x)`  | **smooth and fast to compute** ✅      |
 
 ### 4.4 The power of the gating mechanism
 
@@ -315,6 +327,7 @@ hidden = gate * up
 ```
 
 **An analogy**:
+
 ```
 Plain FFN:
   all information passes through the same "gate" (a single activation function)
@@ -326,15 +339,15 @@ SwiGLU:
 
 ### 4.5 Plain FFN vs SwiGLU
 
-| Feature | Plain FFN | SwiGLU |
-|------|---------|--------|
-| **Number of branches** | 1 | 2 (gate + up) |
-| **Activation** | ReLU/GELU | SiLU |
-| **Gating** | none | yes (gate × up) |
-| **Parameters** | 2 × 768 × 2048 | 3 × 768 × 2048 (**50% more**) |
-| **Compute** | less | slightly more |
-| **Performance** | good | **better** (empirically proven) |
-| **Models used in** | GPT-2, BERT | Llama, MiniMind, PaLM |
+| Feature                | Plain FFN      | SwiGLU                          |
+| ---------------------- | -------------- | ------------------------------- |
+| **Number of branches** | 1              | 2 (gate + up)                   |
+| **Activation**         | ReLU/GELU      | SiLU                            |
+| **Gating**             | none           | yes (gate × up)                 |
+| **Parameters**         | 2 × 768 × 2048 | 3 × 768 × 2048 (**50% more**)   |
+| **Compute**            | less           | slightly more                   |
+| **Performance**        | good           | **better** (empirically proven) |
+| **Models used in**     | GPT-2, BERT    | Llama, MiniMind, PaLM           |
 
 ### 4.6 Why the extra parameters are worth it
 
@@ -360,6 +373,7 @@ SwiGLU parameters:
 ```
 
 **Experimental results** (the Llama paper):
+
 - At equal parameter counts, SwiGLU outperforms GELU by **5–10%**
 - For equal performance, SwiGLU trains faster (gradients are more stable)
 
@@ -369,33 +383,36 @@ SwiGLU parameters:
 
 ### 5.1 The full comparison
 
-| Feature | Attention | FeedForward |
-|------|-----------|-------------|
-| **How it processes** | tokens interact | each token independently |
-| **Role** | information exchange (a meeting) | deep thinking (digesting independently) |
-| **Input** | [seq, 768] | [seq, 768] |
-| **Intermediate dimension** | [seq, seq] (score matrix) | [seq, 2048] (expansion) |
-| **Output** | [seq, 768] | [seq, 768] |
-| **Positional encoding** | required (RoPE) | not needed |
-| **Parameters** | about 33% | about 67% |
-| **Compute bottleneck** | seq² (quadratic in sequence length) | batch×seq (linear) |
-| **Analogy** | looking up a dictionary, a meeting | solving a math problem, thinking |
+| Feature                    | Attention                           | FeedForward                             |
+| -------------------------- | ----------------------------------- | --------------------------------------- |
+| **How it processes**       | tokens interact                     | each token independently                |
+| **Role**                   | information exchange (a meeting)    | deep thinking (digesting independently) |
+| **Input**                  | [seq, 768]                          | [seq, 768]                              |
+| **Intermediate dimension** | [seq, seq] (score matrix)           | [seq, 2048] (expansion)                 |
+| **Output**                 | [seq, 768]                          | [seq, 768]                              |
+| **Positional encoding**    | required (RoPE)                     | not needed                              |
+| **Parameters**             | about 33%                           | about 67%                               |
+| **Compute bottleneck**     | seq² (quadratic in sequence length) | batch×seq (linear)                      |
+| **Analogy**                | looking up a dictionary, a meeting  | solving a math problem, thinking        |
 
 ### 5.2 Why you can't do without either one
 
 **Attention only**:
+
 - ✅ Tokens can interact
 - ❌ Lacks "deep understanding"
 - It's like having meetings to discuss but never thinking on your own
 - The model can't learn complex patterns
 
 **FeedForward only**:
+
 - ✅ Each token can be transformed in complex ways
 - ❌ Has no sense of context
 - It's like working in isolation, never listening to others' input
 - The model has no idea how tokens relate to one another
 
 **The two combined**:
+
 ```
 Step 1: Attention
   → lets the model know "which tokens are relevant"
@@ -408,7 +425,6 @@ Step 2: FeedForward
 Step 3: repeat N times
   → refine the understanding layer by layer
 ```
-
 
 ### 5.3 A full walkthrough
 
@@ -523,10 +539,10 @@ FeedForward (SwiGLU)  ← independent deepening
 output x: [batch, seq_len, 768]
 ```
 
-
 ### 6.4 The residual connection
 
 **The formula**:
+
 ```python
 y = x + F(x)
 
@@ -557,6 +573,7 @@ y = F(x)  # F has to learn to build y from scratch
 ```
 
 **An analogy**:
+
 ```
 Without a residual: each edit fully overwrites the original
   original → filter → new image (the original is lost)
@@ -579,10 +596,10 @@ dy/dx = 1  # the gradient can still flow back! ✅
 dy/dx = dF/dx  # once it vanishes, the path is cut entirely ❌
 ```
 
-
 ### 6.5 Pre-Norm vs Post-Norm
 
 **Post-Norm (the original Transformer, 2017)**:
+
 ```python
 # normalization comes after the sublayer
 x = x + Attention(x)
@@ -592,6 +609,7 @@ x = Norm(x)
 ```
 
 **Pre-Norm (modern Transformers, Llama / MiniMind)**:
+
 ```python
 # normalization comes before the sublayer
 x = x + Attention(Norm(x))
@@ -600,15 +618,14 @@ x = x + FeedForward(Norm(x))
 
 **Pre-Norm's advantages**:
 
-| Feature | Post-Norm | Pre-Norm |
-|------|-----------|----------|
-| **Training stability** | difficult for deep networks | more stable ✅ |
-| **Gradient flow** | can be interrupted by Norm | a cleaner residual path ✅ |
-| **Learning rate** | needs warmup | can use a larger learning rate ✅ |
-{/* | **Suitable for** | shallow networks (&lt; 12 layers) | deep networks (&gt; 12 layers) ✅ | */}
+| Feature                | Post-Norm                   | Pre-Norm                          |
+| ---------------------- | --------------------------- | --------------------------------- | --------------------------------- | ---- |
+| **Training stability** | difficult for deep networks | more stable ✅                    |
+| **Gradient flow**      | can be interrupted by Norm  | a cleaner residual path ✅        |
+| **Learning rate**      | needs warmup                | can use a larger learning rate ✅ |
+| **Suitable for**            | shallow networks (< 12 layers) | deep networks (> 12 layers) ✅ |
 
 **Every modern LLM uses Pre-Norm** (GPT-3, Llama, MiniMind, Mistral, …).
-
 
 ---
 
@@ -710,6 +727,7 @@ lm_head: 768 × 6400 = 4,915,200
 ```
 
 **Observations**:
+
 - FeedForward parameters (4.7M) are **2×** the Attention parameters (2.4M)!
 - FeedForward accounts for **67%** of each Block's parameters
 
@@ -769,12 +787,14 @@ repeat N times → a complete model!
 Congratulations on completing the study of MiniMind's core architecture!
 
 **A recap of the four posts**:
+
 1. ✅ **RMSNorm**: the principles of normalization, and why it's 7.7× faster than LayerNorm
 2. ✅ **RoPE**: positional encoding, with an in-depth analysis of the multi-frequency mechanism
 3. ✅ **Attention**: Q, K, V, and a complete understanding of Multi-Head
 4. ✅ **FeedForward + architecture**: expand-compress, and the full assembly
 
 **What you now have**:
+
 - ✅ All the core components of the Transformer
 - ✅ The mathematical principles and code implementation of each component
 - ✅ How the components work together
@@ -784,6 +804,7 @@ Congratulations on completing the study of MiniMind's core architecture!
 ### 9.4 Suggested next steps
 
 #### 1. Get hands-on
+
 ```bash
 # clone MiniMind
 git clone https://github.com/jingyaogong/minimind
@@ -795,12 +816,14 @@ python train_pretrain.py
 ```
 
 #### 2. Go deeper
+
 - GQA (Grouped Query Attention): saves memory
 - Flash Attention: optimizes compute efficiency
 - MoE (Mixture of Experts): increases capacity
 - KV Cache: speeds up inference
 
 #### 3. The implementation challenge
+
 ```python
 # challenge: implement MiniMind from scratch
 class MyMiniMind(nn.Module):
@@ -814,16 +837,19 @@ class MyMiniMind(nn.Module):
 ## 10. References
 
 ### Papers
+
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762) - the original Transformer paper
 - [GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202) - the SwiGLU paper
 - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) - ResNet / residual connections
 
 ### Code
+
 - MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
 - This post's learning materials: `learning_materials/feedforward_explained.py`
 - Transformer Block: `model/model_minimind.py:359-380`
 
 ### Related reading
+
 - [Part 1: Why does the Transformer need normalization? From vanishing gradients to RMSNorm](/en/blog/20251216---normalization/post)
 - [Part 2: RoPE positional encoding: from permutation invariance to the multi-frequency mechanism](/en/blog/20251217---rope-position-encoding/post)
 - [Part 3: The Attention mechanism explained](/en/blog/20251218---attention-mechanism/post)
@@ -836,6 +862,7 @@ class MyMiniMind(nn.Module):
 **Series**: MiniMind learning notes (4/4)
 
 If you found this helpful, feel free to:
+
 - ⭐ Star the original project, [MiniMind](https://github.com/jingyaogong/minimind)
 - ⭐ Star my study notes, [minimind-notes](https://github.com/joyehuang/minimind-notes)
 - 💬 Leave a comment with your own learning takeaways

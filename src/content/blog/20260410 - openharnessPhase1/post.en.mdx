@@ -1,5 +1,5 @@
 ---
-title: "Reading OpenHarness: Inside an 11,733-Line Agent Harness"
+title: 'Reading OpenHarness: Inside an 11,733-Line Agent Harness'
 description: 'HKUDS open-sourced OpenHarness, an Agent Harness matching Claude Code. My notes from a day reading its core architecture: Phase 1, CLI startup to Agent Loop.'
 publishDate: 2026-04-10 00:00:00
 tags: ['AI Agent', 'Harness', 'Claude Code', 'OpenHarness', 'source code', 'Python']
@@ -11,13 +11,13 @@ translationKey: '20260410---openharnessphase1/post'
 
 I've been using Claude Code for almost half a year now — it's the main coding tool I reach for every single day. But one thing has always nagged at me: **I've never actually seen what it looks like on the inside.**
 
-Claude Code is a closed-source product written in TypeScript, and the code is obfuscated on top of that. As a developer who wants to grow into full-stack AI Agent work, I know perfectly well that just being able to *use* it isn't enough — I need to understand how a production-grade Agent is actually built.
+Claude Code is a closed-source product written in TypeScript, and the code is obfuscated on top of that. As a developer who wants to grow into full-stack AI Agent work, I know perfectly well that just being able to _use_ it isn't enough — I need to understand how a production-grade Agent is actually built.
 
 A few days ago, the HKUDS lab (the same University of Hong Kong team behind Nanobot) open-sourced **OpenHarness**, a project that reimplements Claude Code's core architecture in Python. It's only 11,733 lines of code, yet it delivers 43 tools, 54 commands, plus a complete Agent Loop, a permission system, a plugin system, and multi-Agent collaboration.
 
 For me, this was manna from heaven.
 
-> **What is a Harness?** If you've read the recent papers from OpenAI and Anthropic on Agents, you'll recognize a shared premise: **the model handles intelligence, the Harness handles everything else**. The Harness is the full layer of infrastructure wrapped around the LLM — tools, memory, permissions, context, multi-Agent coordination. In the project author's own words: *"The model is the agent. The code is the harness."*
+> **What is a Harness?** If you've read the recent papers from OpenAI and Anthropic on Agents, you'll recognize a shared premise: **the model handles intelligence, the Harness handles everything else**. The Harness is the full layer of infrastructure wrapped around the LLM — tools, memory, permissions, context, multi-Agent coordination. In the project author's own words: _"The model is the agent. The code is the harness."_
 
 This post is my notes from a day spent chewing through OpenHarness's core architecture. I'll take you all the way through Phase 1: **from the moment you type the `oh` command, right down to the beating heart of the Agent Loop.**
 
@@ -75,9 +75,9 @@ src/openharness/
 
 Here's a key observation: **these 14 modules aren't all on the same level.** They split into three layers:
 
-- **Execution layer**: engine, tools, permissions, hooks — *how the Agent runs*
-- **Knowledge layer**: prompts, skills, memory — *what the Agent knows*
-- **Extension layer**: mcp, plugins, coordinator, tasks, commands — *how the Agent connects to the outside world*
+- **Execution layer**: engine, tools, permissions, hooks — _how the Agent runs_
+- **Knowledge layer**: prompts, skills, memory — _what the Agent knows_
+- **Extension layer**: mcp, plugins, coordinator, tasks, commands — _how the Agent connects to the outside world_
 
 If this is your first time reading a project like this, I'd suggest reading in the order execution layer → knowledge layer → extension layer. Once you've grasped the trunk, everything else is just an ornament hanging off it.
 
@@ -167,10 +167,10 @@ In the end only two processes are running: **Node.js (the UI)** and **Python B (
 
 This is the most interesting architectural decision in the whole startup flow. Put plainly, it comes down to **picking the right language ecosystem**:
 
-| Need | Best tool |
-|------|-----------|
+| Need                                                       | Best tool                     |
+| ---------------------------------------------------------- | ----------------------------- |
 | Rich terminal UI (syntax highlighting, popups, animations) | React/Ink (Node.js ecosystem) |
-| AI Agent engine (LLM SDK, asyncio, filesystem) | Python ecosystem |
+| AI Agent engine (LLM SDK, asyncio, filesystem)             | Python ecosystem              |
 
 The best tools for these two needs live in different languages. Rather than make do within a single language, let two processes each do what they're best at and talk over JSON.
 
@@ -426,6 +426,7 @@ There's a very pragmatic design choice here:
 Why make the distinction? **It's a balance between performance and user experience.**
 
 Imagine the AI asks to read 3 files at once:
+
 - Sequential: 100ms + 100ms + 100ms = **300ms**
 - Concurrent: max(100, 100, 100) ≈ **100ms**
 

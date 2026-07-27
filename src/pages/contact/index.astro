@@ -1,8 +1,8 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
-import wechat from '@/assets/wechat-contact.jpg'
 import qqGroup from '@/assets/qq-group-contact.jpg'
+import wechat from '@/assets/wechat-contact.jpg'
 
 const headings = [
   { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
@@ -11,10 +11,7 @@ const headings = [
 ---
 
 <PageLayout title='Contact' {headings} info='/contact'>
-  <p>
-    欢迎来聊。技术、求职、博客协作、找朋友闲聊都可以。
-    我会比较慢回，但都会回。
-  </p>
+  <p>欢迎来聊。技术、求职、博客协作、找朋友闲聊都可以。 我会比较慢回，但都会回。</p>
 
   <h2 id='how-to-reach'>如何联系我</h2>
   <p>
@@ -48,7 +45,8 @@ const headings = [
   <h2 id='before-you-add'>加之前请看一下</h2>
   <ul>
     <li>
-      <strong>请简单说明来意</strong>。一句话就行，比如「想聊 Agent 开发」「博客求合作」。没有备注的好友请求我大概率不会通过。
+      <strong>请简单说明来意</strong>。一句话就行，比如「想聊 Agent
+      开发」「博客求合作」。没有备注的好友请求我大概率不会通过。
     </li>
     <li>
       <strong>商务 / 推广 / 招聘需求</strong>请直接说明背景和合作形式，避免「在吗」式开场。

@@ -13,14 +13,7 @@ type Props = {
 
 const SCROLL_LINE = 64
 
-export default function PostViewer({
-  meta,
-  html,
-  headings,
-  status,
-  error,
-  onClose
-}: Props) {
+export default function PostViewer({ meta, html, headings, status, error, onClose }: Props) {
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [tocOpen, setTocOpen] = useState(false)
@@ -33,10 +26,7 @@ export default function PostViewer({
   }, [])
 
   // h2-only nav targets — keeps `1`–`9` shortcuts to a meaningful set.
-  const navHeadings = useMemo(
-    () => headings.filter((h) => h.depth === 2),
-    [headings]
-  )
+  const navHeadings = useMemo(() => headings.filter((h) => h.depth === 2), [headings])
 
   // scroll-spy: track which heading is currently nearest the top.
   useEffect(() => {
@@ -44,7 +34,10 @@ export default function PostViewer({
     const body = bodyRef.current
     if (!body) return
     const all = headings
-      .map((h) => ({ slug: h.slug, el: body.querySelector(`#${cssEscape(h.slug)}`) as HTMLElement | null }))
+      .map((h) => ({
+        slug: h.slug,
+        el: body.querySelector(`#${cssEscape(h.slug)}`) as HTMLElement | null
+      }))
       .filter((x): x is { slug: string; el: HTMLElement } => !!x.el)
     if (all.length === 0) return
     const onScroll = () => {
@@ -143,7 +136,8 @@ export default function PostViewer({
         {meta.date && <span className='dev-viewer-date'>· {meta.date}</span>}
         <span className='dev-viewer-spacer' />
         <span className='dev-viewer-hint'>
-          <span className='wt-kbd'>?</span> toc · <span className='wt-kbd'>g</span>/<span className='wt-kbd'>G</span> top/end · <span className='wt-kbd'>q</span> close
+          <span className='wt-kbd'>?</span> toc · <span className='wt-kbd'>g</span>/
+          <span className='wt-kbd'>G</span> top/end · <span className='wt-kbd'>q</span> close
         </span>
       </div>
 
@@ -180,9 +174,7 @@ export default function PostViewer({
                 <span className='wt-kbd'>1-9</span> jump · <span className='wt-kbd'>Esc</span> close
               </span>
             </div>
-            {headings.length === 0 && (
-              <div className='wt-tone-muted'>(no headings)</div>
-            )}
+            {headings.length === 0 && <div className='wt-tone-muted'>(no headings)</div>}
             {headings.map((h, i) => {
               const navIdx = navHeadings.findIndex((nh) => nh.slug === h.slug)
               const numKey = navIdx >= 0 && navIdx < 9 ? String(navIdx + 1) : null

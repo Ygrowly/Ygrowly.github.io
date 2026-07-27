@@ -3,10 +3,10 @@ import links from 'public/links.json'
 import config from 'virtual:config'
 
 import { Collapse, Timeline } from 'astro-pure/user'
-import Comment from '@/components/comment/Comment.astro'
 import PageLayout from '@/layouts/CommonPage.astro'
-import FriendList from '@/components/links/FriendList.astro'
+import Comment from '@/components/comment/Comment.astro'
 import FriendConstellation from '@/components/links/FriendConstellation.astro'
+import FriendList from '@/components/links/FriendList.astro'
 
 const headings = [
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
@@ -22,7 +22,10 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
 
 <PageLayout title='Links' {headings} info='/links'>
   <h2 id='friend-links'>Friend Links</h2>
-  <p>Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it is.</p>
+  <p>
+    Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it
+    is.
+  </p>
   <FriendConstellation list={friends[0]} meLabel='joyehuang.me' />
   <Collapse title='Links with Bad Status'>
     <FriendList list={friends[1]} />
@@ -31,10 +34,12 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     <Timeline events={linksConf.logbook} />
   </Collapse>
 
-  {/*
+  {
+    /*
   <h2 id='special-links'>Special Links</h2>
   <FriendList list={friends[2]} />
-  */}
+  */
+  }
 
   <h2 id='apply-links'>Apply Links</h2>
   <p>
@@ -64,7 +69,9 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
   </blockquote>
 
   <p>
-    To apply, just <strong>drop your info in the comments below</strong> using the fields above. The comment section doubles as a tiny hangout — feel free to visit each other's sites and make friends. A few notes:
+    To apply, just <strong>drop your info in the comments below</strong> using the fields above. The
+    comment section doubles as a tiny hangout — feel free to visit each other's sites and make friends.
+    A few notes:
   </p>
   <ul>
     <li>You've added this site to your own friend links.</li>

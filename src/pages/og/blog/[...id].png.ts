@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro'
 import type { CollectionEntry } from 'astro:content'
-import { getBlogCollection } from 'astro-pure/server'
 import { postOgPng } from '@/lib/og'
+
+import { getBlogCollection } from 'astro-pure/server'
 
 export const prerender = true
 

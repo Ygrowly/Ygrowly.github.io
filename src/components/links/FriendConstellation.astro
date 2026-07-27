@@ -64,10 +64,13 @@ const positioned = friends.map((frd, i) => {
   aria-label='Friend Constellation'
 >
   <div class='constellation-stage'>
-    <svg class='constellation-svg' viewBox='0 0 100 100' preserveAspectRatio='none' aria-hidden='true'>
-      {positioned.map(({ x, y }) => (
-        <line x1='50' y1='50' x2={x} y2={y} class='line' />
-      ))}
+    <svg
+      class='constellation-svg'
+      viewBox='0 0 100 100'
+      preserveAspectRatio='none'
+      aria-hidden='true'
+    >
+      {positioned.map(({ x, y }) => <line x1='50' y1='50' x2={x} y2={y} class='line' />)}
     </svg>
 
     <div class='constellation-center' aria-hidden='true'>
@@ -85,46 +88,49 @@ const positioned = friends.map((frd, i) => {
       <span class='constellation-center-label'>{meLabel}</span>
     </div>
 
-    {positioned.map(({ frd, x, y, posX, posY, idx }) => (
-      <a
-        href={frd.link}
-        target='_blank'
-        rel='noopener noreferrer'
-        class='constellation-star'
-        style={{ left: `${x}%`, top: `${y}%` }}
-        data-pos-x={posX}
-        data-pos-y={posY}
-        data-star-idx={idx}
-        aria-label={frd.name}
-      >
-        <span class='constellation-star-avatar'>
-          <Image
-            class='m-0 h-full w-full object-cover'
-            src={frd.avatar}
-            width={120}
-            height={120}
-            alt=''
-            loading='lazy'
-          />
-        </span>
-        <span class={`constellation-star-name${frd.label ? ' has-label' : ''}`}>{frd.label ?? frd.name}</span>
-        <span class='constellation-star-card' role='tooltip'>
-          <span class='card-name'>{frd.label ?? frd.name}</span>
-          {frd.label && <span class='card-real-name'>aka {frd.name}</span>}
-          {frd.intro && <span class='card-intro'>{frd.intro}</span>}
-          {(frd.since || frd.met) && (
-            <span class='card-meta'>
-              {frd.met}
-              {frd.met && frd.since && <span class='dot'>·</span>}
-              {frd.since}
-            </span>
-          )}
-          {frd.note && <span class='card-note'>{frd.note}</span>}
-          <span class='card-link'>{new URL(frd.link).host} ↗</span>
-        </span>
-      </a>
-    ))}
-
+    {
+      positioned.map(({ frd, x, y, posX, posY, idx }) => (
+        <a
+          href={frd.link}
+          target='_blank'
+          rel='noopener noreferrer'
+          class='constellation-star'
+          style={{ left: `${x}%`, top: `${y}%` }}
+          data-pos-x={posX}
+          data-pos-y={posY}
+          data-star-idx={idx}
+          aria-label={frd.name}
+        >
+          <span class='constellation-star-avatar'>
+            <Image
+              class='m-0 h-full w-full object-cover'
+              src={frd.avatar}
+              width={120}
+              height={120}
+              alt=''
+              loading='lazy'
+            />
+          </span>
+          <span class={`constellation-star-name${frd.label ? ' has-label' : ''}`}>
+            {frd.label ?? frd.name}
+          </span>
+          <span class='constellation-star-card' role='tooltip'>
+            <span class='card-name'>{frd.label ?? frd.name}</span>
+            {frd.label && <span class='card-real-name'>aka {frd.name}</span>}
+            {frd.intro && <span class='card-intro'>{frd.intro}</span>}
+            {(frd.since || frd.met) && (
+              <span class='card-meta'>
+                {frd.met}
+                {frd.met && frd.since && <span class='dot'>·</span>}
+                {frd.since}
+              </span>
+            )}
+            {frd.note && <span class='card-note'>{frd.note}</span>}
+            <span class='card-link'>{new URL(frd.link).host} ↗</span>
+          </span>
+        </a>
+      ))
+    }
   </div>
   <p class='constellation-coords' aria-hidden='true'>{friends.length} stars · ∞ canvas</p>
 </section>
@@ -238,8 +244,7 @@ const positioned = friends.map((frd, i) => {
     position: absolute;
     inset: -10px;
     border-radius: 9999px;
-    background:
-      radial-gradient(circle, hsl(var(--primary) / 0.35) 0%, transparent 70%);
+    background: radial-gradient(circle, hsl(var(--primary) / 0.35) 0%, transparent 70%);
     filter: blur(6px);
     z-index: -1;
   }
@@ -294,8 +299,7 @@ const positioned = friends.map((frd, i) => {
     box-shadow:
       0 0 0 1px hsl(var(--border)),
       0 6px 20px hsl(var(--background) / 0.7);
-    transition:
-      box-shadow 200ms ease;
+    transition: box-shadow 200ms ease;
   }
   .constellation-star:hover .constellation-star-avatar,
   .constellation-star:focus-visible .constellation-star-avatar,
@@ -314,7 +318,9 @@ const positioned = friends.map((frd, i) => {
     color: hsl(var(--muted-foreground));
     white-space: nowrap;
     pointer-events: none;
-    transition: color 160ms ease, opacity 160ms ease;
+    transition:
+      color 160ms ease,
+      opacity 160ms ease;
   }
   .friend-constellation.is-crowded .constellation-star-name {
     opacity: 0;

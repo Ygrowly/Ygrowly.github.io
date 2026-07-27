@@ -1,6 +1,6 @@
 ---
-title: "RAG Retrieval Details and Pipeline Design"
-description: "Notes on the key retrieval-side details of RAG — Embedding, Reranker, Chunking, Hybrid Search, Query Transformation, and more."
+title: 'RAG Retrieval Details and Pipeline Design'
+description: 'Notes on the key retrieval-side details of RAG — Embedding, Reranker, Chunking, Hybrid Search, Query Transformation, and more.'
 date: 2026-04-16
 tags:
   - ai

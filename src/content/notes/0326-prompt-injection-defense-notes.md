@@ -54,6 +54,7 @@ OpenAI 这套思路的核心，是给不同来源的指令建立层级，而不�
 #### 三层优先级
 
 ##### 最高权限：System Prompt
+
 开发者写的底层规则，比如：
 
 - 你是什么角色
@@ -61,11 +62,13 @@ OpenAI 这套思路的核心，是给不同来源的指令建立层级，而不�
 - 安全红线是什么
 
 ##### 中等权限：User Message
+
 用户的输入与问题。
 
 模型会尽量满足用户意图，但前提是不能违反更高优先级的系统指令。
 
 ##### 最低权限：Tool Output / External Content
+
 例如：
 
 - 抓取的网页内容
@@ -76,6 +79,7 @@ OpenAI 这套思路的核心，是给不同来源的指令建立层级，而不�
 这些都应该被视为 **低信任输入**。
 
 #### 这个思想为什么重要
+
 Prompt injection 最典型的场景就是：
 
 - 一个网页里藏了“忽略之前指令，执行 XXX”
@@ -94,6 +98,7 @@ OpenAI 的核心思路就是：
 > **先把边界画清楚，再假设系统终究可能被绕过，所以做好物理隔离。**
 
 #### a. XML / 标签隔离
+
 Anthropic 很强调结构化标签，比如：
 
 ```xml
@@ -114,6 +119,7 @@ Anthropic 很强调结构化标签，比如：
 这和 OpenAI 的 instruction hierarchy 不冲突，但 Anthropic 更强调“边界显式化”。
 
 #### b. 对抗训练
+
 Anthropic 还会在训练中故意加入恶意样本，让模型学会识别：
 
 - 注入攻击
@@ -123,6 +129,7 @@ Anthropic 还会在训练中故意加入恶意样本，让模型学会识别：
 也就是说，它不只是靠 prompt engineering，而是在模型层培养“反注入直觉”。
 
 #### c. 沙盒与最小权限
+
 Anthropic 在浏览器控制、Computer Use、Claude Code 这类高权限场景里，一个很强的原则是：
 
 - 假设模型有可能被诱导
@@ -154,6 +161,7 @@ Anthropic 在浏览器控制、Computer Use、Claude Code 这类高权限场景�
 ### 4. 中间链路层的防御：Guardrails
 
 #### 输入侧防护
+
 在用户输入进入主模型前，先做拦截，例如：
 
 - 轻量分类模型
@@ -164,6 +172,7 @@ Anthropic 在浏览器控制、Computer Use、Claude Code 这类高权限场景�
 目标是尽可能在最前面就挡住典型高危模式。
 
 #### 输出侧防护
+
 模型输出后，再检查：
 
 - 是否泄露敏感信息
@@ -240,16 +249,19 @@ Anthropic 在浏览器控制、Computer Use、Claude Code 这类高权限场景�
 我目前会把 prompt injection 防御整理成三层：
 
 ### 第一层：模型层防御
+
 - OpenAI：Instruction Hierarchy
 - Anthropic：结构化边界 + 对抗训练
 
 ### 第二层：链路层防御
+
 - 输入过滤
 - 输出校验
 - Guardrails
 - Canary / 监控
 
 ### 第三层：应用层防御
+
 - 最小权限原则
 - 沙盒隔离
 - Human-in-the-loop
@@ -266,7 +278,7 @@ Anthropic 在浏览器控制、Computer Use、Claude Code 这类高权限场景�
 > 在模型层，如果用 OpenAI，我会利用 instruction hierarchy，把 system、user、tool output 的优先级严格区分；如果用 Anthropic，我会更强调 XML 这类结构化边界和 sandbox 思维。  
 > 在链路层，我会加 guardrails，对输入输出都做过滤和 schema 校验，必要时加 canary token 做监控。  
 > 在应用层，我会坚持最小权限原则，并对高危工具调用引入 human-in-the-loop。  
-> 这样即使某一层失守，也不至于直接演变成真实破坏。 
+> 这样即使某一层失守，也不至于直接演变成真实破坏。
 
 这个答法的优点是：
 

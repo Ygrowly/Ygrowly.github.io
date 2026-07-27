@@ -48,6 +48,7 @@ After actually reading through the pages, my judgment got more concrete:
 ### 1. Jina's core selling points
 
 #### Strong multilingual retrieval
+
 Jina has consistently performed well on multilingual embedding leaderboards, and it's especially good for:
 
 - Chinese corpora
@@ -57,6 +58,7 @@ Jina has consistently performed well on multilingual embedding leaderboards, and
 If your application isn't pure English — if it targets Chinese users, internationalized content, or a mixed-language corpus — this matters a lot.
 
 #### Friendlier long-text support
+
 The notes mention:
 
 - Jina v3 already supports `8192 tokens`
@@ -73,6 +75,7 @@ That's useful for scenarios like:
 It means Jina is naturally better suited to long-document RAG workflows, rather than only handling short chunks.
 
 #### Late Chunking is a capability worth special attention with Jina
+
 Late Chunking still matters a great deal, but it's better discussed on its own within general RAG retrieval design.
 
 For this card, the one thing to remember that ties most directly to Jina:
@@ -82,7 +85,9 @@ For this card, the one thing to remember that ties most directly to Jina:
 If I later want to systematically organize the retrieval details — chunking, embedding recall, reranker, hybrid search — I can go straight to the related card:
 
 - `0426-rag-retrieval-details-and-pipeline-design`
+
 #### Matryoshka support fits production well
+
 The notes mention that you can use the `dimensions` parameter to compress high-dimensional vectors down to lower dimensions, e.g.:
 
 - `1024 -> 128`
@@ -103,6 +108,7 @@ If my notes / knowledge base grows large later, this "compress without an obviou
 Based on the summary from this conversation, here's a rough first take:
 
 #### Where Jina fits better
+
 - Multilingual retrieval
 - Long-text handling
 - Multimodal directions (especially v4)
@@ -110,11 +116,13 @@ Based on the summary from this conversation, here's a rough first take:
 - Cost-effectiveness
 
 #### Where OpenAI embeddings fit better
+
 - Stable ecosystem
 - Low barrier to integration
 - More commonly the default choice within the English-centric ecosystem
 
 #### Impressions of Voyage
+
 - Also a very strong embedding vendor
 - But in the context of these notes, Jina has a stronger "retrieval toolbox" feel
 
@@ -127,6 +135,7 @@ So right now it shakes out more like:
 ### 3. Understanding v4 vs v5
 
 #### Jina v4: leans multimodal
+
 Keywords:
 
 - Multimodal
@@ -144,6 +153,7 @@ Good for:
 If images, UI screenshots, design mockups, or visual-asset retrieval show up in the product down the line, v4's value becomes pretty clear.
 
 #### Official addendum: v4 is more "engineering-heavy" than I first understood
+
 After reading the official release note, a few points about v4 are worth calling out separately:
 
 - It's not just "supports image embeddings" — it's a **3.8B** unified text-image embedding model
@@ -170,6 +180,7 @@ There's also one crucial but easy-to-miss real-world limitation:
 > The model can natively reach 32K, but the officially hosted Embedding API still caps online input length for v4 due to resource limits — the body notes that **the API side currently supports up to 8K**. If you really need to ingest longer context or do heavy Late Chunking, you may have to move to CSP / self-hosting.
 
 #### Jina v5: leans toward productionizing text RAG
+
 Keywords:
 
 - Compact
@@ -191,6 +202,7 @@ So a crude first-pass understanding:
 - **v5 = the pure-text RAG / cost-effectiveness direction**
 
 #### Official addendum: v5 is more a production-optimized version than just "compact"
+
 After reading the official v5 article, I'd describe it more concretely:
 
 - `v5-text-small`: **677M** parameters
@@ -200,7 +212,7 @@ After reading the official v5 article, I'd describe it more concretely:
   - **teacher-student distillation**
   - **task-specific contrastive learning**
   - **4 LoRA adapters**
-to build an embedding system that's "close to a large model in quality, but much smaller in size"
+    to build an embedding system that's "close to a large model in quality, but much smaller in size"
 
 Those 4 task adapters map to:
 
@@ -214,12 +226,14 @@ This point is key, because it shows v5 is no longer just "a retrieval embedding 
 A few more points I think are worth remembering:
 
 ##### 1. v5-small is basically "a small model beating big ones"
+
 The official narrative is clear:
 
 - On retrieval, v5-small approaches or even catches up to `jina-embeddings-v4`
 - but at only about **1/5.6** of its size
 
 In other words, if you're clearly in this situation:
+
 - pure text
 - want production cost-effectiveness
 - want to cut inference and storage costs
@@ -227,6 +241,7 @@ In other words, if you're clearly in this situation:
 then v5 may actually be more appealing than v4.
 
 ##### 2. decoder-only + last-token pooling is its stylistic difference
+
 The official docs note that v5-text uses:
 
 - a decoder-only backbone
@@ -235,6 +250,7 @@ The official docs note that v5-text uses:
 This isn't quite the same as many traditional embedding systems. It looks more like a small-footprint scheme re-distilled specifically for embedding tasks, after absorbing the new generation of foundation-model architectures.
 
 ##### 3. Very quantization- and edge-deployment-friendly
+
 This point comes through strongly in the official article:
 
 - Supports GGUF
@@ -255,6 +271,7 @@ That makes me see it as an embedding solution that's a better fit for real-world
 ## Implications for my projects
 
 ### For Agent / SaaS scenarios
+
 If the system has all of:
 
 - query embedding
@@ -274,6 +291,7 @@ Within the same model-integration path, you can switch task modes per task, e.g.
 That's closer to the shape of a real Agent / retrieval system than "one embedding vector to rule them all."
 
 ### For rapid prototyping
+
 The notes mention that Jina's developer experience is fairly friendly — free quota, API compatibility, and so on.
 
 In particular, the fact that it's compatible with the OpenAI-style API means:
@@ -285,9 +303,11 @@ In particular, the fact that it's compatible with the OpenAI-style API means:
 That's a plus for quickly prototyping.
 
 ### New: the official-site info I actually read this time
+
 This time I didn't just skim URL titles — I opened a browser and read the product page plus the two release notes directly. A few points I hadn't pinned down solidly before, that I can now state clearly:
 
 #### 1. The `jina.ai/embeddings/` product page reveals more than "we have an API"
+
 The product page itself is an interactive API playground, not just a marketing landing page. What you can actually see:
 
 - The page directly positions embeddings as the foundation for **search / RAG / agent**
@@ -318,6 +338,7 @@ So the real signal the product page sends is:
 > Jina treats embeddings as an operable, billable, deployable, tunable retrieval infrastructure layer — not as an isolated model page.
 
 #### 2. The `v4` release note's focus is both narrower and sharper than "multimodal"
+
 After reading it through this time, I'd describe v4 as:
 
 > **Multimodal / multilingual embedding infrastructure aimed at visually rich retrieval.**
@@ -355,6 +376,7 @@ So v4's real value isn't the broad "it can do image-text retrieval" — it's tha
 - Better suited for high-quality retrieval that needs late interaction
 
 #### 3. The `v5` release note really does lean toward "production optimization"
+
 Reading it through this time, I'm more convinced that v5's main narrative isn't "bigger scale" but:
 
 > **Distilling retrieval quality close to a large model into a sub-1B, quantizable, locally deployable text-embedding model.**
@@ -400,31 +422,32 @@ This time I also read through a shared Grok piece comparing Jina Embeddings agai
 
 ### Comparison table
 
-| Dimension | Jina Embeddings | Qwen3-Embedding |
-| --- | --- | --- |
-| Core positioning | Efficient, long-document, production-friendly embedding infrastructure | Accuracy-first, especially for Chinese and multilingual scenarios |
-| Stronger at | Long-document retrieval, Late Chunking, multimodal, deployment cost-effectiveness | Chinese / multilingual accuracy, instruction awareness, paired reranker |
-| Language advantage | Strong multilingual, good for internationalization or mixed corpora | Especially strong in Chinese; multilingual also leans effectiveness-first |
-| Long context | Very strong; v5 clearly leans toward long-text RAG | Also supports long context, but accuracy is what stands out in this comparison |
-| Multimodal | v4 supports text + image + visually rich documents | Primarily pure text; for multimodal, look to other Qwen series |
-| Engineering features | Late Chunking, Matryoshka, task adapters, edge-deployment friendly | Instruction-aware embedding, plus a complete pairing with the Qwen reranker |
-| Cost / deployment | v5-small / nano fit cost-sensitive scenarios well | High-accuracy versions are effectiveness-first, usually with higher deployment cost |
-| Best-fit tasks | Long-document knowledge bases, PDF / chart / table retrieval, production-grade recall | Chinese knowledge bases, Chinese QA, high-quality multilingual retrieval, rerank-sensitive scenarios |
-| If summed up in one line | More of an efficient all-rounder | More of an accuracy champion |
+| Dimension                | Jina Embeddings                                                                       | Qwen3-Embedding                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Core positioning         | Efficient, long-document, production-friendly embedding infrastructure                | Accuracy-first, especially for Chinese and multilingual scenarios                                    |
+| Stronger at              | Long-document retrieval, Late Chunking, multimodal, deployment cost-effectiveness     | Chinese / multilingual accuracy, instruction awareness, paired reranker                              |
+| Language advantage       | Strong multilingual, good for internationalization or mixed corpora                   | Especially strong in Chinese; multilingual also leans effectiveness-first                            |
+| Long context             | Very strong; v5 clearly leans toward long-text RAG                                    | Also supports long context, but accuracy is what stands out in this comparison                       |
+| Multimodal               | v4 supports text + image + visually rich documents                                    | Primarily pure text; for multimodal, look to other Qwen series                                       |
+| Engineering features     | Late Chunking, Matryoshka, task adapters, edge-deployment friendly                    | Instruction-aware embedding, plus a complete pairing with the Qwen reranker                          |
+| Cost / deployment        | v5-small / nano fit cost-sensitive scenarios well                                     | High-accuracy versions are effectiveness-first, usually with higher deployment cost                  |
+| Best-fit tasks           | Long-document knowledge bases, PDF / chart / table retrieval, production-grade recall | Chinese knowledge bases, Chinese QA, high-quality multilingual retrieval, rerank-sensitive scenarios |
+| If summed up in one line | More of an efficient all-rounder                                                      | More of an accuracy champion                                                                         |
 
 ### A very practical conclusion
 
 If you just want the shortest version to remember, these three lines are enough:
 
-| Scenario | Recommendation |
-| --- | --- |
-| Chinese accuracy, multilingual accuracy, strong reranker ecosystem | Qwen3 |
-| Long documents, Late Chunking, multimodal, production-deployment cost-effectiveness | Jina |
-| Want to balance speed, cost, and final quality | `Jina recall + Qwen rerank` |
+| Scenario                                                                            | Recommendation              |
+| ----------------------------------------------------------------------------------- | --------------------------- |
+| Chinese accuracy, multilingual accuracy, strong reranker ecosystem                  | Qwen3                       |
+| Long documents, Late Chunking, multimodal, production-deployment cost-effectiveness | Jina                        |
+| Want to balance speed, cost, and final quality                                      | `Jina recall + Qwen rerank` |
 
 ### What I'm more confident about after reading this comparison
 
 #### 1. Qwen3 is more of an effectiveness-first route
+
 What stands out most in these notes:
 
 - Stronger on Chinese / multilingual tasks
@@ -441,6 +464,7 @@ So if the scenario is:
 then Qwen3 should be a priority candidate to put on the evaluation board.
 
 #### 2. Jina is more of an engineering-delivery-first route
+
 Jina's edge isn't just "small models are cheap" — its whole retrieval-engineering toolkit is more complete:
 
 - More stable long-document handling
@@ -456,6 +480,7 @@ Especially well-suited for:
 - Production environments sensitive to deployment cost
 
 #### 3. The genuinely practical answer often isn't either/or
+
 What I agree with most is actually this hybrid setup:
 
 - **Coarse recall** with Jina v5-small
@@ -472,6 +497,7 @@ It doesn't overturn the original judgment about Jina; it rounds the card out int
 Having re-read the official pages and added the comparison with Qwen3-Embedding, my judgment on Jina Embeddings is:
 
 ### Situations worth a serious try
+
 - Chinese or multilingual RAG
 - Long-document retrieval
 - Need higher retrieval quality
@@ -482,12 +508,14 @@ Having re-read the official pages and added the comparison with Qwen3-Embedding,
 - May do multimodal retrieval in the future
 
 ### Situations where it's not necessarily a priority
+
 - Just building a small, pure-English, short-text demo
 - No clear long-document / multilingual / retrieval-quality requirements
 - Just want the shortest path to verify "can it find anything," not yet at the precision-ranking stage
 - Care more about "the most effortless default integration" than about retrieval-detail optimization
 
 ### The keywords most worth remembering right now
+
 - `Late Chunking`
 - `Matryoshka`
 - `Task-specific Adapters`

@@ -14,6 +14,7 @@ translationKey: '20251216---normalization/post'
 [MiniMind](https://github.com/jingyaogong/minimind) is a concise but complete large language model training project, covering the full pipeline from data processing and model training to inference and deployment. As I worked through it, I collected the core technical points into the [minimind-notes](https://github.com/joyehuang/minimind-notes) repo and produced this four-part blog series, walking through the core components of the Transformer systematically.
 
 This series includes:
+
 1. **Normalization** (this post) — why we need RMSNorm
 2. **RoPE positional encoding** — how to make the model understand word order
 3. **The Attention mechanism** — the core engine of the Transformer
@@ -39,6 +40,7 @@ class TransformerBlock(nn.Module):
 ```
 
 **The questions**:
+
 - Why do we need so much normalization?
 - Can't we just drop it?
 - What's the difference between RMSNorm and LayerNorm?
@@ -86,6 +88,7 @@ output = model(x)
 ```
 
 **Output**:
+
 ```
 Input std: 1.0405
 Layer 1 std: 0.8932
@@ -103,10 +106,12 @@ Layer 8 std: 0.0163  ← nearly zero!
 **The mathematical explanation**:
 
 1. **The matrix multiplication in each layer**: `y = Wx`
+
    - If the weights W are initialized as a normal distribution with mean 0 and standard deviation 1
    - The standard deviation of the output is approximately: `std(y) ≈ std(x) × sqrt(input_dim) / sqrt(output_dim)`
 
 2. **The effect of the ReLU activation**:
+
    - ReLU(x) = max(0, x)
    - All negatives become 0
    - This shrinks the standard deviation further (roughly halving it)
@@ -119,6 +124,7 @@ Layer 8 std: 0.0163  ← nearly zero!
 **An analogy**:
 
 It's like photocopying a photocopy:
+
 - 1st copy: slightly blurry
 - 2nd copy: blurrier
 - 8th copy: you can barely read the text anymore
@@ -139,6 +145,7 @@ for i, layer in enumerate(model.layers):
 ```
 
 **Output**:
+
 ```
 Layer 1 gradient norm: 0.000012  ← nearly 0!
 Layer 2 gradient norm: 0.000045
@@ -149,6 +156,7 @@ Layer 8 gradient norm: 0.432156  ← normal
 ```
 
 **Conclusion**:
+
 - The gradients in the earlier layers are close to 0, so their weights barely update
 - Only the later layers are learning
 - A deep network degenerates into a shallow one!
@@ -156,6 +164,7 @@ Layer 8 gradient norm: 0.432156  ← normal
 ### 2.4 What Happens with Even Deeper Networks?
 
 If a network has 100 layers, or 1,000 layers (Transformers sometimes have 96):
+
 - 100 layers → std ≈ 10^-10 (completely vanished)
 - 1,000 layers → simply impossible to train
 
@@ -168,14 +177,17 @@ If a network has 100 layers, or 1,000 layers (Transformers sometimes have 96):
 ### 3.1 The Core Idea
 
 The design philosophy of RMSNorm:
+
 > "Don't change the direction, just control the magnitude."
 
 **The math**:
+
 ```
 x_norm = x / sqrt(mean(x²) + eps) × weight
 ```
 
 **Step by step**:
+
 1. Compute the "magnitude" of the vector (Root Mean Square)
 2. Divide by that magnitude (normalizing it to roughly unit length)
 3. Multiply by the learnable scaling parameter `weight`
@@ -205,6 +217,7 @@ class RMSNorm(nn.Module):
 ```
 
 **Key points**:
+
 - `x.pow(2).mean(-1)`: computes the mean of the squares of each vector
 - `torch.rsqrt(...)`: computes the reciprocal square root (1/√x)
 - `keepdim=True`: keeps the dimension so broadcasting works
@@ -239,6 +252,7 @@ output = model(x)
 ```
 
 **Output**:
+
 ```
 Block 1 std: 0.9823
 Block 2 std: 1.0142
@@ -257,11 +271,13 @@ Block 8 std: 0.9956  ← stable around 1!
 RMSNorm normalizes while keeping the vector's direction unchanged, adjusting only its magnitude. This means:
 
 **Semantic information is preserved**:
+
 - A vector's direction represents its "meaning"
 - The cosine of the angle is almost identical before and after normalization (difference < 10^-9)
 - It only adjusts the magnitude, not the meaning, so no information is lost
 
 **Training is stable**:
+
 - Each layer's output standard deviation is roughly 1
 - Gradients neither explode nor vanish
 - You can stack very deep networks (96+ layers)
@@ -273,6 +289,7 @@ RMSNorm normalizes while keeping the vector's direction unchanged, adjusting onl
 ### 4.1 Comparing the Formulas
 
 **LayerNorm (the BERT/GPT-2 era)**:
+
 ```
 mean = mean(x)
 var = mean((x - mean)²)
@@ -280,6 +297,7 @@ x_norm = (x - mean) / sqrt(var + eps) × weight + bias
 ```
 
 **RMSNorm (the Llama/MiniMind era)**:
+
 ```
 rms = sqrt(mean(x²) + eps)
 x_norm = x / rms × weight
@@ -287,17 +305,17 @@ x_norm = x / rms × weight
 
 ### 4.2 A Detailed Comparison
 
-| Property | LayerNorm | RMSNorm |
-|------|-----------|---------|
-| **Step 1** | compute the mean | none |
-| **Step 2** | subtract the mean (centering) | none |
-| **Step 3** | compute the variance | compute the root mean square |
-| **Step 4** | divide by the standard deviation | divide by the RMS |
-| **Parameters** | weight + bias | weight only |
-| **Compute** | 2 passes over the data | 1 pass |
-| **Speed** | baseline (1x) | **7.7x faster** |
-| **Effect** | very good | comparable or better |
-| **Used by** | BERT, GPT-2 | Llama, MiniMind |
+| Property       | LayerNorm                        | RMSNorm                      |
+| -------------- | -------------------------------- | ---------------------------- |
+| **Step 1**     | compute the mean                 | none                         |
+| **Step 2**     | subtract the mean (centering)    | none                         |
+| **Step 3**     | compute the variance             | compute the root mean square |
+| **Step 4**     | divide by the standard deviation | divide by the RMS            |
+| **Parameters** | weight + bias                    | weight only                  |
+| **Compute**    | 2 passes over the data           | 1 pass                       |
+| **Speed**      | baseline (1x)                    | **7.7x faster**              |
+| **Effect**     | very good                        | comparable or better         |
+| **Used by**    | BERT, GPT-2                      | Llama, MiniMind              |
 
 ### 4.3 A Speed-Comparison Experiment
 
@@ -316,11 +334,13 @@ Speedup: 7.80x  ← nearly 8x faster!
 **The theoretical explanation**:
 
 1. **The statistical properties of deep networks**:
+
    - After many layers of transformation, the mean of the activations is usually close to 0
    - This is especially true in networks with residual connections
    - Controlling only the variance/RMS is enough for stable training
 
 2. **Empirical validation** (the Llama paper):
+
    - Measuring the mean of each layer's output in a 100-layer network
    - The means ranged over [-0.0234, 0.0187], very close to 0
 
@@ -333,11 +353,11 @@ Speedup: 7.80x  ← nearly 8x faster!
 
 Experimental results from Meta's Llama paper:
 
-| Configuration | LayerNorm | RMSNorm | Difference |
-|---------|-----------|---------|------|
-| 7B model PPL | 12.34 | 12.31 | -0.24% ✅ |
-| Training speed | 100% | 112% | +12% ✅ |
-| Memory usage | 100% | 98% | -2% ✅ |
+| Configuration  | LayerNorm | RMSNorm | Difference |
+| -------------- | --------- | ------- | ---------- |
+| 7B model PPL   | 12.34     | 12.31   | -0.24% ✅  |
+| Training speed | 100%      | 112%    | +12% ✅    |
+| Memory usage   | 100%      | 98%     | -2% ✅     |
 
 **Conclusion**: comparable results, faster speed!
 
@@ -386,6 +406,7 @@ class MiniMindBlock(nn.Module):
 ```
 
 **Data-flow diagram**:
+
 ```
 input x
   ↓
@@ -408,7 +429,6 @@ FeedForward  ← feed-forward network
 output
 ```
 
-
 ### 5.3 Counting Them in a Full Transformer
 
 Taking MiniMind as an example:
@@ -430,16 +450,18 @@ MiniMindModel
 ```
 
 **The count**:
+
 - Each Block: **2 RMSNorms**
 - 8 Blocks: 8 × 2 = **16 RMSNorms**
 - Before the final output: **1 RMSNorm**
 - **Total: 17 RMSNorms**
 
-### 5.4 Why Place It *Before* Attention/FeedForward?
+### 5.4 Why Place It _Before_ Attention/FeedForward?
 
 This comes down to the **Pre-Norm vs Post-Norm** design choice.
 
 **Post-Norm (the original Transformer, 2017)**:
+
 ```python
 # normalization comes after the sublayer
 x = x + Attention(x)
@@ -449,6 +471,7 @@ x = Norm(x)
 ```
 
 **Pre-Norm (modern Transformers, Llama/MiniMind)**:
+
 ```python
 # normalization comes before the sublayer
 x = x + Attention(Norm(x))
@@ -457,12 +480,12 @@ x = x + FeedForward(Norm(x))
 
 **The advantages of Pre-Norm**:
 
-| Property | Post-Norm | Pre-Norm |
-|------|-----------|----------|
-| **Training stability** | hard for deep networks | more stable ✅ |
-| **Gradient propagation** | can be interrupted by Norm | cleaner residual path ✅ |
-| **Learning rate** | needs warmup | can use a larger learning rate ✅ |
-| **Best suited for** | shallow networks (< 12 layers) | deep networks (> 12 layers) ✅ |
+| Property                 | Post-Norm                      | Pre-Norm                          |
+| ------------------------ | ------------------------------ | --------------------------------- |
+| **Training stability**   | hard for deep networks         | more stable ✅                    |
+| **Gradient propagation** | can be interrupted by Norm     | cleaner residual path ✅          |
+| **Learning rate**        | needs warmup                   | can use a larger learning rate ✅ |
+| **Best suited for**      | shallow networks (< 12 layers) | deep networks (> 12 layers) ✅    |
 
 **Modern LLMs all use Pre-Norm** (GPT-3, Llama, MiniMind, Mistral...).
 
@@ -492,14 +515,17 @@ python normalization_comparison.py
 ### 6.2 References
 
 **Papers**:
+
 - [Root Mean Square Layer Normalization](https://arxiv.org/abs/1910.07467) — the original RMSNorm paper
 - [Llama 2 Technical Report](https://arxiv.org/abs/2307.09288) — includes practical experience with RMSNorm
 
 **Code**:
+
 - MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
 - RMSNorm implementation: `model/model_minimind.py:95-105`
 
 **Other articles in this series**:
+
 - [Part 2: RoPE positional encoding](/en/blog/20251217---rope-position-encoding/post)
 - [Part 3: The Attention mechanism](/en/blog/20251218---attention-mechanism/post)
 - [Part 4: FeedForward and the complete architecture](/en/blog/20251219---feedforward-transformer-block/post)
@@ -534,6 +560,7 @@ python normalization_comparison.py
 **Series**: MiniMind learning notes (1/4)
 
 If you found this helpful, feel free to:
+
 - ⭐ Star the original project [MiniMind](https://github.com/jingyaogong/minimind)
 - ⭐ Star my learning notes [minimind-notes](https://github.com/joyehuang/minimind-notes)
 - 💬 Leave a comment with your own learning insights

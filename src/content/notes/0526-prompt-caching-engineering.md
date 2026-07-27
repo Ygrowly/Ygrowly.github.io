@@ -40,6 +40,7 @@ draft: false
 关键：必须**从第一个 token 开始完全逐字节相同**。中间任何一个 token 变了，从变化点后的全部内容都得重算。
 
 **缓存命中场景**：
+
 ```
 请求 1: [system A] [tools B] [对话 1, 2]
 请求 2: [system A] [tools B] [对话 1, 2, 3]
@@ -48,6 +49,7 @@ draft: false
 ```
 
 **缓存失败场景**：
+
 ```
 请求 1: [system A] [tools B] [对话 1, 2]
 请求 2: [system A'] [tools B] [对话 1, 2, 3]
@@ -78,18 +80,19 @@ user message:
 
 ### 3. OpenAI vs Anthropic vs Google 缓存策略对比
 
-| 维度 | OpenAI | Anthropic | Google Gemini |
-|------|--------|-----------|---------------|
-| 控制方式 | 自动，零配置 | 显式打 `cache_control` breakpoint | 显式配置 |
-| 命中率 | ~50%（不可控） | 100%（明确标记时） | 可配置 |
-| 写入缓存 | 免费 | 5min 贵 25%，1h 贵一倍 | 免费 |
-| 读取缓存 | 便宜 50% | 便宜 90% | 便宜 |
-| TTL | 几分钟（不透明） | 5min 或 1h（明确） | 最长 60min |
-| 最小缓存 | 1024 token | 1024–4096 token（按模型） | 不明确 |
+| 维度     | OpenAI           | Anthropic                         | Google Gemini |
+| -------- | ---------------- | --------------------------------- | ------------- |
+| 控制方式 | 自动，零配置     | 显式打 `cache_control` breakpoint | 显式配置      |
+| 命中率   | ~50%（不可控）   | 100%（明确标记时）                | 可配置        |
+| 写入缓存 | 免费             | 5min 贵 25%，1h 贵一倍            | 免费          |
+| 读取缓存 | 便宜 50%         | 便宜 90%                          | 便宜          |
+| TTL      | 几分钟（不透明） | 5min 或 1h（明确）                | 最长 60min    |
+| 最小缓存 | 1024 token       | 1024–4096 token（按模型）         | 不明确        |
 
 **核心差异**：OpenAI 是"白嫖优惠"——写入不加价但只省一半；Anthropic 是"付费办会员"——写入要多付但读的时候省 90%。
 
 **实战判断**：
+
 - 快速原型 → OpenAI，省事
 - 生产环境 agent / RAG，长 prompt 反复用 → **Anthropic**，控制力强、折扣大
 - 对 Hermes 这种长期运行的 personal agent → Anthropic 更对路，因为 agent loop 一轮一轮调用，system prompt + tools + 历史对话都一样，正好是 90% 折扣发挥作用的场景
@@ -116,6 +119,7 @@ Claude Code 的做法：**不换工具集，把"切换模式"做成工具本身*
 问题：重度用户可能挂 20 个 MCP server，每个暴露十几个工具，加起来上百个。每个工具定义 200–500 token，100 个工具 = 30k–50k token。
 
 两难：
+
 - **全部塞进去**：prefix 稳定，但每次背 50k token 即使 90% 折扣也很贵
 - **按需加载**：每次加工具 = 改 prefix = cache miss，反而更贵
 
@@ -173,13 +177,15 @@ Compaction 请求: [system A][tools A][180k 对话][user: "总结一下"]
 **Compaction 之后**：把 180k 历史替换成一条 5k 的 summary user message——system + tools 不变，新的 prefix cache 从"system + tools + summary"开始重新累积。
 
 ```
- compaction 前:
- [system][tools][180k 对话历史]
- └──────── 全部在 cache 里 ────────┘
 
- compaction 后:
- [system][tools][summary 5k][新对话...]
- └─ 命中 ─┘└─新 prefix ─┘└─逐步进 cache ─┘
+compaction 前:
+[system][tools][180k 对话历史]
+└──────── 全部在 cache 里 ────────┘
+
+compaction 后:
+[system][tools][summary 5k][新对话...]
+└─ 命中 ─┘└─新 prefix ─┘└─逐步进 cache ─┘
+
 ```
 
 **对 Hermes 的启示**：长期 agent 必然撞 context 上限。关键实现要点：
@@ -213,3 +219,4 @@ Compaction 请求: [system A][tools A][180k 对话][user: "总结一下"]
 - 参考博客：https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything
 - Compaction 文档：https://platform.claude.com/docs/en/build-with-claude/compaction
 - defer_loading 文档：https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool
+```

@@ -35,6 +35,7 @@ Small fix:
 Multi-change PR:
 
 > Tidy the agent-teams entry points.
+>
 > - Throttle the intro animation to once per 24h (was per-session).
 > - Popout dismissal is per-session, not permanent.
 > - Add a Summer of Agents section to the About page.

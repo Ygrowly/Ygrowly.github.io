@@ -1,5 +1,5 @@
 ---
-title: "Prompt Caching in Practice: Cache Design and defer_loading"
+title: 'Prompt Caching in Practice: Cache Design and defer_loading'
 description: "Lessons from Claude Code's prompt caching: the philosophy behind cache design, how OpenAI / Anthropic / Google differ, and the defer_loading stub pattern."
 date: 2026-05-24
 updatedDate: 2026-05-24
@@ -42,6 +42,7 @@ Every time you call an LLM, you send the full prompt (system prompt + tools + co
 The catch: it has to be **identical from the very first token, byte for byte**. Change a single token anywhere, and everything from that point onward has to be recomputed.
 
 **Cache-hit scenario**:
+
 ```
 Request 1: [system A] [tools B] [turns 1, 2]
 Request 2: [system A] [tools B] [turns 1, 2, 3]
@@ -50,6 +51,7 @@ Request 2: [system A] [tools B] [turns 1, 2, 3]
 ```
 
 **Cache-miss scenario**:
+
 ```
 Request 1: [system A]  [tools B] [turns 1, 2]
 Request 2: [system A'] [tools B] [turns 1, 2, 3]
@@ -80,18 +82,19 @@ The payoff: the prefix is untouched, so the historical tokens keep their 10% pri
 
 ### 3. OpenAI vs Anthropic vs Google caching strategies
 
-| Dimension | OpenAI | Anthropic | Google Gemini |
-|------|--------|-----------|---------------|
+| Dimension         | OpenAI                 | Anthropic                            | Google Gemini   |
+| ----------------- | ---------------------- | ------------------------------------ | --------------- |
 | Control mechanism | Automatic, zero config | Explicit `cache_control` breakpoints | Explicit config |
-| Hit rate | ~50% (uncontrollable) | 100% (when explicitly marked) | Configurable |
-| Cache writes | Free | 25% more for 5 min, 2x for 1 h | Free |
-| Cache reads | 50% cheaper | 90% cheaper | Cheaper |
-| TTL | A few minutes (opaque) | 5 min or 1 h (explicit) | Up to 60 min |
-| Minimum cacheable | 1024 tokens | 1024–4096 tokens (model-dependent) | Unclear |
+| Hit rate          | ~50% (uncontrollable)  | 100% (when explicitly marked)        | Configurable    |
+| Cache writes      | Free                   | 25% more for 5 min, 2x for 1 h       | Free            |
+| Cache reads       | 50% cheaper            | 90% cheaper                          | Cheaper         |
+| TTL               | A few minutes (opaque) | 5 min or 1 h (explicit)              | Up to 60 min    |
+| Minimum cacheable | 1024 tokens            | 1024–4096 tokens (model-dependent)   | Unclear         |
 
 **The key difference**: OpenAI is the "freebie" model — writes cost nothing extra, but you only save half. Anthropic is "pay for membership" — writes cost more, but reads save you 90%.
 
 **How to choose in practice**:
+
 - Quick prototype → OpenAI, no fuss
 - Production agent / RAG, long prompts reused over and over → **Anthropic**, more control and a bigger discount
 - For a long-running personal agent like Hermes → Anthropic is the better fit, because the agent loop runs round after round with the same system prompt + tools + conversation history — exactly the scenario where the 90% discount pays off
@@ -118,6 +121,7 @@ A nice bonus: because `EnterPlanMode` is a tool, the model **can invoke it on it
 The problem: a power user might have 20 MCP servers attached, each exposing a dozen-odd tools — over a hundred in total. Each tool definition is 200–500 tokens, so 100 tools = 30k–50k tokens.
 
 A dilemma:
+
 - **Stuff them all in**: the prefix is stable, but you carry 50k tokens on every request — expensive even at a 90% discount
 - **Load on demand**: every time you add a tool you change the prefix, which is a cache miss — and that ends up costing more
 
@@ -186,6 +190,7 @@ All 180k tokens are billed at 10%, and only the final user message is billed at 
 ```
 
 **What this means for Hermes**: a long-running agent will inevitably hit the context limit. The key implementation points:
+
 1. Set a compaction threshold (e.g. 75% utilization)
 2. On compaction, reuse system + tools and only append a single summarization instruction
 3. After compressing, archive the raw history to disk — the summary is lossy, and you may need to look up details later
@@ -198,15 +203,19 @@ All 180k tokens are billed at 10%, and only the final user message is billed at 
 The four most valuable points from this discussion:
 
 ### 1. Caching is a design constraint you must — not may — account for
+
 It's not something you bolt on during an optimization phase; it fundamentally dictates how you should organize your prompt. Hermes's several system-prompt blocks, its tool list, its conversation history — if you don't respect the cache boundaries, every feature you add is just burning money.
 
 ### 2. "Put it in messages, not in system" should be a basic norm of agent development
+
 All dynamically changing information (time, file state, environment variables, recent events) should be passed via messages, never allowed into the cached prefix. This principle should be baked into Hermes's prompt-construction logic.
 
 ### 3. defer_loading is a more general "lightweight stub + demand discovery" pattern
+
 It applies not just to tools, but to any piece of information that occupies space in the prefix yet is rarely invoked. The core design pattern: **keep the prefix lightweight and stable, and turn heavyweight information into a discoverable resource.**
 
 ### 4. Compaction isn't something you do once the context is full — it's actively managed
+
 The right approach is cache-safe forking: reuse the exact same system + tools and only append a summarization instruction at the end of the conversation. The compressed history is archived to disk, and the summary — as the compressed state of working memory — keeps accumulating new cache. For a long-running agent, this is a must-have capability.
 
 ---
@@ -216,5 +225,5 @@ The right approach is cache-safe forking: reuse the exact same system + tools an
 - Reference post: https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything
 - Compaction docs: https://platform.claude.com/docs/en/build-with-claude/compaction
 - defer_loading docs: https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool
-</content>
-</invoke>
+  </content>
+  </invoke>

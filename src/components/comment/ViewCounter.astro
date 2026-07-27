@@ -5,7 +5,7 @@ const walineConfig = config.integ.waline
 const enabled = walineConfig.enable && !!walineConfig.server
 ---
 
-{enabled && <waline-views data-server={walineConfig.server}></waline-views>}
+{enabled && <waline-views data-server={walineConfig.server} />}
 
 <script>
   import { commentCount, pageviewCount } from '@waline/client'

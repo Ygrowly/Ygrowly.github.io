@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro'
-
 import { isSignupClosed, teams } from '@/data/agent-teams'
 import {
   addSignup,
@@ -172,7 +171,10 @@ const CREATE_STATUS_BY_CODE: Record<CreateErrorCode, number> = {
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   // 组队截止后关闭报名与建队（服务端时钟为准，不依赖前端状态）
   if (isSignupClosed()) {
-    return json({ ok: false, code: 'closed', message: '组队已经截止啦，报名和建队通道已关闭 🙏' }, 403)
+    return json(
+      { ok: false, code: 'closed', message: '组队已经截止啦，报名和建队通道已关闭 🙏' },
+      403
+    )
   }
 
   let body: Record<string, unknown>
@@ -192,7 +194,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       summary: str(body.summary) ?? '',
       kind: str(body.kind) === 'solo' ? 'solo' : 'team',
       name: str(body.name),
-      capacity: typeof capacityRaw === 'number' && Number.isFinite(capacityRaw) ? capacityRaw : undefined,
+      capacity:
+        typeof capacityRaw === 'number' && Number.isFinite(capacityRaw) ? capacityRaw : undefined,
       passcode: str(body.passcode),
       hp: str(body.hp),
       ip
@@ -227,7 +230,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (result.ok) {
     return json({ ok: true, roster: result.roster })
   }
-  return json({ ok: false, code: result.code, message: result.message }, STATUS_BY_CODE[result.code])
+  return json(
+    { ok: false, code: result.code, message: result.message },
+    STATUS_BY_CODE[result.code]
+  )
 }
 
 const LEAVE_STATUS_BY_CODE: Record<LeaveErrorCode, number> = {
