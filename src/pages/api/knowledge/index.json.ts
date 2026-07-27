@@ -4,6 +4,8 @@ import { buildSiteFs } from '@/components/terminal/fs/server'
 
 const SITE_URL = 'https://joyehuang.me'
 
+export const prerender = true
+
 export const GET: APIRoute = async () => {
   const tree = await buildSiteFs()
 

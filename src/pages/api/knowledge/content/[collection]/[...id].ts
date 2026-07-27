@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import type { APIRoute } from 'astro'
-import { getEntry } from 'astro:content'
+import { getCollection } from 'astro:content'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import remarkCjkFriendly from 'remark-cjk-friendly'
 
@@ -32,6 +32,35 @@ type KnowledgeEntry = {
 
 let processorPromise: Promise<Awaited<ReturnType<typeof createMarkdownProcessor>>> | null = null
 
+export const prerender = true
+
+export async function getStaticPaths() {
+  const [blog, blogEn, notes, notesEn, curated, talks] = await Promise.all([
+    getCollection('blog'),
+    getCollection('blogEn'),
+    getCollection('notes'),
+    getCollection('notesEn'),
+    getCollection('curated'),
+    getCollection('talks')
+  ])
+
+  return [
+    { collection: 'blog', entries: blog },
+    { collection: 'blog_en', entries: blogEn },
+    { collection: 'notes', entries: notes },
+    { collection: 'notes_en', entries: notesEn },
+    { collection: 'curated', entries: curated },
+    { collection: 'talks', entries: talks }
+  ].flatMap(({ collection, entries }) =>
+    entries
+      .filter((entry) => entry.data.draft !== true)
+      .map((entry) => ({
+        params: { collection, id: entry.id },
+        props: { entry }
+      }))
+  )
+}
+
 function getProcessor() {
   if (!processorPromise) {
     processorPromise = createMarkdownProcessor({
@@ -46,14 +75,13 @@ function getProcessor() {
   return processorPromise
 }
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, props }) => {
   const collection = params.collection as PublicCollection | undefined
-  const id = params.id
-  if (!collection || !id || !(collection in COLLECTIONS)) {
+  if (!collection || !(collection in COLLECTIONS)) {
     return json({ error: 'Not found' }, 404)
   }
 
-  const entry = (await getEntry(COLLECTIONS[collection] as never, id)) as KnowledgeEntry | undefined
+  const entry = props.entry as KnowledgeEntry | undefined
   if (!entry || entry.data.draft === true) return json({ error: 'Not found' }, 404)
 
   const raw = entry.body ?? ''

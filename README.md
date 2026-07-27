@@ -157,17 +157,16 @@ Notes 的 `status` 可选：
 - `navigation/TableOfContents.astro`: 文章目录容器。
 - `navigation/TableOfContentsItem.astro`: 文章目录项。
 - `navigation/toc.ts`: Markdown headings 到 TOC 树的转换。
-- `projects/GitHubContributions.astro`: GitHub contributions 展示。
 - `projects/ProjectSection.astro`: 项目页分组 section。
 - `projects/Sponsors.astro`: 赞助者列表。
 - `projects/Sponsorship.astro`: 赞助入口。
-- `search/SiteSearch.astro`: 站内搜索 UI（走 /api/search.json，中英文各自索引）。
+- 搜索页使用 Astro Pure 内置的 Pagefind UI，索引在构建阶段写入 `dist/pagefind/`。
 - `talks/TalksSeries.astro`: Talks 时间线/系列展示。
 - `terminal/*`: terminal dev mode、pseudo-FS、命令系统、文章 viewer 和样式。
 
 ## 部署
 
-这个项目可以直接部署到 Vercel。默认配置见 `vercel.json` 和 `astro.config.ts`。
+这个项目使用 Astro 静态输出，通过 `.github/workflows/deploy.yml` 部署到 GitHub Pages。
 
 部署前请确认：
 

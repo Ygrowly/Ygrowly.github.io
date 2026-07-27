@@ -3,13 +3,20 @@ import { displayPath, getNode, parentOf, prettyPath, resolvePath } from './fs/pa
 import type { DirNode, FsNode } from './fs/types'
 import type { CommandRegistry, CompletionContext, OutputLine } from './types'
 
-type SearchApiResult = {
-  collection: 'blog' | 'notes'
-  title: string
-  description?: string
+type PagefindResult = {
   url: string
-  date: string
   excerpt: string
+  meta: {
+    title?: string
+  }
+}
+
+type PagefindModule = {
+  search: (query: string) => Promise<{
+    results: Array<{
+      data: () => Promise<PagefindResult>
+    }>
+  }>
 }
 
 const MOCK_AGENT_REPLIES: Record<string, string[]> = {
@@ -310,45 +317,40 @@ export const commands: CommandRegistry = {
       push([{ kind: 'text', tone: 'muted', text: `searching "${query}" …` }])
 
       try {
-        const lang =
-          typeof window !== 'undefined' && window.location.pathname.startsWith('/en') ? 'en' : 'zh'
-        const response = await fetch(
-          `/api/search.json?q=${encodeURIComponent(query)}&limit=6&lang=${lang}`
-        )
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        const payload = (await response.json()) as { results: SearchApiResult[] }
+        const bundlePath = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/pagefind.js`
+        const pagefind = (await import(/* @vite-ignore */ bundlePath)) as PagefindModule
+        const search = await pagefind.search(query)
+        const results = await Promise.all(search.results.slice(0, 6).map((result) => result.data()))
 
-        if (payload.results.length === 0) {
+        if (results.length === 0) {
           push([{ kind: 'text', tone: 'muted', text: 'no results' }])
           return
         }
 
         const lines: OutputLine[] = [
-          { kind: 'text', tone: 'muted', text: `${payload.results.length} results` },
+          { kind: 'text', tone: 'muted', text: `${results.length} results` },
           { kind: 'spacer' }
         ]
 
-        payload.results.forEach((result, index) => {
+        results.forEach((result, index) => {
+          const collection = result.url.includes('/notes/') ? 'note' : 'blog'
           lines.push(
             {
               kind: 'node',
               node: (
                 <span>
                   <span className='wt-tone-primary'>{String(index + 1).padStart(2, '0')}. </span>
-                  <span className='wt-tone-muted'>
-                    [{result.collection === 'blog' ? 'blog' : 'note'}]{' '}
-                  </span>
+                  <span className='wt-tone-muted'>[{collection}] </span>
                   <a className='wt-link' href={result.url}>
-                    {result.title}
+                    {result.meta.title ?? result.url}
                   </a>
-                  <span className='wt-tone-muted'> · {result.date}</span>
                 </span>
               )
             },
             {
               kind: 'text',
               tone: 'muted',
-              text: `    ${result.excerpt || result.description || result.url}`
+              text: `    ${result.excerpt || result.url}`
             },
             {
               kind: 'text',
