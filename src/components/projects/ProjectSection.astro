@@ -11,7 +11,6 @@ interface Props {
   analyticsSection?: string
   project: {
     id?: string
-    analyticsEvent?: 'agent_competition_click' | 'project_link_click'
     image?: string
     name: string
     description: string
@@ -45,15 +44,6 @@ const analyticsAttrs = (
   // Internal links are answered by the destination pageview — don't double-track
   // them as click events (see ANALYTICS.md tracking boundary).
   if (!/^https?:\/\//i.test(link.href)) return {}
-
-  const eventName = project.analyticsEvent ?? 'project_link_click'
-  if (eventName === 'agent_competition_click') {
-    return {
-      'data-analytics-event': 'agent_competition_click',
-      'data-analytics-surface': 'projects',
-      'data-analytics-action': 'external_link'
-    }
-  }
 
   return {
     'data-analytics-event': 'project_link_click',

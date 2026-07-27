@@ -1,7 +1,7 @@
 ---
 import { Button } from 'astro-pure/user'
+import { PFSearch } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import SiteSearch from '@/components/search/SiteSearch.astro'
 
 const meta = {
   description: 'Search relative posts of the whole blog',
@@ -19,7 +19,7 @@ const meta = {
 
     <div id='content' class='animate'>
       <p>Enter a search term or phrase to search the blog.</p>
-      <SiteSearch />
+      <PFSearch />
     </div>
   </main>
 </PageLayout>

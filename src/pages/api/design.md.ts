@@ -4,6 +4,8 @@ import type { APIRoute } from 'astro'
 // filesystem read, which keeps it safe on Vercel's serverless functions.
 import designMd from '../../../DESIGN.md?raw'
 
+export const prerender = true
+
 export const GET: APIRoute = () =>
   new Response(designMd, {
     headers: {

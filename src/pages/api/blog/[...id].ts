@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { getEntry } from 'astro:content'
+import { getCollection, type CollectionEntry } from 'astro:content'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import remarkCjkFriendly from 'remark-cjk-friendly'
 
@@ -16,6 +16,16 @@ import remarkCjkFriendly from 'remark-cjk-friendly'
 
 let processorPromise: Promise<Awaited<ReturnType<typeof createMarkdownProcessor>>> | null = null
 
+export const prerender = true
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft)
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post }
+  }))
+}
+
 function getProcessor() {
   if (!processorPromise) {
     processorPromise = createMarkdownProcessor({
@@ -30,11 +40,8 @@ function getProcessor() {
   return processorPromise
 }
 
-export const GET: APIRoute = async ({ params }) => {
-  const id = params.id
-  if (!id) return new Response('Not found', { status: 404 })
-  const entry = await getEntry('blog', id)
-  if (!entry) return new Response('Not found', { status: 404 })
+export const GET: APIRoute = async ({ props }) => {
+  const entry = props.post as CollectionEntry<'blog'>
 
   const raw = (entry as { body?: string }).body ?? ''
   const cleaned = stripMdxMachinery(raw)

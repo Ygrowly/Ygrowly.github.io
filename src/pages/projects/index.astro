@@ -1,15 +1,11 @@
 ---
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
-import GitHubContributions from '@/components/projects/GitHubContributions.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 import Sponsors from '@/components/projects/Sponsors.astro'
 import Sponsorship from '@/components/projects/Sponsorship.astro'
 import alipay from '@/assets/alipay-qrcode.jpg'
 import wechat from '@/assets/wechat-qrcode.jpg'
-
-const agentHackathonLink =
-  'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 
 const headings = [
   { depth: 2, slug: 'open-source', text: 'Open Source' },
@@ -21,8 +17,6 @@ const headings = [
 ---
 
 <PageLayout title='Projects' {headings} info={{ slug: '/projects', hideComment: true }}>
-  <p>GitHub Activities</p>
-  <GitHubContributions username='joyehuang' />
   <p>如果你觉得合作一个项目会有趣或有意义，你可以通过捐赠支持我的工作，或者联系我一起讨论项目。</p>
   <Button title='Checkout sponsorship' class='w-fit' href='#sponsorship'>
     <Icon class='size-5' name='receive-money' slot='before' />
@@ -51,16 +45,6 @@ const headings = [
   <ProjectSection
     analyticsSection='programs'
     project={[
-      {
-        id: 'agent_competition',
-        analyticsEvent: 'agent_competition_click',
-        name: '第一届 Joye 粉丝 Agent 比赛',
-        description: '暑假一起做点东西。组队已经截止，各队正在开发中，点进来围观、追进度都欢迎。',
-        links: [
-          { type: 'site', href: '/agent-teams' },
-          { type: 'doc', href: agentHackathonLink }
-        ]
-      },
       {
         id: 'atypica',
         name: 'Atypica',

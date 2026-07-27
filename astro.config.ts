@@ -5,7 +5,6 @@ import type { AstroIntegration } from 'astro'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
-import vercel from '@astrojs/vercel'
 import AstroPureIntegration from 'astro-pure'
 import { defineConfig } from 'astro/config'
 import rehypeKatex from 'rehype-katex'
@@ -70,20 +69,8 @@ const bilingualReadingTime = (): AstroIntegration => ({
 export default defineConfig({
   // Top-Level Options
   site: 'https://ygrowly.github.io',
-  // base: '/docs',
   trailingSlash: 'never',
-
-  // Adapter
-  // https://docs.astro.build/en/guides/deploy/
-  // 1. Vercel (serverless)
-  adapter: vercel(),
-  output: 'server',
-  // 2. Vercel (static)
-  // adapter: vercelStatic(),
-  // 3. Local (standalone)
-  // adapter: node({ mode: 'standalone' }),
-  // output: 'server',
-  // ---
+  output: 'static',
 
   image: {
     service: {

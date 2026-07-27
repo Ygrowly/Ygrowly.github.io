@@ -163,22 +163,6 @@ Required properties:
 
 Use this to compare real activity interest with dismissals.
 
-### `agent_team_signup`
-
-User interacts with the Agent competition team signup board (`/agent-teams`).
-
-Required properties:
-
-- `locale`: `zh` | `en`
-- `page`: `/agent-teams`
-- `surface`: `agent_teams`
-- `action`: `open` | `submit`
-- `team`: team identifier, for example `game-agent`
-
-`open` fires when a visitor opens a team's signup form; `submit` fires on a
-successful signup. Never send the submitted nickname, contact, or note — they
-are personal data. Use this to see which topics attract real signup intent.
-
 ### `intro_start`
 
 Home page entrance animation starts.
@@ -443,7 +427,6 @@ Implemented in current code:
 - `terminal_command`
 - `github_link_click`
 - `agent_competition_click`
-- `agent_team_signup`
 - `intro_start`
 - `intro_complete`
 - `intro_skip`
