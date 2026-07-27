@@ -55,8 +55,8 @@ export function displayPath(path: string): string {
 }
 
 /**
- * Hostname-prefixed path for `pwd` output. Root → `joye.devserver`,
- * children → `joye.devserver/blog/<slug>`. Always anchors the tree on
+ * Hostname-prefixed path for `pwd` output. Root → `ygrowly.devserver`,
+ * children → `ygrowly.devserver/blog/<slug>`. Always anchors the tree on
  * a visible host name, so the FS feels like a real machine.
  */
 export function prettyPath(path: string): string {

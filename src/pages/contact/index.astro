@@ -1,7 +1,7 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
-import qqGroup from '@/assets/qq-group-contact.jpg'
+import qq from '@/assets/qq-contact.jpg'
 import wechat from '@/assets/wechat-contact.jpg'
 
 const headings = [
@@ -11,36 +11,29 @@ const headings = [
 ---
 
 <PageLayout title='Contact' {headings} info='/contact'>
-  <p>欢迎来聊。技术、求职、博客协作、找朋友闲聊都可以。 我会比较慢回，但都会回。</p>
+  <p>欢迎来聊。AI 应用开发、实习与合作机会、技术交流都可以。 我会比较慢回，但都会回。</p>
 
   <h2 id='how-to-reach'>如何联系我</h2>
-  <p>
-    把鼠标移到卡片上即可看到二维码。付费咨询请走微信并备注来意，普通一对一交流和 QQ 群也都在这里。
-  </p>
+  <p>把鼠标移到卡片上即可看到二维码。也可以直接发邮件到 lyg3044@qq.com。</p>
   <ContactQR
     class='my-6'
     items={[
       {
-        name: '付费咨询 · 微信',
+        name: '微信',
         hint: '悬停显示二维码',
         image: wechat,
         methodName: 'wechat',
-        note: '备注「付费咨询」+ 你的具体需求'
+        note: '备注来意，比如「想聊 Agent 开发」「实习机会」'
       },
       {
-        name: 'cs 交流群（QQ）',
+        name: 'QQ',
         hint: '悬停显示二维码',
-        image: qqGroup,
-        methodName: 'qq_group',
-        note: '群号 831907794 · 入群答题：博客最新一篇文章的标题'
+        image: qq,
+        methodName: 'qq',
+        note: '日常交流、技术讨论都欢迎'
       }
     ]}
   />
-
-  <p>
-    上面的 QQ 群每周会办一次线上交流会，轮流分享技术、求职和 AI 行业的东西。
-    每期聊到的内容和幻灯片，都整理在 <a href='/talks'>分享会</a> 页面里公开沉淀；想参与就扫上面的码进群。
-  </p>
 
   <h2 id='before-you-add'>加之前请看一下</h2>
   <ul>
@@ -50,9 +43,6 @@ const headings = [
     </li>
     <li>
       <strong>商务 / 推广 / 招聘需求</strong>请直接说明背景和合作形式，避免「在吗」式开场。
-    </li>
-    <li>
-      <strong>QQ 群以技术与生活交流为主</strong>，禁止广告、刷屏、外链拉人。违反会被移出。
     </li>
   </ul>
 </PageLayout>

@@ -15,11 +15,11 @@ const { class: className, path } = Astro.props as Props
 
 {
   config.integ.waline.enable && (
-    <joye-comment data-path={path ?? ''}>
+    <ygrowly-comment data-path={path ?? ''}>
       <div id='waline' class={cn('not-prose', className)}>
         Comment seems to stuck. Try to refresh?✨
       </div>
-    </joye-comment>
+    </ygrowly-comment>
   )
 }
 
@@ -30,7 +30,7 @@ const { class: className, path } = Astro.props as Props
 
   const walineConfig = config.integ.waline
 
-  class JoyeComment extends HTMLElement {
+  class YgrowlyComment extends HTMLElement {
     constructor() {
       super()
     }
@@ -72,8 +72,8 @@ const { class: className, path } = Astro.props as Props
     }
   }
 
-  if (walineConfig.enable && !customElements.get('joye-comment')) {
-    customElements.define('joye-comment', JoyeComment)
+  if (walineConfig.enable && !customElements.get('ygrowly-comment')) {
+    customElements.define('ygrowly-comment', YgrowlyComment)
   }
 </script>
 

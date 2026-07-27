@@ -7,7 +7,7 @@ const avatarBuffer = fs.readFileSync(path.resolve('./src/assets/avatar.png'))
 const avatarDataUrl = `data:image/png;base64,${avatarBuffer.toString('base64')}`
 
 const PRIMARY = '#659EB9'
-const SITE = 'joyehuang.me'
+const SITE = 'ygrowly.github.io'
 const LATIN_CHARS =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;!?@#$%&*()[]{}<>/\\|-_=+"\'` ·⭐'
 
@@ -160,9 +160,9 @@ export async function defaultOgPng(opts: { name: string; tagline: string }) {
         opts.tagline
       )
     ]),
-    footerLine('Melbourne · Build fast, learn faster')
+    footerLine('ygrowly.github.io · systems that outlive the demo')
   ])
-  return renderPng(tree, opts.name + opts.tagline + 'Melbourne · Build fast, learn faster')
+  return renderPng(tree, opts.name + opts.tagline + 'ygrowly.github.io · systems that outlive the demo')
 }
 
 export async function postOgPng(opts: {

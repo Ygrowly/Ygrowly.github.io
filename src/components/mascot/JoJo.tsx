@@ -13,7 +13,7 @@ const QUIPS = {
     'mounting /thoughts',
     '// TODO: learn haskell',
     'fetching joy...',
-    'indexing melbourne'
+    'indexing /blog'
   ],
   greet: ["hi! i'm jojo", 'welcome :)', 'oh hey there', 'you made it'],
   hover: ['ooh, interested?', 'click it!', "that's a good one", 'fan favorite']

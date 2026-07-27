@@ -43,7 +43,7 @@ const copy =
   <JoJoIntro />
 
   <div class='intro-chrome' aria-hidden='true'>
-    <span>JOYE / SYSTEM ENTRY</span>
+    <span>YGROWLY / SYSTEM ENTRY</span>
     <span class='intro-chrome-rule'></span>
     <span>LONG FORM / 03 VARIANTS</span>
   </div>
@@ -98,7 +98,7 @@ const copy =
   ;(() => {
     const overlay = document.getElementById('intro-overlay')
     if (!overlay) return
-    const isPublicSite = /^(?:www\.)?joyehuang\.me$/i.test(location.hostname)
+    const isPublicSite = /^ygrowly\.github\.io$/i.test(location.hostname)
     if (isPublicSite) {
       overlay.classList.add('intro-idle')
       overlay.classList.remove('intro-pending')
@@ -115,7 +115,7 @@ const copy =
     const saveData = Boolean(navigator.connection && navigator.connection.saveData)
     let seen = false
     try {
-      seen = Boolean(localStorage.getItem('joye:intro:v4:seen'))
+      seen = Boolean(localStorage.getItem('ygrowly:intro:v4:seen'))
     } catch {
       // Storage may be unavailable in private browsing.
     }

@@ -10,7 +10,7 @@ export function getLocale(pathname = globalThis.location?.pathname ?? '/'): 'zh'
 export function getDestinationType(href: string | null): string | null {
   if (!href) return null
 
-  const url = new URL(href, globalThis.location?.origin ?? 'https://www.joyehuang.me')
+  const url = new URL(href, globalThis.location?.origin ?? 'https://ygrowly.github.io')
   if (url.protocol === 'mailto:') return 'mailto'
   if (url.hostname === 'github.com') return 'github'
   if (url.hostname.includes('bilibili.com')) return 'video'

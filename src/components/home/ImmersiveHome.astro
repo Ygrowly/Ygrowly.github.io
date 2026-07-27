@@ -1043,7 +1043,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       }, this)
 
       const replay = this.querySelector<HTMLButtonElement>('[data-replay-intro]')
-      const playIntro = () => window.__joyeIntro?.play('jojo', 'replay')
+      const playIntro = () => window.__ygrowlyIntro?.play('jojo', 'replay')
       replay?.addEventListener('click', playIntro)
       this.cleanups.push(() => replay?.removeEventListener('click', playIntro))
 
@@ -1110,7 +1110,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   declare global {
     interface Window {
-      __joyeIntro?: {
+      __ygrowlyIntro?: {
         play(variant: 'focus' | 'line' | 'jojo', trigger?: 'event' | 'replay'): void
       }
     }

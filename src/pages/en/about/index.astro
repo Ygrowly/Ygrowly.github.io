@@ -1,5 +1,5 @@
 ---
-import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
+import { Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
@@ -10,7 +10,6 @@ const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
   { depth: 2, slug: 'tools', text: 'Tools' },
-  { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
 ---
@@ -18,31 +17,26 @@ const headings = [
 <PageLayout title='About' {headings} info='/about'>
   <p>Developer</p>
   <p>
-    I'm a second-year undergraduate at the University of Melbourne. Outside of coding I spend time
-    on music, scale models, and photography (a new hobby!). Currently focused on frontend, with the
-    goal of becoming a full-stack developer — and an open-source contributor. My taste for music
-    started with piano and cello, which my parents pushed me into.
+    I'm Ygrowly (Liu Yuguang), a Data Science undergraduate in the class of 2027, focused on AI
+    application development. My work is about putting AI agents into real business systems —
+    Python backends, data pipelines and LLM tooling that keeps running and iterating after the
+    demo.
   </p>
   <p>
-    My motto: Build fast, learn faster. <Spoiler />
+    My motto: Build systems that outlive the demo. <Spoiler />
   </p>
-  <Button title='Sponsor Me' class='w-fit' href='/en/projects#sponsorship' style='ahead' />
 
   {/* hobbies */}
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
     <li>
-      <strong>Music</strong> — Learned piano and cello growing up. Though it started as parental pressure,
-      music has become something I can't imagine life without. I'll occasionally play a few favorite
-      pieces to unwind.
+      <strong>Agent engineering</strong> — I enjoy everything outside the model itself: tool calls,
+      context management, self-healing schedulers and alerting loops — turning agents from demos
+      into systems that run for real.
     </li>
     <li>
-      <strong>Model Building</strong> — I enjoy assembling all kinds of models. The process from zero
-      to finished piece trains both my hands and my patience.
-    </li>
-    <li>
-      <strong>Photography</strong> — A new hobby! I use the camera to capture small moments and explore
-      different perspectives and lighting.
+      <strong>Data systems</strong> — raw → interval → hourly → daily pipelines, observability and
+      reliability fallbacks. It's what I work with every day on EnergyOps Agent.
     </li>
     <li>
       <strong>Open Source</strong> — Working toward becoming an active open-source contributor, learning
@@ -52,42 +46,15 @@ const headings = [
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    Find me around the web — I'm most active on GitHub and X, and I occasionally post on Bilibili
-    and Xiaohongshu.
-  </p>
+  <p>Find me around the web — I'm most active on GitHub.</p>
   <Substats
     stats={[
       {
         platform: 'GitHub',
         icon: 'github',
-        link: 'https://github.com/joyehuang',
+        link: 'https://github.com/Ygrowly',
         text: 'followers',
-        api: 'github/joyehuang'
-      },
-      {
-        platform: 'Bilibili',
-        icon: 'bilibili',
-        color: '#e71f19',
-        link: 'https://space.bilibili.com/3546914882587480?spm_id_from=333.1007.0.0',
-        text: 'followers',
-        api: 'bilibili/3546914882587480'
-      },
-      {
-        platform: 'Xiaohongshu',
-        icon: '/src/assets/icons/xiaohongshu.png',
-        color: '#fe2c55',
-        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
-        text: 'followers',
-        count: 2311
-      },
-      {
-        platform: 'X (Twitter)',
-        icon: 'x',
-        color: '#000000',
-        link: 'https://x.com/deshiou0604',
-        text: 'followers',
-        count: 75
+        api: 'github/Ygrowly'
       }
     ]}
   />
@@ -286,16 +253,10 @@ const headings = [
     title='Environment'
     tools={[
       {
-        name: 'macOS',
-        description: 'MacBook Pro M5 Pro',
-        href: 'https://www.apple.com/macos/',
-        icon: import('@/assets/tools/apple.svg?raw')
-      },
-      {
-        name: 'macOS',
-        description: 'Mac Mini M4',
-        href: 'https://www.apple.com/macos/',
-        icon: import('@/assets/tools/apple.svg?raw')
+        name: 'Windows 11',
+        description: 'Daily Driver',
+        href: 'https://www.microsoft.com/windows/',
+        icon: import('@/assets/tools/windows11.svg?raw')
       },
       {
         name: 'Ubuntu 24.04.2 LTS',
@@ -306,31 +267,13 @@ const headings = [
     ]}
   />
 
-  {/* gossips */}
-  <h2 id='gossips'>Gossips</h2>
-  <Collapse title='Life in Melbourne'>
-    Life as a student in Melbourne is both full and fun. The coffee culture, the street art, and the
-    mix of cultures all draw me in. On weekends I'll walk along St Kilda beach or spend the whole
-    day at the State Library. I miss home every so often, but this chapter has grown me a lot.
-  </Collapse>
-  <Collapse title='About Internship'>
-    I'm lucky to intern in Tezign's AIGC R&D team, where I finally get hands-on with frontier AI in
-    real products. Great team, patient mentors — and a lot of practical experience you just can't
-    pick up in a classroom.
-  </Collapse>
-  <Collapse title='About Music'>
-    Though my parents "made" me learn instruments, I'm grateful they held the line. Piano taught me
-    how to express feeling; cello taught me patience and focus. When debugging fries my brain, a few
-    minutes on the keys works better than coffee.
-  </Collapse>
-
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
   <p>
-    This blog is my space for technical notes and life updates. It mostly covers what I'm learning
-    and building around agents, LLM internals, and full-stack work — with occasional notes from
-    internships and stray thoughts along the way. Writing is how I turn experience into knowledge,
-    and hopefully some of it helps others on the same path.
+    This blog is my space for technical notes and thinking out loud. It mostly covers what I'm
+    learning and building around agent engineering, data systems and AI application development.
+    Writing is how I turn experience into knowledge, and hopefully some of it helps others on the
+    same path.
   </p>
   <p>
     The principle behind the site: keep it simple, fast, and content-first. Modern stack, fast
@@ -340,33 +283,9 @@ const headings = [
   <Timeline
     events={[
       {
-        date: '2025-07-04',
+        date: '2026-07-27',
         content:
-          'Launched the personal blog with <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a>, deployed to Vercel.'
-      },
-      {
-        date: '2025-07-01',
-        content: 'Published my first post, "My first PR" — the official start of writing here.'
-      },
-      {
-        date: '2025-10-23',
-        content:
-          'Wrote "A frontend intern\u2019s interview guide for Chinese startups", lessons and prep notes.'
-      },
-      {
-        date: '2025-12',
-        content:
-          'Kicked off the LLM internals series: deep-dive notes on RMSNorm, RoPE, Attention, and FeedForward — the four pillars of a Transformer block.'
-      },
-      {
-        date: '2026-03-09',
-        content:
-          'Published "An Agent dev interview handbook for a second-year intern"; the blog\u2019s focus officially shifted toward agent development.'
-      },
-      {
-        date: '2026-04-10',
-        content:
-          'Started a source-reading series — beginning with OpenHarness to study how agent harnesses are implemented.'
+          'Built this personal site with <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a>, and started documenting agent engineering and data systems work.'
       }
     ]}
   />

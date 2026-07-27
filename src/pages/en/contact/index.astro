@@ -1,7 +1,7 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
-import qqGroup from '@/assets/qq-group-contact.jpg'
+import qq from '@/assets/qq-contact.jpg'
 import wechat from '@/assets/wechat-contact.jpg'
 
 const headings = [
@@ -12,31 +12,28 @@ const headings = [
 
 <PageLayout title='Contact' {headings} info='/en/contact'>
   <p>
-    Happy to chat — tech, job hunting, blog collaborations, or just hanging out. I'm slow to reply,
-    but I do reply.
+    Happy to chat — AI application development, internship or collaboration opportunities, or tech
+    talk in general. I'm slow to reply, but I do reply.
   </p>
 
   <h2 id='how-to-reach'>How to reach me</h2>
-  <p>
-    Hover over a card to reveal the QR code. WeChat is for 1:1 chats; the QQ group is for casual
-    public discussion.
-  </p>
+  <p>Hover over a card to reveal the QR code. Email also works: lyg3044@qq.com.</p>
   <ContactQR
     class='my-6'
     items={[
       {
-        name: 'WeChat · joye',
+        name: 'WeChat',
         hint: 'Hover to reveal QR',
         image: wechat,
         methodName: 'wechat',
-        note: 'Please add a note: "from the blog + topic you want to chat about".'
+        note: 'Please add a note, e.g. "agent development" or "internship opportunity".'
       },
       {
-        name: 'cs Chat Group (QQ)',
+        name: 'QQ',
         hint: 'Hover to reveal QR',
-        image: qqGroup,
-        methodName: 'qq_group',
-        note: 'Group number 831907794 · Verification: title of my latest blog post.'
+        image: qq,
+        methodName: 'qq',
+        note: 'Casual chats and tech discussions are welcome.'
       }
     ]}
   />
@@ -51,10 +48,6 @@ const headings = [
     <li>
       <strong>Business / promotion / recruiting</strong>: please share the context and what kind of
       collaboration you have in mind upfront, instead of opening with "hi".
-    </li>
-    <li>
-      <strong>The QQ group is for tech and life chat</strong>. No ads, spam, or off-platform
-      recruiting — violators will be removed.
     </li>
   </ul>
 </PageLayout>

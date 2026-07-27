@@ -21,17 +21,17 @@ type PagefindModule = {
 
 const MOCK_AGENT_REPLIES: Record<string, string[]> = {
   default: [
-    'Hey, this is Joye (well, a tiny mock of him).',
+    'Hey, this is Ygrowly (well, a tiny mock of him).',
     'Real agent endpoint is wiring up — for now I just rehearse lines.',
     'Try `chat what are you building?` or `chat hire you?` for canned answers.'
   ],
   building: [
-    'Right now: this terminal, an AI persona for the homepage,',
-    'and a few half-finished blog posts about Astro + RSC + agent UX.'
+    'Right now: EnergyOps Agent (energy data pipeline + alerting loop),',
+    'PayTrace (payment anomaly diagnosis agent), and this site\'s redesign.'
   ],
   hire: [
-    'Open to chats — frontend / full-stack / AI-product roles.',
-    'Best path: `mail` (huangdeshiou@gmail.com) or `connect` for socials.'
+    'Open to chats — AI application / Python backend / agent engineering roles.',
+    'Best path: `mail` (lyg3044@qq.com) or `connect` for socials.'
   ],
   stack: [
     'Astro 5 · React 19 · UnoCSS · TypeScript · deployed on Vercel.',
@@ -102,24 +102,24 @@ export const commands: CommandRegistry = {
 
   whoami: {
     name: 'whoami',
-    summary: 'about Joye',
+    summary: 'about Ygrowly',
     run: ({ push }) => {
       push([
         {
           kind: 'node',
           node: (
             <span>
-              <span className='wt-tone-primary'>Joye</span>
-              <span className='wt-tone-muted'> · Frontend developer based in Melbourne</span>
+              <span className='wt-tone-primary'>Ygrowly</span>
+              <span className='wt-tone-muted'> · AI application developer based in China</span>
             </span>
           )
         },
-        { kind: 'text', tone: 'muted', text: '  ↳ 2nd-year CS @ University of Melbourne' },
-        { kind: 'text', tone: 'muted', text: '  ↳ AIGC full-stack intern @ Tezign' },
+        { kind: 'text', tone: 'muted', text: '  ↳ Data Science undergrad · class of 2027' },
+        { kind: 'text', tone: 'muted', text: '  ↳ Agent engineering · Python backend · data systems' },
         {
           kind: 'text',
           tone: 'muted',
-          text: '  ↳ stays hungry, stays foolish · plays piano + cello'
+          text: '  ↳ building AI into real systems, not just demos'
         },
         { kind: 'spacer' },
         { kind: 'text', tone: 'muted', text: 'next: try `ls`, `cat about`, or `cd /blog`' }
@@ -375,10 +375,10 @@ export const commands: CommandRegistry = {
 
   manifest: {
     name: 'manifest',
-    summary: 'fetch the agent-facing site map (well-known JSON)',
+    summary: 'fetch the agent-facing site map (public knowledge index)',
     usage: 'manifest [--url]',
     run: async ({ args, push }) => {
-      const url = '/.well-known/joye-manifest.json'
+      const url = '/api/knowledge/index.json'
       // `manifest --url` just prints the public URL (handy for sharing)
       if (args[0] === '--url' || args[0] === '-u') {
         push([
@@ -493,14 +493,14 @@ export const commands: CommandRegistry = {
     name: 'mail',
     summary: 'send me an email',
     run: ({ push }) => {
-      const href = 'mailto:huangdeshiou@gmail.com?subject=hi%20joye'
+      const href = 'mailto:lyg3044@qq.com?subject=hi%20ygrowly'
       push([
         { kind: 'text', tone: 'muted', text: 'opening your mail client…' },
         {
           kind: 'node',
           node: (
             <a className='wt-link' href={href}>
-              huangdeshiou@gmail.com
+              lyg3044@qq.com
             </a>
           )
         }

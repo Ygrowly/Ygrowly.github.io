@@ -32,8 +32,7 @@ import config from './src/site.config.ts'
 const excludedSitemapPathPatterns = [
   /^\/(?:en\/)?404\/?$/,
   /^\/(?:en\/)?search\/?$/,
-  /^\/api(?:\/|$)/,
-  /^\/\.well-known\/joye-manifest\.json$/
+  /^\/api(?:\/|$)/
 ]
 
 const shouldIncludeInSitemap = (page: string) => {

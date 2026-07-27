@@ -1,5 +1,5 @@
 ---
-import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
+import { Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
@@ -10,7 +10,6 @@ const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
   { depth: 2, slug: 'tools', text: 'Tools' },
-  { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
 ---
@@ -18,25 +17,22 @@ const headings = [
 <PageLayout title='About' {headings} info='/about'>
   <p>Developer</p>
   <p>
-    我是一名正在墨尔本大学读书的大二学生。平时喜欢音乐，模型和摄影（新爱好！）。目前专注于前端方向，希望成为一名全栈开发者，
-    以及开源佬！虽然说喜欢音乐都是都是被父母“逼”学的钢琴和大提琴。
+    我是刘宇广（Ygrowly），数据科学与大数据技术专业 2027 届本科生，方向是 AI 应用开发。
+    目前在做的事情是把 AI Agent 落进真实业务系统：Python 后端、数据管道和 LLM 工具链，
+    让系统在 demo 之后还能持续运行、持续迭代。
   </p>
   <p>
-    My motto: Build fast, learn faster. <Spoiler />
+    My motto: Build systems that outlive the demo. <Spoiler />
   </p>
-  <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' style='ahead' />
 
   {/* general-talk */}
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
     <li>
-      <strong>音乐 Music</strong> - 从小学习钢琴和大提琴，虽然是被父母"逼"着学的，但音乐已经成为生活中不可或缺的一部分。偶尔会弹奏一些喜欢的曲目放松自己。
+      <strong>Agent 工程</strong> - 喜欢研究模型之外的一切：工具调用、上下文管理、调度自愈与告警闭环，把 Agent 从 demo 做成能长期运行的系统。
     </li>
     <li>
-      <strong>模型制作 Model Building</strong> - 喜欢组装各种模型，享受从零到完成的过程，既锻炼动手能力，也能培养耐心和专注力。
-    </li>
-    <li>
-      <strong>摄影 Photography</strong> - 新培养的爱好！通过镜头记录生活中的美好瞬间，探索不同的视角和光影变化。
+      <strong>数据系统 Data Systems</strong> - 从 raw 到 daily 的数据链路、可观测性和可靠性兜底，是我在 EnergyOps Agent 里每天打交道的东西。
     </li>
     <li>
       <strong>开源贡献 Open Source</strong> - 致力于成为一名活跃的开源贡献者，通过代码和社区交流不断学习和成长。
@@ -45,39 +41,15 @@ const headings = [
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
-  <p>平时最常出没在 GitHub 和 X 上，B 站和小红书也会偶尔更新一些内容。欢迎来找我玩，一起交流～</p>
+  <p>平时最常出没在 GitHub 上。欢迎来找我玩，一起交流～</p>
   <Substats
     stats={[
       {
         platform: 'GitHub',
         icon: 'github',
-        link: 'https://github.com/joyehuang',
+        link: 'https://github.com/Ygrowly',
         text: 'followers',
-        api: 'github/joyehuang'
-      },
-      {
-        platform: 'Bilibili',
-        icon: 'bilibili',
-        color: '#e71f19',
-        link: 'https://space.bilibili.com/3546914882587480?spm_id_from=333.1007.0.0',
-        text: 'followers',
-        api: 'bilibili/3546914882587480'
-      },
-      {
-        platform: '小红书',
-        icon: '/src/assets/icons/xiaohongshu.png',
-        color: '#fe2c55',
-        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
-        text: 'followers',
-        count: 2311
-      },
-      {
-        platform: 'X (Twitter)',
-        icon: 'x',
-        color: '#000000',
-        link: 'https://x.com/deshiou0604',
-        text: 'followers',
-        count: 75
+        api: 'github/Ygrowly'
       }
     ]}
   />
@@ -365,16 +337,10 @@ const headings = [
     title='Environment'
     tools={[
       {
-        name: 'macOS',
-        description: 'MacBook Pro M5 Pro',
-        href: 'https://www.apple.com/macos/',
-        icon: import('@/assets/tools/apple.svg?raw')
-      },
-      {
-        name: 'macOS',
-        description: 'Mac Mini M4',
-        href: 'https://www.apple.com/macos/',
-        icon: import('@/assets/tools/apple.svg?raw')
+        name: 'Windows 11',
+        description: 'Daily Driver',
+        href: 'https://www.microsoft.com/windows/',
+        icon: import('@/assets/tools/windows11.svg?raw')
       },
       {
         name: 'Ubuntu 24.04.2 LTS',
@@ -385,28 +351,11 @@ const headings = [
     ]}
   />
 
-  {/* gossips */}
-  <h2 id='gossips'>Gossips</h2>
-  <Collapse title='墨尔本生活碎片 Life in Melbourne'>
-    在墨尔本读书的日子既充实又有趣。这里的咖啡文化、街头艺术、以及多元的文化氛围都让我着迷。
-    周末会去 St Kilda 海滩散步，或者在 State Library
-    泡一整天。虽然偶尔会想家，但这段经历让我成长了很多。
-  </Collapse>
-  <Collapse title='关于实习经历 About Internship'>
-    很幸运能在特赞(Tezign)的 AIGC 研发部门实习，这段经历让我真正接触到了前沿的 AI
-    技术在实际产品中的应用。 团队氛围很好，导师们都很耐心，让我学到了很多课堂上学不到的实战经验。
-  </Collapse>
-  <Collapse title='关于音乐 About Music'>
-    虽然说是被"逼"着学的乐器，但现在很感谢父母当初的坚持。钢琴让我学会了如何表达情感，
-    大提琴则教会我耐心和专注。有时候 debug 累了，就会弹一会琴放松一下，效果比咖啡还好！
-  </Collapse>
-
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
   <p>
-    这个博客是我的个人技术学习笔记和生活记录空间。主要记录 Agent 开发、LLM
-    原理、全栈开发相关的学习与实践，
-    也会穿插一些实习经历和思考。希望通过写作沉淀知识，也希望能帮到走在同一条路上的同学。
+    这个博客是我的个人技术笔记和思考记录空间。主要记录 Agent 工程、数据系统、AI
+    应用开发相关的学习与实践。希望通过写作沉淀知识，也希望能帮到走在同一条路上的同学。
   </p>
   <p>
     博客的建设理念是：简洁、高效、注重内容。使用现代化的技术栈，保持快速的加载速度和良好的用户体验。
@@ -416,30 +365,9 @@ const headings = [
   <Timeline
     events={[
       {
-        date: '2025-07-04',
+        date: '2026-07-27',
         content:
-          '使用 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人博客，部署到 Vercel'
-      },
-      {
-        date: '2025-07-01',
-        content: '发布第一篇技术博客《人生中第一个 PR》，正式开始内容创作'
-      },
-      {
-        date: '2025-10-23',
-        content: '写下《国内小厂前端实习面试总结与技术准备指南》'
-      },
-      {
-        date: '2025-12',
-        content:
-          '开启 LLM 原理系列：RMSNorm、RoPE、Attention、FeedForward 四篇 Transformer 组件深度笔记'
-      },
-      {
-        date: '2026-03-09',
-        content: '发布《一个大二实习生的 Agent 开发面试修炼手册》，博客方向正式转向 Agent 开发'
-      },
-      {
-        date: '2026-04-10',
-        content: '启动源码精读系列，从 OpenHarness 开始读 Agent Harness 实现'
+          '基于 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人站点，开始记录 Agent 工程与数据系统实践'
       }
     ]}
   />

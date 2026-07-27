@@ -142,12 +142,13 @@ function canonicalUrl(collection: PublicCollection, entry: KnowledgeEntry): stri
   const routeId =
     collection.endsWith('_en') && entry.data.translationKey ? entry.data.translationKey : entry.id
   const encoded = encodeURI(routeId)
-  if (collection === 'blog') return `https://joyehuang.me/blog/${encoded}`
-  if (collection === 'blog_en') return `https://joyehuang.me/en/blog/${encoded}`
-  if (collection === 'notes') return `https://joyehuang.me/notes/${encoded}`
-  if (collection === 'notes_en') return `https://joyehuang.me/en/notes/${encoded}`
-  if (collection === 'curated') return `https://joyehuang.me/curated#${encodeURIComponent(routeId)}`
-  return `https://joyehuang.me/talks#${encodeURIComponent(routeId)}`
+  if (collection === 'blog') return `https://ygrowly.github.io/blog/${encoded}`
+  if (collection === 'blog_en') return `https://ygrowly.github.io/en/blog/${encoded}`
+  if (collection === 'notes') return `https://ygrowly.github.io/notes/${encoded}`
+  if (collection === 'notes_en') return `https://ygrowly.github.io/en/notes/${encoded}`
+  if (collection === 'curated')
+    return `https://ygrowly.github.io/curated#${encodeURIComponent(routeId)}`
+  return `https://ygrowly.github.io/talks#${encodeURIComponent(routeId)}`
 }
 
 function formatDate(value: Date | string | undefined): string {

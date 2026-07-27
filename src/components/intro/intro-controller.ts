@@ -1,7 +1,7 @@
 import type { IntroAnimation, IntroBuilder, IntroTrigger, IntroVariant } from './types'
 
-const SEEN_KEY = 'joye:intro:v4:seen'
-const VARIANT_KEY = 'joye:intro:v4:variant'
+const SEEN_KEY = 'ygrowly:intro:v4:seen'
+const VARIANT_KEY = 'ygrowly:intro:v4:variant'
 const VARIANTS: IntroVariant[] = ['focus', 'line', 'jojo']
 const BUILDER_LOADERS: Record<IntroVariant, () => Promise<IntroBuilder>> = {
   focus: () => import('./variants/focus').then(({ buildFocusIntro }) => buildFocusIntro),
@@ -14,7 +14,7 @@ type IntroEventDetail = { variant?: IntroVariant; trigger?: ReplayTrigger }
 
 type IntroWindow = Window & {
   __introWatchdog?: number
-  __joyeIntro?: {
+  __ygrowlyIntro?: {
     play(variant: IntroVariant, trigger?: ReplayTrigger): void
   }
   __siteAnalyticsQueue?: Array<{
@@ -83,7 +83,7 @@ function trackIntro(
 }
 
 function initIntro() {
-  if (/^(?:www\.)?joyehuang\.me$/i.test(location.hostname)) return
+  if (/^ygrowly\.github\.io$/i.test(location.hostname)) return
 
   const overlayQuery = document.getElementById('intro-overlay')
   const skipButtonQuery = document.getElementById('intro-skip') as HTMLButtonElement | null
@@ -196,7 +196,7 @@ function initIntro() {
     overlay.setAttribute('aria-hidden', 'true')
     setPageInert(false)
     window.dispatchEvent(
-      new CustomEvent('joye:intro:complete', {
+      new CustomEvent('ygrowly:intro:complete', {
         detail: { variant: currentVariant, skipped }
       })
     )
@@ -364,13 +364,13 @@ function initIntro() {
     if (triggerDock.dataset.open === 'true' && !triggerDock.contains(target)) setMenu(false)
   })
 
-  window.addEventListener('joye:intro', (event) => {
+  window.addEventListener('ygrowly:intro', (event) => {
     const detail = event instanceof CustomEvent ? (event.detail as IntroEventDetail | null) : null
     if (detail?.variant && isVariant(detail.variant)) {
       void play(detail.variant, detail.trigger === 'replay' ? 'replay' : 'event')
     }
   })
-  introWindow.__joyeIntro = {
+  introWindow.__ygrowlyIntro = {
     play: (variant, trigger = 'event') => void play(variant, trigger)
   }
 

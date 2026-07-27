@@ -10,7 +10,7 @@ import type { FsNode } from './fs/types'
  * and decides whether to render the fullscreen overlay on top of the
  * current page. Entry points:
  *   - `\`` anywhere (except inside editable controls)
- *   - `joye:toggle-dev` / `joye:enter-dev` / `joye:exit-dev` custom events
+ *   - `ygrowly:toggle-dev` / `ygrowly:enter-dev` / `ygrowly:exit-dev` custom events
  *     (dispatched by the Header toggle button — keeps the Astro side
  *     decoupled from React).
  *
@@ -122,13 +122,13 @@ export default function DevModeHost() {
     const onToggle = () => setMode((m) => (m === 'dev' ? 'human' : 'dev'))
     const onEnter = () => enter('window_control')
     const onExit = () => setMode('human')
-    window.addEventListener('joye:toggle-dev', onToggle)
-    window.addEventListener('joye:enter-dev', onEnter)
-    window.addEventListener('joye:exit-dev', onExit)
+    window.addEventListener('ygrowly:toggle-dev', onToggle)
+    window.addEventListener('ygrowly:enter-dev', onEnter)
+    window.addEventListener('ygrowly:exit-dev', onExit)
     return () => {
-      window.removeEventListener('joye:toggle-dev', onToggle)
-      window.removeEventListener('joye:enter-dev', onEnter)
-      window.removeEventListener('joye:exit-dev', onExit)
+      window.removeEventListener('ygrowly:toggle-dev', onToggle)
+      window.removeEventListener('ygrowly:enter-dev', onEnter)
+      window.removeEventListener('ygrowly:exit-dev', onExit)
     }
   }, [enter])
 

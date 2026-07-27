@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro'
 
 import { buildSiteFs } from '@/components/terminal/fs/server'
 
-const SITE_URL = 'https://joyehuang.me'
+const SITE_URL = 'https://ygrowly.github.io'
 
 export const prerender = true
 
@@ -14,7 +14,7 @@ export const GET: APIRoute = async () => {
       {
         version: '0.1',
         site: SITE_URL,
-        description: 'Agent-facing knowledge index for Joye Huang personal site.',
+        description: 'Agent-facing knowledge index for Ygrowly personal site.',
         generated_at: new Date().toISOString(),
         sync: {
           strategy:

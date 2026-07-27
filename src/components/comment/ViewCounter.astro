@@ -16,7 +16,7 @@ const enabled = walineConfig.enable && !!walineConfig.server
     connectedCallback() {
       // The comment widget runs walineInit({ pageview, comment }), which
       // already drives both counters. Skip here to avoid double-fetching.
-      if (document.querySelector('joye-comment, comment-component')) return
+      if (document.querySelector('ygrowly-comment, comment-component')) return
 
       const serverURL = this.dataset.server || ''
       if (!serverURL) return

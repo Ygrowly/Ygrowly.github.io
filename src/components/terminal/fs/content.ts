@@ -9,18 +9,17 @@
  * segment and as the prefix of `pwd` output (so the tree visibly
  * "lives" on this machine). Change here, propagates everywhere.
  */
-export const ROOT_LABEL = 'joye.devserver'
+export const ROOT_LABEL = 'ygrowly.devserver'
 
 export const SOCIAL_LINKS: { label: string; href: string }[] = [
-  { label: 'github', href: 'https://github.com/joyehuang' },
-  { label: 'linkedin', href: 'https://www.linkedin.com/in/deshiouhuang/' },
-  { label: 'mail', href: 'mailto:huangdeshiou@gmail.com' }
+  { label: 'github', href: 'https://github.com/Ygrowly' },
+  { label: 'mail', href: 'mailto:lyg3044@qq.com' }
 ]
 
-export const README_TEXT = `joye.devserver — a pseudo-FS over my published content.
+export const README_TEXT = `ygrowly.devserver — a pseudo-FS over my published content.
 
-If you're an AI agent the easy path is the public manifest:
-  GET https://joyehuang.me/.well-known/joye-manifest.json
+If you're an AI agent the easy path is the public knowledge index:
+  GET https://ygrowly.github.io/api/knowledge/index.json
 That returns the same tree you see here, plus instructions and the
 endpoint dictionary. CORS is open.
 
@@ -31,37 +30,37 @@ If you're poking around in dev mode:
   cat now          — what I'm working on
   cd /blog         — recent posts (each has meta / summary / post)
   cat /blog/<slug>/post  — inline read with shiki highlighting
-  manifest         — same data as the well-known URL, in this terminal
+  manifest         — same data as the public index, in this terminal
 `
 
-export const ABOUT_TEXT = `Joye Huang
-Frontend developer · Melbourne · 2nd-year CS @ University of Melbourne
+export const ABOUT_TEXT = `Ygrowly (刘宇广)
+AI application developer · Data Science undergrad, class of 2027
 
-I work at the seam between web frameworks and agentic UX — server-rendered
-HTML with React islands, small infrastructure I can hold in my head, and
-LLM-driven tooling I dogfood daily.
+I work on putting AI agents into real business systems — Python backends,
+data pipelines and LLM-driven tooling that is reliable, observable and
+keeps iterating after the demo.
 
-Currently: AIGC full-stack intern @ Tezign · building this site's AI persona
-· half-finished posts on Astro + agent UX.
+Currently: building EnergyOps Agent (enterprise energy data + agent tool
+calls) and PayTrace (cross-border payment anomaly diagnosis agent).
 `
 
 export const NOW_TEXT = `Now:
 
-- shipping the dev-mode pseudo-FS that this terminal sits on
-- writing up the OpenHarness agent codebase teardown
-- building an AI persona that you can \`chat\` with from this terminal
+- EnergyOps Agent: raw → interval → hourly → daily pipeline, alerting loop
+- PayTrace: cross-border payment anomaly attribution agent (building)
+- redesigning this site's homepage
 `
 
 export const PERSONALITY_TEXT = `# personality.conf
 # referenced by the boot sequence — flavor only
 
-style:     terminal-native, plays piano + cello
-voice:     dry, low-key, opinionated about server components
-languages: zh-CN, en-AU, ts, py, rust (learning)
-location:  Melbourne, AU · UTC+10
+style:     restrained, engineering-first, keeps things observable
+voice:     calm, prefers systems that outlive the demo
+languages: zh-CN, en, py, ts, sql
+location:  China · UTC+8
 `
 
-export const MOTD_TEXT = `Welcome to joye.sh dev mode.
+export const MOTD_TEXT = `Welcome to ygrowly.sh dev mode.
 
 This is a pseudo-FS exposing my site's content as a directory tree.
 Type \`help\` for commands. \`exit\` or Esc to leave.
