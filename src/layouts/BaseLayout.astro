@@ -19,12 +19,16 @@ interface Props {
   meta: SiteMeta & { noindex?: boolean }
   highlightColor?: string
   chrome?: boolean
+  home?: boolean
+  exactTitle?: boolean
 }
 
 const {
   meta: { articleDate, description = config.description, noindex, ogImage, title },
   highlightColor,
   chrome = true,
+  home = false,
+  exactTitle = false,
   ...props
 } = Astro.props
 
@@ -34,11 +38,14 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
 
 <html lang={htmlLang}>
   <head>
-    <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
+    <BaseHead {articleDate} {description} {exactTitle} {noindex} {ogImage} {title} />
     <ThemeProvider />
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>
+    <a class='skip-link' href='#main-content'>
+      {lang === 'en' ? 'Skip to main content' : '跳到主要内容'}
+    </a>
     {
       highlightColor && (
         <div
@@ -48,10 +55,12 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
         />
       )
     }
-    <div class:list={['w-full', chrome && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}>
-      {chrome && <Header lang={lang} />}
-      <slot />
-      {chrome && <Footer />}
+    <div class:list={['w-full', chrome && !home && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}>
+      {chrome && <Header lang={lang} {home} />}
+      <div id='main-content'>
+        <slot />
+      </div>
+      {chrome && !home && <Footer />}
     </div>
     <DevModeHost client:only='react' />
     {
@@ -63,6 +72,21 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
 
     {/* Set highlight color */}
     <style define:vars={{ highlightColor }}>
+      .skip-link {
+        position: fixed;
+        top: var(--space-3);
+        left: var(--space-3);
+        z-index: 100;
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-sm);
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        font-weight: 600;
+        transform: translateY(-160%);
+      }
+      .skip-link:focus {
+        transform: translateY(0);
+      }
       :global(.highlight) {
         color: var(--highlightColor, hsl(var(--primary) / var(--un-text-opacity))) !important;
       }

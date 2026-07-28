@@ -1,0 +1,224 @@
+---
+import type { HomeProject } from '@/data/home'
+import type { Lang } from '@/i18n/ui'
+
+import BaseLayout from '@/layouts/BaseLayout.astro'
+
+interface Props {
+  lang: Lang
+  project: HomeProject
+}
+
+const { lang, project } = Astro.props
+const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
+---
+
+<BaseLayout
+  meta={{
+    title: `${project.name} | Ygrowly`,
+    description: project.summary
+  }}
+>
+  <main class='project-case'>
+    <a class='project-case__back' href={projectsHref}>
+      {lang === 'en' ? '← Back to selected systems' : '← 返回精选项目'}
+    </a>
+    <header>
+      <p>{project.eyebrow}</p>
+      <h1>{project.name}</h1>
+      {
+        project.slug === 'ai-bi-platform' && lang === 'en' && (
+          <span class='project-case__original-name'>Original name: 数驭穹图</span>
+        )
+      }
+      <h2>{project.title}</h2>
+      <p class='project-case__summary'>{project.summary}</p>
+    </header>
+
+    <section aria-labelledby='role-title'>
+      <h2 id='role-title'>{lang === 'en' ? 'Problem & responsibility' : '业务问题与个人职责'}</h2>
+      <p>{project.responsibility}</p>
+    </section>
+
+    <section aria-labelledby='flow-title'>
+      <h2 id='flow-title'>{lang === 'en' ? 'System flow' : '系统链路'}</h2>
+      <ol class='project-case__flow'>
+        {project.flow.map((step) => <li>{step}</li>)}
+      </ol>
+    </section>
+
+    <section aria-labelledby='engineering-title'>
+      <h2 id='engineering-title'>{lang === 'en' ? 'Engineering focus' : '工程重点'}</h2>
+      <dl class='project-case__highlights'>
+        {
+          project.highlights.map((item) => (
+            <div>
+              <dt>{item.label}</dt>
+              <dd>{item.text}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby='evidence-title'>
+      <h2 id='evidence-title'>{lang === 'en' ? 'Evidence' : '可验证证据'}</h2>
+      <dl class='project-case__evidence'>
+        {
+          project.evidence.map((item) => (
+            <div>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      {project.stack && <p class='project-case__stack'>{project.stack}</p>}
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .project-case {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-7) 0 var(--space-10);
+  }
+
+  .project-case__back {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    color: var(--signal-accent);
+    font-size: var(--text-sm);
+  }
+
+  header {
+    padding: var(--space-8) 0 var(--space-9);
+  }
+
+  header > p:first-child,
+  .project-case__original-name {
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+  }
+
+  h1 {
+    margin: var(--space-4) 0 0;
+    font-size: clamp(48px, 8vw, 84px);
+    letter-spacing: -0.055em;
+    line-height: 1;
+  }
+
+  header h2 {
+    max-width: 760px;
+    margin: var(--space-5) 0 0;
+    font-size: var(--text-3xl);
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+  }
+
+  .project-case__original-name {
+    display: block;
+    margin-top: var(--space-4);
+  }
+
+  .project-case__summary {
+    max-width: 720px;
+    margin: var(--space-5) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+  }
+
+  section {
+    padding: var(--space-7) 0;
+    border-top: 1px solid var(--border-default);
+  }
+
+  section > h2 {
+    margin: 0 0 var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  section > p {
+    max-width: 720px;
+    color: var(--text-secondary);
+  }
+
+  .project-case__flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .project-case__flow li {
+    padding: 10px 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .project-case__highlights,
+  .project-case__evidence {
+    margin: 0;
+  }
+
+  .project-case__highlights > div,
+  .project-case__evidence > div {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-5);
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--border-default);
+  }
+
+  dt {
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .project-case__stack {
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 767px) {
+    .project-case {
+      padding-top: var(--space-5);
+    }
+
+    header {
+      padding: var(--space-7) 0 var(--space-8);
+    }
+
+    header h2 {
+      font-size: var(--text-2xl);
+    }
+
+    .project-case__highlights > div,
+    .project-case__evidence > div {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+    .project-case__flow {
+      display: grid;
+    }
+  }
+</style>

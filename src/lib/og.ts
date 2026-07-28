@@ -1,12 +1,11 @@
-import fs from 'node:fs'
-import path from 'node:path'
 import { Resvg } from '@resvg/resvg-js'
 import satori from 'satori'
 
-const avatarBuffer = fs.readFileSync(path.resolve('./src/assets/avatar.png'))
-const avatarDataUrl = `data:image/png;base64,${avatarBuffer.toString('base64')}`
-
-const PRIMARY = '#659EB9'
+const PRIMARY = '#67E2B7'
+const BACKGROUND = '#111513'
+const SURFACE = '#171C19'
+const TEXT = '#F1F3EF'
+const MUTED = '#A4ADA8'
 const SITE = 'ygrowly.github.io'
 const LATIN_CHARS =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;!?@#$%&*()[]{}<>/\\|-_=+"\'` ·⭐'
@@ -65,23 +64,27 @@ function text(style: Record<string, unknown>, children: string): OgNode {
 }
 
 function header(): OgNode {
-  return div({ alignItems: 'center', gap: 20 }, [
-    {
-      type: 'img',
-      props: {
-        src: avatarDataUrl,
-        width: 72,
-        height: 72,
-        style: { borderRadius: 999, border: `2px solid ${PRIMARY}` }
-      }
-    },
+  return div({ alignItems: 'center', justifyContent: 'space-between' }, [
     text(
       {
-        fontSize: 32,
-        color: '#e5e7eb',
+        fontSize: 34,
+        color: TEXT,
+        fontFamily: 'Noto Sans SC',
+        fontWeight: 700,
+        letterSpacing: '-0.02em'
+      },
+      'Ygrowly'
+    ),
+    text(
+      {
+        padding: '10px 16px',
+        border: `1px solid ${PRIMARY}`,
+        borderRadius: 8,
+        fontSize: 22,
+        color: PRIMARY,
         fontFamily: 'Noto Sans SC',
         fontWeight: 500,
-        letterSpacing: '-0.01em'
+        letterSpacing: '0.04em'
       },
       SITE
     )
@@ -94,7 +97,7 @@ function footerLine(left: string, right?: string): OgNode {
       justifyContent: 'space-between',
       alignItems: 'center',
       fontSize: 26,
-      color: '#94a3b8',
+      color: MUTED,
       fontFamily: 'Noto Sans SC',
       fontWeight: 500
     },
@@ -110,8 +113,8 @@ function shell(inner: OgNode[]): OgNode {
       padding: 72,
       flexDirection: 'column',
       justifyContent: 'space-between',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0b1220 100%)',
-      color: '#f8fafc',
+      background: BACKGROUND,
+      color: TEXT,
       position: 'relative'
     },
     [
@@ -125,7 +128,7 @@ function shell(inner: OgNode[]): OgNode {
             left: 0,
             width: '100%',
             height: 6,
-            background: `linear-gradient(90deg, ${PRIMARY} 0%, #a78bfa 100%)`
+            background: PRIMARY
           }
         }
       },
@@ -143,7 +146,7 @@ export async function defaultOgPng(opts: { name: string; tagline: string }) {
           fontSize: 96,
           fontFamily: 'Noto Sans SC',
           fontWeight: 700,
-          color: '#f8fafc',
+          color: TEXT,
           letterSpacing: '-0.02em',
           lineHeight: 1.05
         },
@@ -154,7 +157,7 @@ export async function defaultOgPng(opts: { name: string; tagline: string }) {
           fontSize: 40,
           fontFamily: 'Noto Sans SC',
           fontWeight: 500,
-          color: '#cbd5e1',
+          color: MUTED,
           letterSpacing: '-0.01em'
         },
         opts.tagline
@@ -162,7 +165,10 @@ export async function defaultOgPng(opts: { name: string; tagline: string }) {
     ]),
     footerLine('ygrowly.github.io · systems that outlive the demo')
   ])
-  return renderPng(tree, opts.name + opts.tagline + 'ygrowly.github.io · systems that outlive the demo')
+  return renderPng(
+    tree,
+    opts.name + opts.tagline + 'ygrowly.github.io · systems that outlive the demo'
+  )
 }
 
 export async function postOgPng(opts: {
@@ -183,7 +189,7 @@ export async function postOgPng(opts: {
           fontSize: opts.title.length > 24 ? 62 : 78,
           fontFamily: 'Noto Sans SC',
           fontWeight: 700,
-          color: '#f8fafc',
+          color: TEXT,
           letterSpacing: '-0.02em',
           lineHeight: 1.15,
           maxWidth: 1060
@@ -197,7 +203,7 @@ export async function postOgPng(opts: {
                 fontSize: 28,
                 fontFamily: 'Noto Sans SC',
                 fontWeight: 500,
-                color: '#94a3b8',
+                color: MUTED,
                 lineHeight: 1.4,
                 maxWidth: 1060
               },
@@ -211,7 +217,7 @@ export async function postOgPng(opts: {
         justifyContent: 'space-between',
         alignItems: 'center',
         fontSize: 24,
-        color: '#94a3b8',
+        color: MUTED,
         fontFamily: 'Noto Sans SC',
         fontWeight: 500
       },
@@ -227,7 +233,8 @@ export async function postOgPng(opts: {
                   style: {
                     display: 'flex',
                     padding: '6px 14px',
-                    borderRadius: 999,
+                    borderRadius: 8,
+                    background: SURFACE,
                     border: `1px solid ${PRIMARY}`,
                     color: PRIMARY,
                     fontSize: 22

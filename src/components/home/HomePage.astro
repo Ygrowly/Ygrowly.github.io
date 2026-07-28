@@ -1,0 +1,350 @@
+---
+import { getCollection, render } from 'astro:content'
+import { homeContent } from '@/data/home'
+import type { Lang } from '@/i18n/ui'
+import { postHref, selectPublishedNotes, selectPublishedPosts } from '@/lib/home-content'
+import { resolvedResume } from '@/lib/resume'
+
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import ExperienceLab from '@/components/home/ExperienceLab.astro'
+import ProfileContact from '@/components/home/ProfileContact.astro'
+import SelectedSystems from '@/components/home/SelectedSystems.astro'
+import WritingSection from '@/components/home/WritingSection.astro'
+import Terminal from '@/components/terminal/Terminal.astro'
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const content = homeContent[lang]
+const resumeInfo = resolvedResume(lang)
+const resume = resumeInfo.href
+const heroResumeLabel =
+  lang === 'en' && resumeInfo.fallbackToChinese
+    ? 'View Résumé · Chinese PDF ↗'
+    : content.hero.resume
+const contactContent =
+  lang === 'en' && resumeInfo.fallbackToChinese
+    ? { ...content.contact, resume: 'View Résumé · Chinese PDF' }
+    : content.contact
+const blogCollection = lang === 'en' ? 'blogEn' : 'blog'
+const notesCollection = lang === 'en' ? 'notesEn' : 'notes'
+const posts = selectPublishedPosts(await getCollection(blogCollection), lang, 2)
+const notes = selectPublishedNotes(await getCollection(notesCollection), lang, 3)
+const talks =
+  lang === 'zh'
+    ? (await getCollection('talks'))
+        .filter((talk) => !talk.data.draft && talk.data.date <= new Date())
+        .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+        .slice(0, 3)
+    : []
+const latestPostHref = posts[0] ? postHref(posts[0], lang) : `${lang === 'en' ? '/en' : ''}/blog`
+const featuredRender = posts[0] ? await render(posts[0]) : null
+const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead as
+  | string
+  | undefined
+---
+
+<BaseLayout home exactTitle meta={content.meta}>
+  <main id='top' class='home-page'>
+    <section class='home-hero' aria-labelledby='home-title'>
+      <div class='home-container home-hero__grid'>
+        <div class='home-hero__copy'>
+          <p class='home-eyebrow'>{content.hero.eyebrow}</p>
+          <h1 id='home-title'>{content.hero.title}</h1>
+          <p class='home-hero__description'>{content.hero.description}</p>
+
+          <div class='home-hero__actions'>
+            <a
+              class='home-button home-button--primary'
+              href={resume}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              {heroResumeLabel}
+            </a>
+            <a class='home-button home-button--secondary' href='#projects'>
+              {content.hero.projects}
+            </a>
+            <a class='home-hero__writing-link' href={latestPostHref}>
+              {content.hero.writing}
+            </a>
+          </div>
+
+          <ul class='home-hero__status' aria-label={lang === 'en' ? 'Current status' : '当前状态'}>
+            {content.hero.status.map((item) => <li>{item}</li>)}
+          </ul>
+
+          <div class='home-hero__recent'>
+            <span>{content.hero.recentLabel}</span>
+            <ul>
+              {content.hero.recent.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        </div>
+
+        <div class='home-hero__terminal-slot' data-terminal-slot>
+          <Terminal {lang} />
+        </div>
+      </div>
+    </section>
+
+    <SelectedSystems
+      {lang}
+      label={content.systems.label}
+      title={content.systems.title}
+      projects={content.systems.projects}
+    />
+
+    <ExperienceLab experience={content.experience} lab={content.lab} />
+    <WritingSection
+      {lang}
+      content={content.writing}
+      talksLabel={content.talks.label}
+      {posts}
+      {notes}
+      {talks}
+      {featuredReadingTime}
+    />
+    <ProfileContact
+      {lang}
+      profile={content.profile}
+      contact={contactContent}
+      footer={content.footer}
+      resumeHref={resume}
+    />
+  </main>
+</BaseLayout>
+
+<style>
+  .home-page {
+    width: 100%;
+    overflow: clip;
+    background: var(--bg-page);
+    color: var(--text-primary);
+  }
+
+  .home-container {
+    width: min(1200px, calc(100% - 64px));
+    margin: 0 auto;
+  }
+
+  .home-hero {
+    min-height: max(680px, calc(100svh - 72px));
+  }
+
+  .home-hero__grid {
+    display: grid;
+    min-height: max(680px, calc(100svh - 72px));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5);
+    align-items: center;
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+
+  .home-hero__copy {
+    grid-column: span 6;
+  }
+
+  .home-eyebrow {
+    margin: 0;
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.35;
+  }
+
+  .home-hero h1 {
+    max-width: 680px;
+    margin: 20px 0 0;
+    font-size: var(--text-hero);
+    font-weight: 600;
+    letter-spacing: -0.055em;
+    line-height: 1.04;
+  }
+
+  .home-hero__description {
+    max-width: 580px;
+    margin: 28px 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+    line-height: 1.65;
+  }
+
+  .home-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .home-button {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .home-button--primary {
+    background: var(--signal-accent);
+    color: #fff;
+  }
+
+  .home-button--primary:hover {
+    background: var(--signal-accent-hover);
+    color: #fff;
+  }
+
+  .home-button--secondary {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .home-button--secondary:hover {
+    border-color: var(--signal-accent);
+    color: var(--signal-accent);
+  }
+
+  .home-hero__writing-link {
+    flex-basis: 100%;
+    width: fit-content;
+    margin-top: var(--space-1);
+    color: var(--signal-accent);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .home-hero__status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 40px 0 0;
+    padding: 0;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    list-style: none;
+  }
+
+  .home-hero__status li:last-child {
+    color: var(--signal-accent);
+  }
+
+  .home-hero__status li:last-child::before {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: var(--space-2);
+    border-radius: var(--radius-pill);
+    background: currentColor;
+    content: '';
+    vertical-align: 1px;
+  }
+
+  .home-hero__recent {
+    display: grid;
+    margin-top: var(--space-7);
+    grid-template-columns: auto 1fr;
+    gap: var(--space-5);
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+  }
+
+  .home-hero__recent > span {
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-hero__recent ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+    padding: 0;
+    color: var(--text-secondary);
+    list-style: none;
+  }
+
+  .home-hero__terminal-slot {
+    min-width: 0;
+    height: 460px;
+    grid-column: 8 / span 5;
+  }
+
+  @media (max-width: 1023px) {
+    .home-container {
+      width: calc(100% - 48px);
+    }
+
+    .home-hero__grid {
+      min-height: auto;
+      grid-template-columns: 1fr;
+      padding-top: 64px;
+      padding-bottom: 88px;
+    }
+
+    .home-hero__copy,
+    .home-hero__terminal-slot {
+      grid-column: 1;
+    }
+
+    .home-hero__terminal-slot {
+      margin-top: var(--space-7);
+    }
+
+    .home-hero__terminal-slot {
+      height: 400px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .home-container {
+      width: calc(100% - 40px);
+    }
+
+    .home-hero__grid {
+      padding-top: 48px;
+      padding-bottom: 72px;
+    }
+
+    .home-hero h1 {
+      font-size: clamp(40px, 12vw, 56px);
+    }
+
+    .home-hero__description {
+      font-size: var(--text-base);
+    }
+
+    .home-hero__actions {
+      flex-direction: column;
+    }
+
+    .home-button {
+      width: 100%;
+    }
+
+    .home-hero__writing-link {
+      min-height: 44px;
+      align-content: center;
+    }
+
+    .home-hero__recent {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+
+    .home-hero__terminal-slot {
+      height: 320px;
+    }
+  }
+</style>

@@ -27,7 +27,7 @@ const MOCK_AGENT_REPLIES: Record<string, string[]> = {
   ],
   building: [
     'Right now: EnergyOps Agent (energy data pipeline + alerting loop),',
-    'PayTrace (payment anomaly diagnosis agent), and this site\'s redesign.'
+    "PayTrace (payment anomaly diagnosis agent), and this site's redesign."
   ],
   hire: [
     'Open to chats — AI application / Python backend / agent engineering roles.',
@@ -48,6 +48,14 @@ function pickReply(msg: string): string[] {
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+
+function isEnglishPage() {
+  return typeof window !== 'undefined' && window.location.pathname.startsWith('/en')
+}
+
+function localizedPath(path: string) {
+  return `${isEnglishPage() ? '/en' : ''}${path}`
+}
 
 function nodeBadge(node: FsNode): string {
   if (node.type === 'dir') return '/'
@@ -115,7 +123,11 @@ export const commands: CommandRegistry = {
           )
         },
         { kind: 'text', tone: 'muted', text: '  ↳ Data Science undergrad · class of 2027' },
-        { kind: 'text', tone: 'muted', text: '  ↳ Agent engineering · Python backend · data systems' },
+        {
+          kind: 'text',
+          tone: 'muted',
+          text: '  ↳ Agent engineering · Python backend · data systems'
+        },
         {
           kind: 'text',
           tone: 'muted',
@@ -124,6 +136,200 @@ export const commands: CommandRegistry = {
         { kind: 'spacer' },
         { kind: 'text', tone: 'muted', text: 'next: try `ls`, `cat about`, or `cd /blog`' }
       ])
+    }
+  },
+
+  projects: {
+    name: 'projects',
+    summary: 'selected systems and current lab work',
+    run: ({ push }) => {
+      const projects = [
+        ['EnergyOps Agent', localizedPath('/projects/energyops-agent')],
+        [
+          isEnglishPage() ? 'DataSphere AI BI / 数驭穹图' : '数驭穹图 AI BI',
+          localizedPath('/projects/ai-bi-platform')
+        ],
+        ['PayTrace [building]', localizedPath('/projects/paytrace')]
+      ]
+      push(
+        projects.map<OutputLine>(([label, href]) => ({
+          kind: 'node',
+          node: (
+            <span>
+              <span className='wt-tone-primary'>{label.padEnd(28)}</span>
+              <a className='wt-link' href={href}>
+                {href}
+              </a>
+            </span>
+          )
+        }))
+      )
+    }
+  },
+
+  experience: {
+    name: 'experience',
+    summary: 'three recent engineering roles',
+    run: ({ push }) => {
+      push([
+        { kind: 'text', tone: 'primary', text: '2026.05 — NOW  Kingsoft Office' },
+        { kind: 'text', tone: 'muted', text: 'Energy data · alerts · MCP / WPS Comate' },
+        { kind: 'text', tone: 'primary', text: '2025.10 — 2026.03  Shenzhen Huize Zhiyuan' },
+        { kind: 'text', tone: 'muted', text: 'Collaborative data · lakehouse · Text-to-SQL' },
+        { kind: 'text', tone: 'primary', text: '2025.09 — 2026.01  Chengdu Qidian Tuojie' },
+        {
+          kind: 'text',
+          tone: 'muted',
+          text: 'Ingestion · AI classification · notification pipeline'
+        }
+      ])
+    }
+  },
+
+  writing: {
+    name: 'writing',
+    summary: 'open the latest blog and notes indexes',
+    run: ({ push }) => {
+      const blog = localizedPath('/blog')
+      const notes = localizedPath('/notes')
+      push([
+        {
+          kind: 'node',
+          node: (
+            <span>
+              <span className='wt-tone-primary'>Blog </span>
+              <a className='wt-link' href={blog}>
+                {blog}
+              </a>
+            </span>
+          )
+        },
+        {
+          kind: 'node',
+          node: (
+            <span>
+              <span className='wt-tone-primary'>Notes </span>
+              <a className='wt-link' href={notes}>
+                {notes}
+              </a>
+            </span>
+          )
+        }
+      ])
+    }
+  },
+
+  skills: {
+    name: 'skills',
+    summary: 'backend and AI engineering focus',
+    run: ({ push }) => {
+      push([
+        {
+          kind: 'text',
+          text: 'Backend        Python · FastAPI · PostgreSQL · Redis · Docker'
+        },
+        {
+          kind: 'text',
+          text: 'AI Engineering MCP · Tool Use · Eval · Memory · Observability'
+        }
+      ])
+    }
+  },
+
+  resume: {
+    name: 'resume',
+    summary: 'show the résumé PDF link',
+    run: ({ push, resumeHref }) => {
+      const href = resumeHref ?? (isEnglishPage() ? '/resume-en.pdf' : '/resume.pdf')
+      push([
+        {
+          kind: 'node',
+          node: (
+            <span>
+              <span className='wt-tone-muted'>résumé: </span>
+              <a className='wt-link' href={href} target='_blank' rel='noopener noreferrer'>
+                {href}
+              </a>
+            </span>
+          )
+        },
+        { kind: 'text', tone: 'muted', text: 'Open the link above when you are ready.' }
+      ])
+    }
+  },
+
+  github: {
+    name: 'github',
+    summary: 'show the public GitHub profile',
+    run: ({ push }) => {
+      const href = 'https://github.com/Ygrowly'
+      push([
+        {
+          kind: 'node',
+          node: (
+            <a className='wt-link' href={href} target='_blank' rel='noopener noreferrer'>
+              {href}
+            </a>
+          )
+        }
+      ])
+    }
+  },
+
+  contact: {
+    name: 'contact',
+    summary: 'email and opportunity status',
+    run: ({ push }) => {
+      push([
+        { kind: 'text', tone: 'primary', text: 'Open to opportunities · Class of 2027' },
+        {
+          kind: 'node',
+          node: (
+            <a className='wt-link' href='mailto:lyg3044@qq.com'>
+              lyg3044@qq.com
+            </a>
+          )
+        }
+      ])
+    }
+  },
+
+  lang: {
+    name: 'lang',
+    summary: 'show or switch language',
+    usage: 'lang [zh|en]',
+    complete: (args) => (args.length <= 1 ? ['zh', 'en'] : []),
+    run: ({ args, push, navigate }) => {
+      const target = args[0]?.toLowerCase()
+      if (!target) {
+        push([
+          {
+            kind: 'text',
+            text: `language → ${isEnglishPage() ? 'en' : 'zh'} · available: zh, en`
+          }
+        ])
+        return
+      }
+      if (!['zh', 'en'].includes(target)) {
+        push([{ kind: 'text', tone: 'err', text: `lang: invalid language '${target}'` }])
+        return
+      }
+      navigate(target === 'en' ? '/en' : '/')
+    }
+  },
+
+  devmode: {
+    name: 'devmode',
+    summary: 'enter the existing developer shell',
+    run: ({ push, setMode }) => {
+      if (setMode) {
+        push([{ kind: 'text', tone: 'muted', text: 'Already in dev mode.' }])
+        return
+      }
+      push([{ kind: 'text', tone: 'muted', text: 'Entering dev mode…' }])
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ygrowly:toggle-dev'))
+      }
     }
   },
 
@@ -276,6 +482,15 @@ export const commands: CommandRegistry = {
     run: ({ args, fs, cwd, push, navigate }) => {
       if (!args[0]) {
         push([{ kind: 'text', tone: 'err', text: 'open: missing operand' }])
+        return
+      }
+      const projectRoutes: Record<string, string> = {
+        'energyops-agent': localizedPath('/projects/energyops-agent'),
+        'ai-bi-platform': localizedPath('/projects/ai-bi-platform'),
+        paytrace: localizedPath('/projects/paytrace')
+      }
+      if (projectRoutes[args[0]]) {
+        navigate(projectRoutes[args[0]])
         return
       }
       const target = resolvePath(cwd, args[0])
@@ -534,14 +749,21 @@ export const commands: CommandRegistry = {
   theme: {
     name: 'theme',
     summary: 'switch site theme',
-    usage: 'theme [dark|light|toggle]',
-    complete: (args) => (args.length <= 1 ? ['dark', 'light', 'toggle'] : []),
+    usage: 'theme [dark|light|system]',
+    complete: (args) => (args.length <= 1 ? ['dark', 'light', 'system'] : []),
     run: ({ args, push, setTheme }) => {
-      const mode = (args[0] as 'dark' | 'light' | 'toggle') ?? 'toggle'
-      if (!['dark', 'light', 'toggle'].includes(mode)) {
-        push([{ kind: 'text', tone: 'err', text: `theme: invalid mode '${mode}'` }])
+      const requested = args[0]?.toLowerCase()
+      if (!requested) {
+        const stored =
+          typeof window === 'undefined' ? 'system' : (localStorage.getItem('theme') ?? 'system')
+        push([{ kind: 'text', text: `theme → ${stored} · available: light, dark, system` }])
         return
       }
+      if (!['dark', 'light', 'system'].includes(requested)) {
+        push([{ kind: 'text', tone: 'err', text: `theme: invalid mode '${requested}'` }])
+        return
+      }
+      const mode = requested as 'dark' | 'light' | 'system'
       setTheme(mode)
       push([{ kind: 'text', tone: 'ok', text: `theme → ${mode}` }])
     }
@@ -586,9 +808,24 @@ export const commands: CommandRegistry = {
 
   about: {
     name: 'about',
-    summary: 'alias of `cat about`',
-    hidden: true,
-    run: (ctx) => commands.cat.run({ ...ctx, args: ['/about'] })
+    summary: 'personal engineering stance and About page',
+    run: ({ push }) => {
+      const href = localizedPath('/about')
+      push([
+        {
+          kind: 'text',
+          text: 'Observable · Recoverable · Testable AI inside real business workflows.'
+        },
+        {
+          kind: 'node',
+          node: (
+            <a className='wt-link' href={href}>
+              {href}
+            </a>
+          )
+        }
+      ])
+    }
   },
 
   sudo: {

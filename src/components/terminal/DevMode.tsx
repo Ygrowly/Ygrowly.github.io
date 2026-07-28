@@ -111,12 +111,19 @@ export default function DevMode({ fs, user = 'ygrowly', host = ROOT_LABEL, onExi
     if (typeof window !== 'undefined') window.location.assign(path)
   }, [])
 
-  const ctxSetTheme = useCallback((mode: 'dark' | 'light' | 'toggle') => {
+  const ctxSetTheme = useCallback((mode: 'dark' | 'light' | 'system' | 'toggle') => {
     if (typeof document === 'undefined') return
     const root = document.documentElement
     const isDark = root.classList.contains('dark')
     const target = mode === 'toggle' ? (isDark ? 'light' : 'dark') : mode
-    root.classList.toggle('dark', target === 'dark')
+    const resolved =
+      target === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : target
+    root.classList.toggle('dark', resolved === 'dark')
+    root.dataset.theme = resolved
     try {
       localStorage.setItem('theme', target)
     } catch {
@@ -131,7 +138,7 @@ export default function DevMode({ fs, user = 'ygrowly', host = ROOT_LABEL, onExi
     [onExit]
   )
 
-  const ctxOpenViewer = useCallback((file: FileNode, _path: string) => {
+  const ctxOpenViewer = useCallback((file: FileNode) => {
     if (!file.endpoint) return
     const reqId = ++viewerReqRef.current
     const meta = {
@@ -218,8 +225,7 @@ export default function DevMode({ fs, user = 'ygrowly', host = ROOT_LABEL, onExi
         }
       ]
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bootDone])
+  }, [appendEntry, bootDone])
 
   // autoscroll on new entries
   useEffect(() => {

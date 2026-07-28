@@ -1,0 +1,254 @@
+---
+import type { HomeContent } from '@/data/home'
+import type { Lang } from '@/i18n/ui'
+
+interface Props {
+  lang: Lang
+  profile: HomeContent['profile']
+  contact: HomeContent['contact']
+  footer: HomeContent['footer']
+  resumeHref: string
+}
+
+const { lang, profile, contact, footer, resumeHref } = Astro.props
+---
+
+<section id='profile' class='profile-section' aria-labelledby='profile-title'>
+  <div class='profile-container'>
+    <h2 id='profile-title'>{profile.label}</h2>
+    <dl>
+      {
+        profile.rows.map((row) => (
+          <div>
+            <dt>{row.label}</dt>
+            <dd>{row.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class='profile-statement'>{profile.statement}</p>
+    <a class='profile-cta' href={lang === 'en' ? '/en/about' : '/about'}>{profile.cta}</a>
+  </div>
+</section>
+
+<section id='contact' class='contact-section' aria-labelledby='contact-title'>
+  <div class='contact-container'>
+    <h2 id='contact-title'>{contact.label}</h2>
+    <p>{contact.text}</p>
+    <nav aria-label={lang === 'en' ? 'Contact links' : '联系方式'}>
+      <a href='mailto:lyg3044@qq.com'>{contact.email} <span aria-hidden='true'>→</span></a>
+      <a href='https://github.com/Ygrowly' target='_blank' rel='noopener noreferrer'>
+        {contact.github}
+        <span aria-hidden='true'>↗</span>
+      </a>
+      <a href={resumeHref} target='_blank' rel='noopener noreferrer'>
+        {contact.resume}
+        <span aria-hidden='true'>↗</span>
+      </a>
+    </nav>
+  </div>
+</section>
+
+<footer class='home-footer'>
+  <div class='footer-container'>
+    <span>{footer.copyright}</span>
+    <span>{footer.note}</span>
+    <a href='#top'>{footer.backToTop}</a>
+  </div>
+</footer>
+
+<style>
+  .profile-section {
+    padding: var(--space-10) 0;
+  }
+
+  .profile-container,
+  .contact-container,
+  .footer-container {
+    width: min(1200px, calc(100% - 64px));
+    margin: 0 auto;
+  }
+
+  .profile-section h2,
+  .contact-section h2 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: 0.12em;
+  }
+
+  .profile-section dl {
+    margin: var(--space-7) 0 0;
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .profile-section dl > div {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-5);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border-default);
+  }
+
+  .profile-section dt {
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .profile-section dd {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .profile-statement {
+    max-width: 860px;
+    margin: var(--space-8) 0 0;
+    font-size: var(--text-3xl);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.35;
+  }
+
+  .profile-cta {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    margin-top: var(--space-5);
+    color: var(--signal-accent);
+    font-weight: 600;
+  }
+
+  .contact-section {
+    padding: 112px 0;
+    background: #151a17;
+    color: #fff;
+  }
+
+  :global(.dark) .contact-section {
+    background: #0b0e0c;
+  }
+
+  .contact-section h2 {
+    color: #67e2b7;
+  }
+
+  .contact-section > .contact-container > p {
+    max-width: 760px;
+    margin: var(--space-5) 0 0;
+    color: #dce5e0;
+    font-size: var(--text-2xl);
+    line-height: 1.5;
+  }
+
+  .contact-section nav {
+    display: flex;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
+  }
+
+  .contact-section nav a {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-4);
+    border: 1px solid #3a4741;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .contact-section nav a:first-child {
+    border-color: #67e2b7;
+    background: #67e2b7;
+    color: #090c0b;
+  }
+
+  .contact-section nav a span {
+    color: #67e2b7;
+    transition: transform 180ms ease;
+  }
+
+  .contact-section nav a:first-child span {
+    color: inherit;
+  }
+
+  .contact-section nav a:hover span {
+    transform: translateX(3px);
+  }
+
+  .home-footer {
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--border-default);
+    background: var(--bg-page);
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+  }
+
+  .footer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .footer-container a {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 1023px) {
+    .profile-section {
+      padding: var(--space-9) 0;
+    }
+
+    .profile-container,
+    .contact-container,
+    .footer-container {
+      width: calc(100% - 48px);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .profile-section {
+      padding: 72px 0;
+    }
+
+    .profile-container,
+    .contact-container,
+    .footer-container {
+      width: calc(100% - 40px);
+    }
+
+    .profile-section dl > div {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+    .profile-statement {
+      font-size: 26px;
+    }
+
+    .contact-section {
+      padding: 72px 0;
+    }
+
+    .contact-section > .contact-container > p {
+      font-size: var(--text-xl);
+    }
+
+    .contact-section nav {
+      flex-direction: column;
+    }
+
+    .contact-section nav a {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .footer-container {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

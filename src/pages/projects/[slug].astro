@@ -1,0 +1,16 @@
+---
+import { projectCases } from '@/data/home'
+
+import ProjectCase from '@/components/projects/ProjectCase.astro'
+
+export function getStaticPaths() {
+  return projectCases.zh.map((project) => ({
+    params: { slug: project.slug },
+    props: { project }
+  }))
+}
+
+const { project } = Astro.props
+---
+
+<ProjectCase lang='zh' {project} />

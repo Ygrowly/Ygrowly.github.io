@@ -1,0 +1,326 @@
+---
+import type { HomeContent } from '@/data/home'
+
+interface Props {
+  experience: HomeContent['experience']
+  lab: HomeContent['lab']
+}
+
+const { experience, lab } = Astro.props
+---
+
+<section id='experience' class='experience-section' aria-labelledby='experience-title'>
+  <div class='experience-container'>
+    <header>
+      <p>{experience.label}</p>
+      <h2 id='experience-title'>{experience.title}</h2>
+    </header>
+
+    <div class='experience-list'>
+      {
+        experience.items.map((item, index) => (
+          <article class='experience-row'>
+            <time>{item.period}</time>
+            <div class='experience-row__identity'>
+              <h3>{item.company}</h3>
+              <p>{item.role}</p>
+            </div>
+            <div class='experience-row__work'>
+              <p>{item.contribution}</p>
+              <p id={`experience-focus-${index}`} class='experience-row__focus' hidden>
+                {item.focus}
+              </p>
+            </div>
+            <button
+              type='button'
+              class='experience-row__toggle'
+              aria-controls={`experience-focus-${index}`}
+              aria-expanded='false'
+              data-expand-label={experience.expand}
+              data-collapse-label={experience.collapse}
+            >
+              <span class='sr-only'>{experience.expand}</span>
+              <span aria-hidden='true'>↓</span>
+            </button>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class='lab-section' aria-labelledby='lab-title'>
+      <h2 id='lab-title'>{lab.label}</h2>
+      <div class='lab-grid'>
+        {
+          lab.items.map((item) => (
+            <a
+              class='lab-card'
+              href={item.href}
+              target={item.external ? '_blank' : undefined}
+              rel={item.external ? 'noopener noreferrer' : undefined}
+            >
+              <span>{item.status}</span>
+              <h3>{item.name}</h3>
+              <p>{item.description}</p>
+              <i aria-hidden='true'>{item.external ? '↗' : '→'}</i>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('click', (event) => {
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const button = target.closest<HTMLButtonElement>('.experience-row__toggle')
+    if (!button) return
+
+    const expanded = button.getAttribute('aria-expanded') === 'true'
+    const panelId = button.getAttribute('aria-controls')
+    const panel = panelId ? document.getElementById(panelId) : null
+    if (!panel) return
+
+    button.setAttribute('aria-expanded', String(!expanded))
+    panel.hidden = expanded
+    const label = expanded ? button.dataset.expandLabel : button.dataset.collapseLabel
+    const screenReaderLabel = button.querySelector('.sr-only')
+    if (screenReaderLabel && label) screenReaderLabel.textContent = label
+  })
+</script>
+
+<style>
+  .experience-section {
+    padding: var(--space-10) 0;
+  }
+
+  .experience-container {
+    width: min(1200px, calc(100% - 64px));
+    margin: 0 auto;
+  }
+
+  header {
+    max-width: 760px;
+  }
+
+  header > p,
+  .lab-section > h2 {
+    margin: 0;
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+  }
+
+  header h2 {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-4xl);
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+  }
+
+  .experience-list {
+    margin-top: var(--space-8);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .experience-row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5);
+    padding: 28px 0;
+    border-top: 1px solid var(--border-default);
+  }
+
+  .experience-row time {
+    grid-column: span 2;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .experience-row__identity {
+    grid-column: span 4;
+  }
+
+  .experience-row h3,
+  .experience-row p {
+    margin: 0;
+  }
+
+  .experience-row h3 {
+    font-size: var(--text-lg);
+  }
+
+  .experience-row__identity p,
+  .experience-row__work {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .experience-row__identity p {
+    margin-top: var(--space-2);
+  }
+
+  .experience-row__work {
+    grid-column: span 5;
+  }
+
+  .experience-row__focus {
+    margin-top: var(--space-4) !important;
+    color: var(--text-primary);
+  }
+
+  .experience-row__focus[hidden] {
+    display: none;
+  }
+
+  .experience-row__toggle {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    justify-self: end;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .experience-row__toggle span:last-child {
+    transition: transform 180ms ease;
+  }
+
+  .experience-row__toggle[aria-expanded='true'] span:last-child {
+    transform: rotate(180deg);
+  }
+
+  .experience-row__toggle:hover {
+    color: var(--signal-accent);
+  }
+
+  .lab-section {
+    margin-top: var(--space-9);
+  }
+
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+
+  .lab-card {
+    position: relative;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition:
+      border-color 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .lab-card:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    transform: translateY(-4px);
+  }
+
+  .lab-card > span {
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .lab-card h3 {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xl);
+  }
+
+  .lab-card p {
+    min-height: 3.3em;
+    margin: var(--space-3) var(--space-5) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .lab-card i {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: var(--signal-accent);
+    font-style: normal;
+    transition: transform 180ms ease;
+  }
+
+  .lab-card:hover i {
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 1023px) {
+    .experience-section {
+      padding: var(--space-9) 0;
+    }
+
+    .experience-container {
+      width: calc(100% - 48px);
+    }
+
+    .experience-row {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+
+    .experience-row time {
+      grid-column: span 2;
+    }
+
+    .experience-row__identity {
+      grid-column: span 3;
+    }
+
+    .experience-row__work {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .experience-section {
+      padding: 72px 0;
+    }
+
+    .experience-container {
+      width: calc(100% - 40px);
+    }
+
+    header h2 {
+      font-size: var(--text-3xl);
+    }
+
+    .experience-row {
+      grid-template-columns: 1fr 44px;
+      gap: var(--space-4);
+    }
+
+    .experience-row time,
+    .experience-row__identity,
+    .experience-row__work {
+      grid-column: 1;
+    }
+
+    .experience-row__toggle {
+      grid-row: 1 / span 3;
+      grid-column: 2;
+    }
+
+    .lab-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

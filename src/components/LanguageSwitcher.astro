@@ -9,6 +9,7 @@ interface Props {
 const { lang } = Astro.props
 const t = useTranslations(lang)
 const label = lang === 'en' ? '中' : 'EN'
+const targetLanguage = lang === 'en' ? '中文' : 'English'
 
 const barePath = stripLangPrefix(Astro.url.pathname)
 // en -> zh：中文原文一定存在；zh -> en：只有真实英文镜像才跳，否则落回英文首页
@@ -17,13 +18,12 @@ const target =
 ---
 
 <button
-  id='toggleLang'
+  class='toggle-lang box-content flex size-5 items-center justify-center rounded-md border p-1.5 text-xs font-semibold leading-none transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
   type='button'
   data-lang={lang}
   data-target={target}
-  class='box-content flex size-5 items-center justify-center rounded-md border p-1.5 text-xs font-semibold leading-none transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
+  aria-label={`${t('nav.toggleLang')}：${targetLanguage}`}
 >
-  <span class='sr-only'>{t('nav.toggleLang')}</span>
   <span class='lang-label' aria-hidden='true'>{label}</span>
 </button>
 
@@ -34,7 +34,7 @@ const target =
 
   document.addEventListener('click', (event) => {
     const target = event.target as HTMLElement | null
-    const btn = target?.closest('#toggleLang') as HTMLButtonElement | null
+    const btn = target?.closest('.toggle-lang') as HTMLButtonElement | null
     if (!btn) return
     const current = (btn.dataset.lang === 'en' ? 'en' : 'zh') as 'zh' | 'en'
     const next = btn.dataset.target ?? '/en'
@@ -70,7 +70,7 @@ const target =
       filter 0.25s ease,
       transform 0.25s ease;
   }
-  #toggleLang.leaving .lang-label {
+  .toggle-lang.leaving .lang-label {
     opacity: 0;
     filter: blur(4px);
     transform: scale(0.6);

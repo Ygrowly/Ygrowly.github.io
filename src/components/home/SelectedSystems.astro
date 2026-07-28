@@ -1,0 +1,413 @@
+---
+import type { HomeProject } from '@/data/home'
+import { projectHref } from '@/data/home'
+import type { Lang } from '@/i18n/ui'
+
+import ProjectEvidence from './ProjectEvidence.astro'
+
+interface Props {
+  lang: Lang
+  label: string
+  title: string
+  projects: HomeProject[]
+}
+
+const { lang, label, title, projects } = Astro.props
+---
+
+<systems-theater id='projects' class='project-theater' aria-labelledby='projects-title'>
+  <div class='systems-container'>
+    <header class='systems-heading'>
+      <p>{label}</p>
+      <h2 id='projects-title'>{title}</h2>
+    </header>
+
+    <div class='systems-stage'>
+      <div class='systems-narratives'>
+        {
+          projects.map((project, index) => (
+            <article class='system-narrative' data-system-narrative={index}>
+              <p class='system-index'>0{index + 1}</p>
+              <p class='system-eyebrow'>{project.eyebrow}</p>
+              <h3>
+                <span>{project.name}</span>
+                {project.title}
+              </h3>
+              <p class='system-summary'>{project.summary}</p>
+              <p class='system-responsibility'>{project.responsibility}</p>
+
+              <ol class='system-flow' aria-label={lang === 'en' ? 'System flow' : '系统链路'}>
+                {project.flow.map((step) => (
+                  <li>{step}</li>
+                ))}
+              </ol>
+
+              <dl class='system-highlights'>
+                {project.highlights.map((highlight) => (
+                  <div>
+                    <dt>{highlight.label}</dt>
+                    <dd>{highlight.text}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div class='system-mobile-evidence'>
+                <ProjectEvidence project={project} index={index} />
+              </div>
+
+              <a class='system-cta' href={projectHref(project.slug, lang)}>
+                {project.cta}
+              </a>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class='systems-evidence' aria-hidden='true'>
+        <div class='systems-evidence-stack'>
+          {
+            projects.map((project, index) => (
+              <div
+                class:list={['systems-evidence-panel', index === 0 && 'is-active']}
+                data-system-evidence={index}
+              >
+                <ProjectEvidence project={project} index={index} />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</systems-theater>
+
+<script>
+  class SystemsTheater extends HTMLElement {
+    private observer: IntersectionObserver | null = null
+    private media: MediaQueryList | null = null
+
+    private activate(index: string) {
+      this.querySelectorAll<HTMLElement>('[data-system-evidence]').forEach((panel) => {
+        panel.classList.toggle('is-active', panel.dataset.systemEvidence === index)
+      })
+    }
+
+    private mountObserver = () => {
+      this.observer?.disconnect()
+      if (!this.media?.matches) return
+
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          const active = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+          if (active instanceof IntersectionObserverEntry) {
+            const target = active.target as HTMLElement
+            this.activate(target.dataset.systemNarrative ?? '0')
+          }
+        },
+        { rootMargin: '-35% 0px -35% 0px', threshold: [0, 0.15, 0.5] }
+      )
+
+      this.querySelectorAll('[data-system-narrative]').forEach((narrative) => {
+        this.observer?.observe(narrative)
+      })
+    }
+
+    connectedCallback() {
+      this.media = window.matchMedia('(min-width: 1024px)')
+      this.media.addEventListener('change', this.mountObserver)
+      this.mountObserver()
+    }
+
+    disconnectedCallback() {
+      this.observer?.disconnect()
+      this.media?.removeEventListener('change', this.mountObserver)
+    }
+  }
+
+  if (!customElements.get('systems-theater')) {
+    customElements.define('systems-theater', SystemsTheater)
+  }
+</script>
+
+<style>
+  .project-theater {
+    display: block;
+    padding: 128px 0;
+    background: var(--theater-bg, #090c0b);
+    color: var(--theater-text, #f3f5f1);
+    --theater-bg: #090c0b;
+    --theater-surface: #111613;
+    --theater-elevated: #151c18;
+    --theater-text: #f3f5f1;
+    --theater-muted: #9eaaa4;
+    --theater-border: #26312c;
+    --theater-accent: #67e2b7;
+    --theater-accent-soft: #173a30;
+  }
+
+  :global(.dark) .project-theater {
+    --theater-bg: #050706;
+    --theater-surface: #0c100e;
+    --theater-elevated: #111613;
+    --theater-muted: #97a39d;
+    --theater-border: #202923;
+    --theater-accent-soft: #122e26;
+  }
+
+  .systems-container {
+    width: min(1200px, calc(100% - 64px));
+    margin: 0 auto;
+  }
+
+  .systems-heading {
+    max-width: 720px;
+  }
+
+  .systems-heading p,
+  .system-index,
+  .system-eyebrow {
+    margin: 0;
+    color: var(--theater-accent);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    line-height: 1.35;
+  }
+
+  .systems-heading h2 {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-4xl);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+  }
+
+  .systems-stage {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-9);
+  }
+
+  .systems-narratives {
+    grid-column: span 5;
+  }
+
+  .system-narrative {
+    display: flex;
+    min-height: 90vh;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-9) 0;
+  }
+
+  .system-index {
+    color: var(--theater-muted);
+  }
+
+  .system-eyebrow {
+    margin-top: var(--space-5);
+    font-size: var(--text-xs);
+  }
+
+  .system-narrative h3 {
+    margin: var(--space-4) 0 0;
+    font-size: clamp(38px, 4.4vw, 64px);
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    line-height: 1.05;
+  }
+
+  .system-narrative h3 span {
+    display: block;
+    margin-bottom: var(--space-3);
+    color: var(--theater-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: 0.06em;
+  }
+
+  .system-summary,
+  .system-responsibility {
+    max-width: 560px;
+    margin: var(--space-5) 0 0;
+    color: var(--theater-muted);
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .system-responsibility {
+    color: var(--theater-text);
+    font-size: var(--text-sm);
+  }
+
+  .system-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .system-flow li {
+    position: relative;
+    padding: 7px 10px;
+    border: 1px solid var(--theater-border);
+    border-radius: var(--radius-sm);
+    color: var(--theater-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .system-highlights {
+    margin: var(--space-6) 0 0;
+  }
+
+  .system-highlights > div {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--theater-border);
+  }
+
+  .system-highlights dt {
+    color: var(--theater-accent);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .system-highlights dd {
+    margin: 0;
+    color: var(--theater-muted);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+
+  .system-cta {
+    width: fit-content;
+    min-height: 44px;
+    margin-top: var(--space-6);
+    color: var(--theater-accent);
+    font-weight: 600;
+    line-height: 44px;
+  }
+
+  .systems-evidence {
+    position: relative;
+    grid-column: 7 / span 6;
+  }
+
+  .systems-evidence-stack {
+    position: sticky;
+    top: 112px;
+    height: min(620px, calc(100vh - 144px));
+  }
+
+  .systems-evidence-panel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms ease;
+  }
+
+  .systems-evidence-panel.is-active {
+    opacity: 1;
+  }
+
+  .system-mobile-evidence {
+    display: none;
+  }
+
+  @media (max-width: 1023px) {
+    .project-theater {
+      padding: var(--space-9) 0;
+    }
+
+    .systems-container {
+      width: calc(100% - 48px);
+    }
+
+    .systems-stage {
+      display: block;
+      margin-top: var(--space-8);
+    }
+
+    .system-narrative {
+      min-height: 0;
+      padding: var(--space-8) 0 0;
+    }
+
+    .system-narrative + .system-narrative {
+      margin-top: 80px;
+      border-top: 1px solid var(--theater-border);
+    }
+
+    .systems-evidence {
+      display: none;
+    }
+
+    .system-mobile-evidence {
+      display: block;
+      margin-top: var(--space-6);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .project-theater {
+      padding: 80px 0;
+    }
+
+    .systems-container {
+      width: calc(100% - 40px);
+    }
+
+    .systems-heading h2 {
+      font-size: var(--text-3xl);
+    }
+
+    .system-narrative h3 {
+      font-size: clamp(36px, 11vw, 50px);
+    }
+
+    .system-flow {
+      display: grid;
+      gap: 0;
+    }
+
+    .system-flow li {
+      padding: 10px 0 10px 18px;
+      border: 0;
+      border-left: 1px solid var(--theater-accent);
+      border-radius: 0;
+    }
+
+    .system-flow li::before {
+      position: absolute;
+      top: 16px;
+      left: -3px;
+      width: 5px;
+      height: 5px;
+      border-radius: var(--radius-pill);
+      background: var(--theater-accent);
+      content: '';
+    }
+
+    .system-highlights > div {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .systems-evidence-panel {
+      transition: none;
+    }
+  }
+</style>

@@ -1,7 +1,7 @@
 <script is:inline>
   ;(() => {
-    const DARK_COLOR = '#0B0B10'
-    const LIGHT_COLOR = '#FCFCFD'
+    const DARK_COLOR = '#111513'
+    const LIGHT_COLOR = '#F4F2EC'
     const MEDIA_QUERY = '(prefers-color-scheme: dark)'
 
     function getStoredTheme() {
@@ -22,6 +22,7 @@
     function applyTheme(theme = getStoredTheme()) {
       const resolvedTheme = resolveTheme(theme)
       document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+      document.documentElement.dataset.theme = resolvedTheme
       document
         .querySelector('meta[name="theme-color"]')
         ?.setAttribute('content', resolvedTheme === 'dark' ? DARK_COLOR : LIGHT_COLOR)

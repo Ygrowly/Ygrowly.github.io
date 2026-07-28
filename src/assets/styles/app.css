@@ -1,22 +1,65 @@
+@import '@fontsource-variable/geist/wght.css';
+
 /* Font */
-@font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Variable.ttf');
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-VariableItalic.ttf');
-  font-style: italic;
-  font-display: swap;
-}
 html {
-  font-family: 'Satoshi', sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Theme */
 :root {
+  color-scheme: light;
+
+  /* Homepage redesign tokens. Keep the legacy HSL aliases below because
+     astro-pure and UnoCSS consume them throughout the existing site. */
+  --bg-page: #f4f2ec;
+  --bg-surface: #fbfaf6;
+  --bg-elevated: #ffffff;
+  --text-primary: #151817;
+  --text-secondary: #66706b;
+  --text-tertiary: #8a928e;
+  --border-default: #d8ddd8;
+  --border-strong: #bfc7c2;
+  --signal-accent: #087a5b;
+  --signal-accent-hover: #066348;
+  --accent-soft: #ddf3e9;
+  --focus-ring: #087a5b;
+  --selection-bg: #bfe8d8;
+
+  --font-sans:
+    'Instrument Sans', 'Geist Variable', 'Geist', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei',
+    system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 32px;
+  --text-4xl: 44px;
+  --text-hero: clamp(48px, 5.2vw, 76px);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-terminal: 18px;
+  --radius-pill: 999px;
+
+  --shadow-terminal: 0 1px 2px rgba(0, 0, 0, 0.08), 0 18px 60px rgba(0, 0, 0, 0.12);
+  --shadow-menu: 0 12px 40px rgba(0, 0, 0, 0.14);
+
   --background: 210 33% 99%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
@@ -43,7 +86,23 @@ html {
   --code-bg: 220 14% 93%;
   --code-fg: 220 13% 18%;
 }
-.dark {
+.dark,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-page: #111513;
+  --bg-surface: #171c19;
+  --bg-elevated: #1d231f;
+  --text-primary: #f1f3ef;
+  --text-secondary: #a4ada8;
+  --text-tertiary: #7f8a84;
+  --border-default: #2a332f;
+  --border-strong: #3a4741;
+  --signal-accent: #67e2b7;
+  --signal-accent-hover: #8ceac8;
+  --accent-soft: #173a30;
+  --focus-ring: #67e2b7;
+  --selection-bg: #285a49;
+
   --background: 240 20.54% 5.2%;
   --foreground: 0 0% 98%;
   --card: 240 10% 3.9%;
@@ -77,9 +136,48 @@ html.dark {
 }
 
 /* Global */
+html {
+  scroll-behavior: smooth;
+  background: var(--bg-page);
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--selection-bg);
+}
+
 a {
   transition: color 0.2s ease;
   &:hover {
     color: hsl(var(--primary) / var(--un-text-opacity, 1));
+  }
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
