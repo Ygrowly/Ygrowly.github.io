@@ -19,6 +19,12 @@ jobs:
 
       - name: Install, build, and upload
         uses: withastro/action@v6
+        with:
+          # Disable the Astro content cache on CI. The action's restore-keys
+          # fallback (astro-cache-<os>-) reuses node_modules/.astro from prior
+          # runs, and Astro's glob loader keeps stale content-store entries for
+          # deleted posts, which breaks the build after removing articles.
+          cache: false
 
   deploy:
     needs: build
