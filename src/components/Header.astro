@@ -21,11 +21,10 @@ const resumeAria =
   lang === 'en' && resume.fallbackToChinese
     ? 'Open Chinese résumé PDF in a new tab'
     : t('nav.resumeAria')
-const sectionPrefix = home ? '' : homeHref
 const navItems = [
-  { label: t('nav.homeProjects'), href: `${sectionPrefix}#projects`, section: 'projects' },
-  { label: t('nav.homeExperience'), href: `${sectionPrefix}#experience`, section: 'experience' },
-  { label: t('nav.homeWriting'), href: `${sectionPrefix}#writing`, section: 'writing' },
+  { label: t('nav.homeProjects'), href: localizedPath('/projects', lang), section: 'projects' },
+  { label: t('nav.homeExperience'), href: localizedPath('/experience', lang), section: 'experience' },
+  { label: t('nav.homeWriting'), href: localizedPath('/blog', lang), section: 'writing' },
   { label: t('nav.homeAbout'), href: localizedPath('/about', lang), section: 'about' }
 ]
 ---

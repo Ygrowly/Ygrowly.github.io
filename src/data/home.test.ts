@@ -20,6 +20,7 @@ describe('homepage configuration', () => {
 
   test('keeps bilingual homepage routes and translation fallback helpers stable', () => {
     expect(hasEnAlternate('/')).toBe(true)
+    expect(hasEnAlternate('/experience')).toBe(true)
     expect(withLangPrefix('/', 'en')).toBe('/en')
     expect(withLangPrefix('/about', 'en')).toBe('/en/about')
   })

@@ -101,7 +101,16 @@ export function localizedPath(path: string, lang: Lang): string {
 export function hasEnAlternate(barePath: string): boolean {
   if (barePath === '/') return true
   if (
-    ['/about', '/projects', '/links', '/contact', '/search', '/curated', '/tags'].includes(barePath)
+    [
+      '/about',
+      '/projects',
+      '/experience',
+      '/links',
+      '/contact',
+      '/search',
+      '/curated',
+      '/tags'
+    ].includes(barePath)
   )
     return true
   // blog & notes: only the paginated list is mirrored under /en, not detail pages
