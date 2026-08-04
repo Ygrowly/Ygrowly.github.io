@@ -6,11 +6,10 @@ tags: ['ai', 'agent', 'coding agent', '源码阅读']
 ---
 
 
-> 源码仓库：`[earendil-works/pi](https://github.com/earendil-works/pi)`
-分析版本：`[aa0ec808b970db31822e07835a46647cb51d9d66](https://github.com/earendil-works/pi/tree/aa0ec808b970db31822e07835a46647cb51d9d66)`
-Commit 时间：2026-08-01
-对应包版本：`0.83.0`
->
+> - 源码仓库：[earendil-works/pi](https://github.com/earendil-works/pi)
+> - 分析版本：[aa0ec808b970db31822e07835a46647cb51d9d66](https://github.com/earendil-works/pi/tree/aa0ec808b970db31822e07835a46647cb51d9d66)
+> - Commit 时间：2026-08-01
+> - 对应包版本：`0.83.0`
 
 Pi 既是一个可以直接使用的终端 Coding Agent，也是一套分层复用的 Agent 工程实现。本文不按仓库目录逐文件介绍，而是追踪一个请求：
 
@@ -26,49 +25,49 @@ Pi 既是一个可以直接使用的终端 Coding Agent，也是一套分层复�
 # 第一部分：阅读源码前，先锁定 15 个问题
 这 15 个问题既是源码阅读入口，也是后文的覆盖检查。先知道自己要解释什么，再进入类型与函数，能避免把“看过代码”误当成“理解设计”。
 
-## Q1：Pi 的三层主干分别解决什么问题，`pi-tui` 为什么不属于主链路？
+**Q1：Pi 的三层主干分别解决什么问题，`pi-tui` 为什么不属于主链路？**
 需要区分 `pi-ai` 的模型调用、`pi-agent-core` 的 Agent Runtime、`pi-coding-agent` 的 Coding Harness，以及作为事件消费者和交互组件库存在的 `pi-tui`。
 
-## Q2：为什么依赖方向是 Coding Agent → Agent Core → AI？
+**Q2：为什么依赖方向是 Coding Agent → Agent Core → AI？**
 需要回答各层可否独立使用、上层为什么能使用底层类型，以及把 Provider、Loop、Session 分开后，具体移除了哪些耦合。
 
-## Q3：`pi-ai` 如何把不同 Provider 和 API 组织成统一模型能力？
+**Q3：`pi-ai` 如何把不同 Provider 和 API 组织成统一模型能力？**
 需要理解 `Provider`、`Model`、API 实现、认证和模型发现的关系，而不是笼统地说“封装了多模型”。
 
-## Q4：为什么一次模型调用不是“请求进去，字符串出来”？
+**Q4：为什么一次模型调用不是“请求进去，字符串出来”？**
 需要覆盖流式事件、text、thinking、tool call、最终 `AssistantMessage`、`stopReason`、usage、cost、Error、Abort 和部分输出。
 
-## Q5：会话中途切换模型或 Provider，原有上下文怎样继续使用？
+**Q5：会话中途切换模型或 Provider，原有上下文怎样继续使用？**
 需要检查消息格式转换、Thinking 签名、Tool Call ID、图像能力差异和转换的有损边界。
 
-## Q6：Agent Loop 如何启动、继续和停止？
+**Q6：Agent Loop 如何启动、继续和停止？**
 需要严格区分一次模型 Generation、一次 Turn 和一次完整 Agent Run，并说明 `prompt()`、`continue()`、Tool Result、错误和用户中止怎样改变流程。
 
-## Q7：Agent 内部消息为什么不能直接作为模型 Context？
+**Q7：Agent 内部消息为什么不能直接作为模型 Context？**
 需要理解 `AgentMessage`、模型 `Message`、`transformContext()` 和 `convertToLlm()` 的边界。
 
-## Q8：一次 Tool Call 从模型输出到结果回填，要经过哪些阶段？
+**Q8：一次 Tool Call 从模型输出到结果回填，要经过哪些阶段？**
 需要追踪工具识别、参数预处理、Schema 校验、Hook、执行、进度更新、结果转换、错误回填和 `toolCallId` 关联。
 
-## Q9：多个工具如何调度，失败和 Abort 分别意味着什么？
+**Q9：多个工具如何调度，失败和 Abort 分别意味着什么？**
 需要区分顺序与并行、准备顺序与完成顺序、结果回填顺序，以及已经完成、正在执行和尚未开始的工具在中止时会发生什么。
 
-## Q10：为什么 Pi 同时需要事件流、steering 和 follow-up？
+**Q10：为什么 Pi 同时需要事件流、steering 和 follow-up？**
 需要说明 Agent、Turn、Message、Tool 四层事件如何解耦 Runtime 与 UI，以及两类队列为什么有不同消费时机。
 
-## Q11：`pi-coding-agent` 如何把通用 Runtime 组装成可用的 Coding Agent？
+**Q11：`pi-coding-agent` 如何把通用 Runtime 组装成可用的 Coding Agent？**
 需要找到 Model、认证、System Prompt、项目指令、Skills、工具、Extensions、`AgentSession` 和事件消费者的汇合点。
 
-## Q12：Pi 如何决定哪些信息进入模型 Context？
+**Q12：Pi 如何决定哪些信息进入模型 Context？**
 需要覆盖 System Prompt、`AGENTS.md`、Skills 渐进加载、工具输出截断、扩展动态改写、Session 压缩和模型格式转换。
 
-## Q13：为什么 Session 使用 append-only JSONL 树，而不是普通聊天数组？
+**Q13：为什么 Session 使用 append-only JSONL 树，而不是普通聊天数组？**
 需要解释 Entry、`id/parentId`、当前 Leaf、模型切换节点、分支导航、恢复和原始历史保留。
 
-## Q14：Compaction 压缩了什么，又没有改变什么？
+**Q14：Compaction 压缩了什么，又没有改变什么？**
 需要解释触发阈值、Token 预算、切割点、Tool Call 边界、结构化摘要、近期消息、多次压缩，以及它与 Branch Summary 的区别。
 
-## Q15：为什么 Pi 把很多能力留给扩展，而不直接内置？
+**Q15：为什么 Pi 把很多能力留给扩展，而不直接内置？**
 需要区分 Extension、Skill、Prompt Template、Pi Package 和运行模式，同时正视极简内核的收益、组合成本与安全边界。
 
 ---

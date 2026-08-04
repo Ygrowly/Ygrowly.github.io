@@ -2,32 +2,32 @@ import type { MarkdownHeading } from 'astro'
 
 export interface TocItem {
   depth: number
+  isRoot: boolean
   slug: string
   text: string
   subheadings: TocItem[]
 }
 
-function diveChildren(item: TocItem, depth: number): TocItem[] {
-  if (depth === 1 || !item.subheadings.length) return item.subheadings
-  return diveChildren(item.subheadings[item.subheadings.length - 1] as TocItem, depth - 1)
-}
-
 export function generateToc(rawHeadings: readonly MarkdownHeading[]) {
-  const bodyHeadings = rawHeadings.filter(({ depth }) => depth > 1)
+  const bodyHeadings = rawHeadings.filter(({ depth }) => depth >= 1)
   const toc: TocItem[] = []
+  const parents: TocItem[] = []
 
   bodyHeadings.forEach((h) => {
-    const heading: TocItem = { ...h, subheadings: [] }
-
-    if (heading.depth === 2 || !toc.length) {
-      toc.push(heading)
-      return
+    while (parents.length && parents[parents.length - 1]!.depth >= h.depth) {
+      parents.pop()
     }
 
-    const lastItemInToc = toc[toc.length - 1]!
-    const gap = heading.depth - lastItemInToc.depth
-    const target = gap > 0 ? diveChildren(lastItemInToc, gap) : toc
-    target.push(heading)
+    const parent = parents[parents.length - 1]
+    const heading: TocItem = { ...h, isRoot: !parent, subheadings: [] }
+
+    if (parent) {
+      parent.subheadings.push(heading)
+    } else {
+      toc.push(heading)
+    }
+
+    parents.push(heading)
   })
 
   return toc
