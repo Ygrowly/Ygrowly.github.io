@@ -1,18 +1,9 @@
----
-title: '从一次请求读懂 Pi：Agent Runtime 与 Coding Harness 源码剖析'
-description: '沿着一次读取 package.json 的请求，拆解 Pi 的模型适配、Agent Loop、工具执行、上下文投影、事件流与 Session 持久化。'
-publishDate: 2026-08-01
-tags: ['ai', 'agent', 'coding agent', '源码阅读']
----
 
-import InterviewQuestionDeck from '@/components/blog/InterviewQuestionDeck'
-import { piAgentInterviewQuestions } from '@/data/interview/pi-agent-questions'
-
-
-> - 源码仓库：[earendil-works/pi](https://github.com/earendil-works/pi)
-> - 分析版本：[aa0ec808b970db31822e07835a46647cb51d9d66](https://github.com/earendil-works/pi/tree/aa0ec808b970db31822e07835a46647cb51d9d66)
-> - Commit 时间：2026-08-01
-> - 对应包版本：`0.83.0`
+> 源码仓库：`[earendil-works/pi](https://github.com/earendil-works/pi)`  
+分析版本：`[aa0ec808b970db31822e07835a46647cb51d9d66](https://github.com/earendil-works/pi/tree/aa0ec808b970db31822e07835a46647cb51d9d66)`  
+Commit 时间：2026-08-01  
+对应包版本：`0.83.0`
+>
 
 Pi 既是一个可以直接使用的终端 Coding Agent，也是一套分层复用的 Agent 工程实现。本文不按仓库目录逐文件介绍，而是追踪一个请求：
 
@@ -25,10 +16,53 @@ Pi 既是一个可以直接使用的终端 Coding Agent，也是一套分层复�
 
 ---
 
-# 第一部分：15 张问题卡，先测再读
-这 15 个问题既是源码阅读入口，也是全文的覆盖检查。先尝试回答，再翻面核对面试标答、答题结构与实现证据。
+# 第一部分：阅读源码前，先锁定 15 个问题
+这 15 个问题既是源码阅读入口，也是后文的覆盖检查。先知道自己要解释什么，再进入类型与函数，能避免把“看过代码”误当成“理解设计”。
 
-<InterviewQuestionDeck questions={piAgentInterviewQuestions} client:load />
+## Q1：Pi 的三层主干分别解决什么问题，`pi-tui` 为什么不属于主链路？
+需要区分 `pi-ai` 的模型调用、`pi-agent-core` 的 Agent Runtime、`pi-coding-agent` 的 Coding Harness，以及作为事件消费者和交互组件库存在的 `pi-tui`。
+
+## Q2：为什么依赖方向是 Coding Agent → Agent Core → AI？
+需要回答各层可否独立使用、上层为什么能使用底层类型，以及把 Provider、Loop、Session 分开后，具体移除了哪些耦合。
+
+## Q3：`pi-ai` 如何把不同 Provider 和 API 组织成统一模型能力？
+需要理解 `Provider`、`Model`、API 实现、认证和模型发现的关系，而不是笼统地说“封装了多模型”。
+
+## Q4：为什么一次模型调用不是“请求进去，字符串出来”？
+需要覆盖流式事件、text、thinking、tool call、最终 `AssistantMessage`、`stopReason`、usage、cost、Error、Abort 和部分输出。
+
+## Q5：会话中途切换模型或 Provider，原有上下文怎样继续使用？
+需要检查消息格式转换、Thinking 签名、Tool Call ID、图像能力差异和转换的有损边界。
+
+## Q6：Agent Loop 如何启动、继续和停止？
+需要严格区分一次模型 Generation、一次 Turn 和一次完整 Agent Run，并说明 `prompt()`、`continue()`、Tool Result、错误和用户中止怎样改变流程。
+
+## Q7：Agent 内部消息为什么不能直接作为模型 Context？
+需要理解 `AgentMessage`、模型 `Message`、`transformContext()` 和 `convertToLlm()` 的边界。
+
+## Q8：一次 Tool Call 从模型输出到结果回填，要经过哪些阶段？
+需要追踪工具识别、参数预处理、Schema 校验、Hook、执行、进度更新、结果转换、错误回填和 `toolCallId` 关联。
+
+## Q9：多个工具如何调度，失败和 Abort 分别意味着什么？
+需要区分顺序与并行、准备顺序与完成顺序、结果回填顺序，以及已经完成、正在执行和尚未开始的工具在中止时会发生什么。
+
+## Q10：为什么 Pi 同时需要事件流、steering 和 follow-up？
+需要说明 Agent、Turn、Message、Tool 四层事件如何解耦 Runtime 与 UI，以及两类队列为什么有不同消费时机。
+
+## Q11：`pi-coding-agent` 如何把通用 Runtime 组装成可用的 Coding Agent？
+需要找到 Model、认证、System Prompt、项目指令、Skills、工具、Extensions、`AgentSession` 和事件消费者的汇合点。
+
+## Q12：Pi 如何决定哪些信息进入模型 Context？
+需要覆盖 System Prompt、`AGENTS.md`、Skills 渐进加载、工具输出截断、扩展动态改写、Session 压缩和模型格式转换。
+
+## Q13：为什么 Session 使用 append-only JSONL 树，而不是普通聊天数组？
+需要解释 Entry、`id/parentId`、当前 Leaf、模型切换节点、分支导航、恢复和原始历史保留。
+
+## Q14：Compaction 压缩了什么，又没有改变什么？
+需要解释触发阈值、Token 预算、切割点、Tool Call 边界、结构化摘要、近期消息、多次压缩，以及它与 Branch Summary 的区别。
+
+## Q15：为什么 Pi 把很多能力留给扩展，而不直接内置？
+需要区分 Extension、Skill、Prompt Template、Pi Package 和运行模式，同时正视极简内核的收益、组合成本与安全边界。
 
 ---
 
@@ -108,11 +142,11 @@ Agent Runtime 调用模型时，交给 `pi-ai` 的核心输入是 `Model`、`Con
 
 这里要区分 Provider 和 API。Provider 是具体运行单元，拥有标识、认证方式、模型列表和流式入口；API 实现负责把统一 Context 翻译成 Anthropic Messages、OpenAI Responses、Google Generative AI 等协议。一个 Provider 可以按模型的 `model.api` 分派到不同 API 实现。`Models` 集合负责找到模型所属 Provider、解析认证并委托调用，而不是自己实现所有厂商协议。
 
-{/* 这是一个文本绘图，源码为：flowchart LR
+<!-- 这是一个文本绘图，源码为：flowchart LR
     CTX["Model + Context"] --> MS["Models.streamSimple"]
     MS --> PR["Provider"]
     PR --> API["API translator"]
-    API --> UP["Upstream model"] --> */}
+    API --> UP["Upstream model"] -->
 ![](https://cdn.nlark.com/yuque/__mermaid_v3/a6a7f260730b82011c213c18d9cb82b2.svg)
 
 认证在每次请求前解析，而不是在会话启动时永久冻结。这对会过期的 OAuth Token 很重要：长时间工具执行后，下一次 Generation 可以重新取得有效凭证。Coding Agent 还在这一层补充超时、重试、归因 Header 和 Provider 请求扩展 Hook。
@@ -165,11 +199,11 @@ Pi 的 Turn 不是传统聊天中“用户一句＋助手一句”的宽泛说�
 ### 4.3 AgentMessage 如何投影成模型 Context
 每次 Provider 调用前，Loop 都执行同一条边界转换：
 
-{/* 这是一个文本绘图，源码为：flowchart LR
+<!-- 这是一个文本绘图，源码为：flowchart LR
     AM["AgentMessage[]"] --> TC["transformContext()"]
     TC --> CL["convertToLlm()"]
     CL --> MM["Message[]"]
-    MM --> CX["Context"] --> */}
+    MM --> CX["Context"] -->
 ![](https://cdn.nlark.com/yuque/__mermaid_v3/1b02027d754b5d2b7db535fa308e4c80.svg)
 
 `AgentMessage` 比模型 `Message` 更丰富。Coding Agent 还需要保存直接 Bash 执行、Extension 自定义消息、Branch Summary 和 Compaction Summary。它们有 UI 或恢复语义，却不能全部按原类型发送给 Provider。
@@ -444,13 +478,204 @@ Pi 负责提供 Harness，不负责替上层应用完成业务权限、操作审
 
 ---
 
- 
+# 第三部分：15 个问题的面试标答
+以下回答不再增加新知识，只把前文压缩成可在面试中直接表达的结构。每题先给结论，再讲执行过程，最后说明设计收益与代价。
 
- 
+## Q1：Pi 的三层主干分别解决什么问题？
+### 面试标答
+Pi 把 Coding Agent 分成三个复用深度。`pi-ai` 统一 Model、Provider、认证和流式模型协议；`pi-agent-core` 在其上实现消息状态、Agent Loop、工具执行、事件和运行中队列；`pi-coding-agent` 再加入编码场景的 System Prompt、项目上下文、Skills、文件与 Shell 工具、Extensions、Session 和 Compaction。`pi-tui` 是正交交互层，负责消费事件和收集输入，不参与 Loop 的控制决策。
 
- 
+这使同一套底层能力既能单独作为模型 SDK，也能作为通用 Agent Runtime，最后才形成完整 Coding Harness。代价是消息、工具和状态在层间有多次类型扩展与转换，第一次读源码时比单体实现更难追踪。
 
-# 第三部分：我对 Pi 的理解
+### 实现证据
+包依赖可由三个 `package.json` 验证；运行主线分别位于 `packages/ai/src/models.ts`、`packages/agent/src/agent-loop.ts` 和 `packages/coding-agent/src/core/agent-session.ts`。
+
+### 可能追问
+**上层直接使用底层类型是否破坏分层？** 不破坏。分层约束是依赖单向，上层本就可以复用下层协议；真正的问题是底层反向知道上层场景。
+
+## Q2：为什么依赖方向是 Coding Agent → Agent Core → AI？
+### 面试标答
+因为越靠下的层知道得越少。`pi-ai` 只处理模型调用，不应该知道 Session、文件工具或 TUI；Agent Core 只依赖统一模型协议，不关心工具究竟读取本地文件还是调用远程服务；Coding Agent 位于最上层，负责把这些能力按编码场景组装起来。
+
+具体收益是替换界面不会触碰 Loop，替换 Provider 不会修改 Session，单独使用模型 SDK也不必引入 CLI。代价是上层需要显式完成适配，例如把 Coding Agent 的 ToolDefinition 包装成 AgentTool，把自定义 AgentMessage 转成模型 Message。
+
+### 实现证据
+`packages/coding-agent/package.json` 同时依赖 `pi-agent-core`、`pi-ai` 和 `pi-tui`；`packages/agent/package.json` 只依赖 `pi-ai` 等基础库；`packages/ai` 不依赖前两者。
+
+### 可能追问
+**为什么 Coding Agent 还会直接依赖 **`pi-ai`**，不全部通过 Agent Core？** 因为它需要直接使用 Model、Message、认证和模型运行配置等底层公共类型。这是复用，不是绕过 Runtime 执行主链路。
+
+## Q3：`pi-ai` 如何统一多个 Provider？
+### 面试标答
+Pi 没把 Provider 简化成一个 URL。Provider 是具体运行单元，拥有 ID、认证、模型列表和 stream 行为；Model 描述某个模型属于哪个 Provider、使用哪种 API、上下文窗口和能力；API 实现再负责把统一 Context 翻译成厂商协议，并把厂商事件归一化。
+
+一次调用中，`Models.streamSimple()` 先按 `model.provider` 找到 Provider，动态解析认证，再由 Provider 按 `model.api` 分派到具体协议实现。这样模型发现、认证与协议翻译分开，同时允许一个 Provider 提供多种 API。代价是 Provider-specific options 和兼容性差异仍需显式保留，统一接口并不能消除真实能力差异。
+
+### 实现证据
+关键类型与分派逻辑位于 `packages/ai/src/models.ts` 的 `Provider`、`Models`、`createProvider()`，公共模型协议位于 `packages/ai/src/types.ts`。
+
+### 可能追问
+**Provider 和 API 是一一对应吗？** 不是。一个 Provider 可以拥有使用不同 API 的模型，`createProvider()` 会按 `model.api` 选择对应 streams。
+
+## Q4：为什么模型调用不是“请求进去、字符串出来”？
+### 面试标答
+因为模型响应同时包含过程数据和最终状态。Pi 的统一流先发 `start`，中间可能交错输出 text、thinking 和 tool call 增量，最后以 `done` 或 `error` 结束。这些事件不断聚合为 `AssistantMessage`，其中不仅有内容，还包含 Provider、Model、usage、cost、`stopReason` 和错误信息。
+
+Agent Runtime 一边异步迭代事件给 UI，一边通过 `result()` 得到最终消息。如果结果包含 Tool Call，Generation 已结束，但 Agent Run 仍要执行工具并再次调用模型。Error 和 Abort 也被编码为最终消息，使 UI、Session 与 Runtime 看到一致的结束语义。代价是调用方必须正确处理 partial、终态和不同内容块，不能只拼接文本。
+
+### 实现证据
+`AssistantMessageEvent` 与 `AssistantMessage` 定义在 `packages/ai/src/types.ts`，聚合容器是 `packages/ai/src/utils/event-stream.ts` 的 `AssistantMessageEventStream`。
+
+### 可能追问
+`pending`** 会写入 Session 吗？** 不应。它是流式 partial 的状态，最终 `done/error` 会替换成正式停止原因。
+
+## Q5：切换模型或 Provider 后，历史怎样继续使用？
+### 面试标答
+Pi 会在目标模型调用前转换历史，而不是假设所有协议兼容。跨模型时，可读 thinking 会降级成普通文本，只对原模型有效的 redacted thinking 或签名会被丢弃；不支持图像的目标模型会看到占位文本；Provider 不兼容的 Tool Call ID 会归一化，Tool Result 关联同步更新；孤立 Tool Call 会补错误结果；失败或中止的 AssistantMessage 不会重放。
+
+因此，会话能继续，但不是无损迁移。普通文本、工具语义通常可以保留，Provider 私有的推理状态、缓存与签名可能丢失。设计收益是避免新 Provider 因旧协议对象报错，代价是模型切换后的上下文语义可能弱化，需要接受并测试这一边界。
+
+### 实现证据
+核心逻辑在 `packages/ai/src/api/transform-messages.ts` 的 `transformMessages()`。
+
+### 可能追问
+**为什么不在消息生成时就转成最通用格式？** 那会过早丢失同模型后续请求需要的签名、加密推理和 Provider 元数据，也会削弱 Prompt Cache 与推理连续性。
+
+## Q6：Agent Loop 如何启动、继续和停止？
+### 面试标答
+`prompt()` 会新增 UserMessage 并启动一个 Agent Run；`continue()` 不新增消息，只从最后一条 user 或 tool result 继续，常用于重试与恢复。Run 中每次 Provider 请求是一代 Generation，一个 AssistantMessage 加其工具批次构成一个 Turn。
+
+模型产生 Tool Call 时，当前 Generation 结束，Runtime 执行工具并把 Tool Results 写入上下文，随后开始下一 Turn。没有 Tool Call 后，Loop 先检查 steering，再在原本要停止时检查 follow-up；都没有才发 `agent_end`。`error` 或 `aborted` 会直接结束；`shouldStopAfterTurn` 可优雅停止；`prepareNextTurn` 可调整下一轮 Context 或 Model。
+
+收益是控制流由真实运行信号驱动，不依赖固定轮数。代价是结束条件分散在模型终态、工具结果、队列和 Hook 中，调试时必须区分 Generation、Turn 与 Run。
+
+### 实现证据
+`packages/agent/src/agent.ts` 的 `prompt()`、`continue()`，以及 `packages/agent/src/agent-loop.ts` 的 `runLoop()`。
+
+### 可能追问
+**为什么不能从 assistant 末尾直接 **`continue()`**？** Provider 通常需要新的 user 或 tool result 才能形成合法下一轮；无新增输入的 assistant 尾部没有明确继续语义。
+
+## Q7：为什么 AgentMessage 不能直接作为模型 Context？
+### 面试标答
+因为 Agent 内部要保存比模型协议更丰富的运行语义。Coding Agent 除了 user、assistant、tool result，还保存直接 Bash 执行、Extension 自定义消息、Compaction Summary 和 Branch Summary。这些消息可能用于 UI、恢复或扩展状态，不能原类型发送给 Provider。
+
+每次调用前，`transformContext()` 先在 AgentMessage 层做动态过滤或注入，`convertToLlm()` 再把可用内容转成 `pi-ai.Message[]`。例如 Bash 记录转成 user text，Summary 用带标签的 user message 表达，明确排除的 Bash 记录被过滤。这样 Session 保留完整事实，模型只获得当前需要的视图。代价是 Context 不再等于 transcript，排查“模型为什么没看到某条信息”需要沿投影链检查。
+
+### 实现证据
+边界位于 `packages/agent/src/agent-loop.ts` 的 `streamAssistantResponse()`；Coding Agent 转换位于 `packages/coding-agent/src/core/messages.ts`。
+
+### 可能追问
+**Compaction 应放在 **`convertToLlm()`** 里吗？** 不合适。Compaction 会生成并持久化新的会话语义，先由 Session 层决定保留哪些 AgentMessage，再做模型格式转换更清晰。
+
+## Q8：一次 Tool Call 如何变成 Tool Result？
+### 面试标答
+Tool Call 只是模型提出的结构化执行请求。Runtime 先按名称查找工具，调用 `prepareArguments` 做兼容预处理，再按 Schema 校验参数；之后 `beforeToolCall` 可以阻断。通过准入后，Runtime 把 `toolCallId`、验证后的参数、AbortSignal 和进度回调交给 `execute()`。
+
+工具成功返回 AgentToolResult；异常、未知工具、非法参数和 Hook 阻断则被转换为错误结果。`afterToolCall` 还能修改最终 content、details、usage 和 error 语义。最后 Runtime 用原始 ID 构造 ToolResultMessage，发出消息事件并回填 transcript，下一次 Generation 才能使用真实结果。
+
+收益是模型意图与外部副作用之间存在明确治理点，失败也能继续推理。代价是工具实现必须同时处理 Schema、Abort、输出形态和错误语义，不能只是一个随意函数。
+
+### 实现证据
+完整管道位于 `packages/agent/src/agent-loop.ts` 的 `prepareToolCall()`、`executePreparedToolCall()`、`finalizeExecutedToolCall()` 和 `createToolResultMessage()`。
+
+### 可能追问
+**为什么工具异常要转成消息？** 模型需要知道动作为什么失败并决定重试、换工具或向用户解释；只抛出 Runtime 异常会切断这条反馈链。
+
+## Q9：多个工具怎样调度，Abort 后会怎样？
+### 面试标答
+Pi 默认并行执行同一 AssistantMessage 中的 Tool Calls，但准备阶段仍按声明顺序进行；若全局或任一工具要求 sequential，整批顺序执行。并行时，`tool_execution_end` 按实际完成顺序发出，Tool Result 消息则在全部结束后按模型原始调用顺序回填，兼顾 UI 实时性与上下文稳定性。
+
+AbortSignal 会传入 Hook 和工具。顺序模式不会再启动后续调用；并行模式中已经启动的任务需要工具自己响应 Signal，尚未准备的任务停止启动；已经完成的结果不会自动撤销。工具错误通常只形成 `isError` 结果，不自动终止整批。只有整批所有结果都声明 `terminate: true`，本批工具才不会自行驱动下一次模型调用；已排队消息仍可能让 Run 继续。
+
+### 实现证据
+见 `executeToolCallsSequential()`、`executeToolCallsParallel()` 和 `shouldTerminateToolBatch()`。
+
+### 可能追问
+**完成顺序和回填顺序必须一致吗？** 不必。完成事件服务观察，回填顺序服务确定性；Pi 有意把两者分开。
+
+## Q10：为什么需要事件流、steering 和 follow-up？
+### 面试标答
+事件流解决可观察性，队列解决运行中控制。Agent Core 发出 Agent、Turn、Message、Tool 四层生命周期事件，TUI、JSON、RPC 和 SDK 可以消费同一过程，不需要 Runtime 直接调用某个 UI。
+
+steering 是“当前任务下一轮要考虑的新指令”，在当前 Assistant Turn 和工具批次完成后、下一次模型调用前注入；follow-up 是“当前任务结束后再做的事”，只在 Loop 原本要停止时消费。当前实现中 steering 不会取消本批 Tool Calls。两类队列都支持一次取全部或逐条取出。
+
+这样用户既能实时看见过程，也能在稳定边界干预。代价是监听器和队列成为控制时序的一部分：监听器 Promise 会被等待，错误或阻塞的事件消费者可能拖慢 Run。
+
+### 实现证据
+事件类型在 `packages/agent/src/types.ts`，监听器顺序在 `Agent.processEvents()`，队列消费在 `runLoop()`。
+
+### 可能追问
+**为什么 steering 不立即终止当前工具？** 当前工具批次已经由一个完整 AssistantMessage 决定。Pi 选择在 Turn 边界注入新意图；若用户要立即停止，应使用 Abort，而不是把 steering 偷换成取消语义。
+
+## Q11：Coding Agent 如何组装通用 Runtime？
+### 面试标答
+关键入口是 `createAgentSession()`。它先构造 ModelRuntime、SettingsManager、SessionManager 和 ResourceLoader，恢复或选择 Model 与 Thinking Level；再创建 Agent，注入 Coding Agent 的消息转换、模型流函数、动态认证、Provider Hook、Context Hook 和队列配置；最后创建 AgentSession，加载资源、包装工具、连接 ExtensionRunner 和 Session 持久化。
+
+因此 AgentSession 不是单纯聊天记录，它是 Runtime、资源、模型、工具、扩展和会话的协调枢纽。底层 Agent 不知道 cwd、`AGENTS.md` 或文件工具，上层在这里把它们组合成可工作的 Coding Agent。收益是通用 Loop 不受编码场景污染，代价是 AgentSession 职责较多，理解完整初始化需要跨多个管理器。
+
+### 实现证据
+主要入口是 `packages/coding-agent/src/core/sdk.ts` 的 `createAgentSession()`，会话协调位于 `core/agent-session.ts`。
+
+### 可能追问
+**为什么不是 CLI 直接创建所有对象？** SDK、RPC 和 Interactive 都需要相同组装过程；集中在可复用工厂能避免入口之间行为漂移。
+
+## Q12：Pi 如何决定哪些信息进入模型 Context？
+### 面试标答
+Pi 使用多道边界共同控制 Context。启动时，System Prompt 提供身份、工具摘要和规则；项目上下文文件补充 `AGENTS.md` 等约束；Skills 只注入名称、描述和位置，全文按需读取；工具自身限制输出，例如 `read` 默认最多 2000 行或 50 KB；长会话由 Compaction 用摘要替换旧上下文投影。
+
+每轮调用前，Extension 还能通过 context 事件修改 Agent Messages，`convertToLlm()` 再过滤 UI-only 或排除项，最后 Provider 适配层处理图像、Thinking 和 Tool ID 的模型差异。模型看到的是这些步骤共同产生的视图，而不是完整 Session 文件。
+
+收益是信息按稳定性与需要分层加载，避免 Context 无限制增长。代价是输入来源多，必须提供诊断和源码追踪，才能解释某条信息在哪一层被加入、截断或删除。
+
+### 实现证据
+System Prompt 在 `core/system-prompt.ts`，资源加载在 `core/resource-loader.ts`，消息转换在 `core/messages.ts`，工具截断在 `core/tools/truncate.ts`，压缩在 `core/compaction/*`。
+
+### 可能追问
+**Skills 为什么不直接全部写进 System Prompt？** 数量增长会永久占用每次请求的 Token；元数据常驻、正文按需读取能把能力规模与基础 Context 解耦。
+
+## Q13：为什么 Session 使用 append-only JSONL 树？
+### 面试标答
+因为 Coding Agent 的历史不是只能向前的聊天数组。Pi 需要恢复、切换模型、修改早期意图、保留替代路径和记录 Extension 状态。每个 Entry 通过 `id/parentId` 指向父节点，当前 Leaf 决定活跃分支；切换分支只移动 Leaf，下一次追加形成新孩子，旧路径不删除。
+
+JSONL 适合逐行追加与人工检查，树结构让一个文件保留多条探索路径。模型调用时只从 Leaf 回溯到根，构造当前路径并应用 Compaction。收益是历史可追溯、分支不覆盖；代价是 Context 构造必须做树遍历，设置变化也要沿路径恢复，并需要处理迁移、孤儿节点和文件损坏。
+
+### 实现证据
+Entry 类型、`SessionManager`、`getBranch()`、`branch()` 和 `buildSessionContext()` 位于 `packages/coding-agent/src/core/session-manager.ts`。
+
+### 可能追问
+**模型能看到同一文件里的其他分支吗？** 默认不能，只看到当前 Leaf 对应路径；需要 Branch Summary 才会把离开分支的重要信息带入新路径。
+
+## Q14：Compaction 压缩了什么，没有改变什么？
+### 面试标答
+Compaction 压缩的是模型看到的旧上下文投影，不会删除原始 Session History。当估算 Context 超过 `contextWindow - reserveTokens` 时，Pi 向后寻找切割点，保留约 `keepRecentTokens` 的近期消息，把更早部分生成结构化摘要，并追加 CompactionEntry。
+
+下一次 `buildSessionContext()` 使用最新 Compaction Summary，加上从 `firstKeptEntryId` 开始的近期 Entry 和压缩后新增内容。Tool Result 不能作为切点，避免与 Tool Call 分离；巨大单 Turn 可以拆分并单独总结前缀；多次压缩会把 previous summary 合并进新摘要。
+
+收益是会话可继续超过单次 Context 窗口，原始 JSONL 仍可审计。代价是摘要有信息损失和漂移风险。Branch Summary 则总结被离开的另一分支，目的不是释放同一路径的 Token，两者不能混淆。
+
+### 实现证据
+阈值、切点与摘要生成在 `core/compaction/compaction.ts`；投影逻辑在 `session-manager.ts` 的 `buildContextEntries()`。
+
+### 可能追问
+**当前版本是否把近期消息复制进 CompactionEntry？** 没有。锁定 Commit 仍保存 `firstKeptEntryId`，由原树中的近期 Entry 重建 Context。
+
+## Q15：为什么 Pi 把很多能力留给扩展？
+### 面试标答
+Pi 的目标是提供可重组的 Harness，而不是规定唯一工作流。Extension 用来改变 Runtime、工具、事件、Provider 和 UI；Skill 提供模型按需读取的能力说明；Prompt Template 复用输入；Pi Package 负责组合与分发。MCP、子 Agent、Plan Mode、权限弹窗、Todo 和后台 Bash 都可以按需求在这些层上构建，但不作为默认内核政策。
+
+收益是核心更小，不会把所有用户锁进同一种编排与审批方式，也能按 `pi-ai → pi-agent-core → pi-coding-agent` 选择复用深度。代价是使用者需要自行组合企业能力，并承担 Package 兼容和维护。
+
+安全上，Extension 和 Package 可能拥有完整进程权限，Skill 也可能指导模型执行脚本；Project Trust 只控制项目资源是否加载，不是 Sandbox。高风险任务仍需操作系统级隔离。极简不是自动安全，而是把边界和责任说清楚。
+
+### 实现证据
+资源加载位于 `core/resource-loader.ts`，扩展协议位于 `core/extensions/*`，官方能力边界写在 `packages/coding-agent/README.md` 与 `docs/security.md`。
+
+### 可能追问
+**没有默认 Permission Popups 是否意味着没有准入点？** 不是。Agent Core 有 `beforeToolCall`，Extension 也能实现确认流；只是 Pi 不预设统一交互与政策，而且这仍不等于系统级隔离。
+
+---
+
+# 第四部分：我对 Pi 的理解
 ## 1. Pi 最值得学习的不是某个 API，而是边界
 Pi 最有价值的设计不是“支持很多模型”或“能调用工具”，而是持续区分容易混淆的对象：Provider 与 Agent、Tool Call 与工具执行、Agent State 与 Model Context、Session History 与当前分支、可扩展性与安全隔离。
 
@@ -567,3 +792,4 @@ sequenceDiagram
 如果要亲自复现本文，不必从 3000 多行的 `AgentSession` 开始。先读 `packages/ai/src/types.ts` 中的消息和流式事件，再完整阅读 `packages/agent/src/agent-loop.ts`，随后看 `packages/coding-agent/src/core/messages.ts` 与 `sdk.ts` 的组装。理解主链路后，再进入 `session-manager.ts`、`compaction.ts` 和 Extensions。
 
 阅读时始终用同一请求做断点：当前对象属于哪一层，何时从一种消息变成另一种消息，外部动作是否已经发生，结果何时重新进入模型，当前保存的是完整历史还是调用视图。能稳定回答这五件事，就不再只是“看过 Pi 源码”，而是已经建立了 Agent Runtime 的实现层认识。
+
