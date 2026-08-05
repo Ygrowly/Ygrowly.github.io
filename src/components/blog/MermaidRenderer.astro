@@ -1,0 +1,142 @@
+---
+
+---
+
+<script>
+  let diagramId = 0
+  let rendering = false
+
+  function getThemeVariables() {
+    const styles = getComputedStyle(document.documentElement)
+    const readToken = (name: string, fallback: string) =>
+      styles.getPropertyValue(name).trim() || fallback
+
+    return {
+      background: readToken('--bg-page', '#f4f2ec'),
+      primaryColor: readToken('--accent-soft', '#ddf3e9'),
+      primaryTextColor: readToken('--text-primary', '#151817'),
+      primaryBorderColor: readToken('--signal-accent', '#087a5b'),
+      lineColor: readToken('--signal-accent', '#087a5b'),
+      secondaryColor: readToken('--bg-elevated', '#ffffff'),
+      tertiaryColor: readToken('--bg-surface', '#fbfaf6'),
+      nodeTextColor: readToken('--text-primary', '#151817'),
+      clusterBkg: readToken('--bg-surface', '#fbfaf6'),
+      clusterBorder: readToken('--border-default', '#d8ddd8'),
+      titleColor: readToken('--text-primary', '#151817'),
+      edgeLabelBackground: readToken('--bg-page', '#f4f2ec'),
+      fontFamily: readToken('--font-sans', 'system-ui, sans-serif')
+    }
+  }
+
+  async function renderMermaid() {
+    if (rendering) return
+
+    const sourceBlocks = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-language="mermaid"]')
+    )
+      .map((shell) => ({
+        shell,
+        source: shell.querySelector('code')?.textContent?.trim() ?? ''
+      }))
+      .filter(({ source }) => source.length > 0)
+
+    const existingDiagrams = Array.from(
+      document.querySelectorAll<HTMLElement>('.mermaid-diagram[data-mermaid-source]')
+    ).map((target) => ({
+      source: target.dataset.mermaidSource ?? '',
+      target
+    }))
+
+    if (!sourceBlocks.length && !existingDiagrams.length) return
+
+    rendering = true
+
+    try {
+      const { default: mermaid } = await import('mermaid')
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'strict',
+        theme: 'base',
+        themeVariables: getThemeVariables()
+      })
+
+      const renderOne = async (source: string, target: HTMLElement) => {
+        const id = `ygrowly-mermaid-${diagramId++}`
+        const { bindFunctions, svg } = await mermaid.render(id, source)
+        target.innerHTML = svg
+        target.dataset.mermaidSource = source
+        bindFunctions?.(target)
+      }
+
+      for (const { shell, source } of sourceBlocks) {
+        const target = document.createElement('figure')
+        target.className = 'mermaid-diagram not-prose'
+        target.setAttribute('aria-label', 'Mermaid 架构图')
+
+        try {
+          await renderOne(source, target)
+          shell.replaceWith(target)
+        } catch (error) {
+          console.error('Unable to render Mermaid diagram', error)
+          shell.setAttribute('data-mermaid-error', 'true')
+        }
+      }
+
+      for (const { source, target } of existingDiagrams) {
+        if (!source) continue
+
+        try {
+          await renderOne(source, target)
+        } catch (error) {
+          console.error('Unable to refresh Mermaid diagram', error)
+        }
+      }
+    } finally {
+      rendering = false
+    }
+  }
+
+  const scheduleRender = () => {
+    void renderMermaid()
+  }
+
+  document.addEventListener('astro:page-load', scheduleRender)
+  window.addEventListener('ygrowly:theme-change', scheduleRender)
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleRender, { once: true })
+  } else {
+    scheduleRender()
+  }
+</script>
+
+<style is:global>
+  .mermaid-diagram {
+    display: block;
+    width: 100%;
+    margin: 1.5rem 0 2rem;
+    border: 1px solid hsl(var(--border) / 1);
+    border-radius: var(--radius, 0.5rem);
+    padding: 1rem;
+    background: var(--bg-surface, hsl(var(--background) / 1));
+    text-align: center;
+  }
+
+  .mermaid-diagram svg {
+    display: block;
+    width: min(100%, 66rem);
+    height: auto;
+    margin: 0 auto;
+  }
+
+  [data-mermaid-error='true'] {
+    border-color: hsl(var(--destructive) / 0.5);
+  }
+
+  @media (max-width: 640px) {
+    .mermaid-diagram {
+      margin: 1.25rem 0 1.5rem;
+      padding: 0.65rem;
+    }
+  }
+</style>

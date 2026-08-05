@@ -91,3 +91,6 @@ bunfig.toml
 # claude code agent workdir (worktrees, memory, etc.)
 .claude/
 .env*.local
+# Local Yuque exports. These are source documents for the import CLI and must
+# remain local rather than being tracked with the blog.
+/md/

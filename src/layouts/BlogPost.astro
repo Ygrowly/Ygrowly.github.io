@@ -11,6 +11,7 @@ import { MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import HeroEn from '@/components/blog/HeroEn.astro'
+import MermaidRenderer from '@/components/blog/MermaidRenderer.astro'
 import Comment from '@/components/comment/Comment.astro'
 import JsonLd from '@/components/JsonLd.astro'
 import TableOfContents from '@/components/navigation/TableOfContents.astro'
@@ -123,4 +124,5 @@ const breadcrumbLd = {
   <slot name='bottom-sidebar' slot='bottom-sidebar' />
 </PageLayout>
 
+<MermaidRenderer />
 {integ.mediumZoom.enable && <MediumZoom />}
