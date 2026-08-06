@@ -1,4 +1,180 @@
 /* Animation */
+/* Critical shell geometry. Keep the first paint aligned with the hydrated layout. */
+body {
+  margin: 0;
+  display: block;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+}
+
+#highlight-gradient {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+}
+
+astro-island {
+  display: contents;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  display: block;
+  width: 100%;
+  height: 72px;
+}
+
+.site-header__bar {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: min(1200px, calc(100% - 64px));
+  height: 100%;
+  margin: 0 auto;
+}
+
+.site-header__desktop {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.site-header__actions,
+.site-header__desktop-actions {
+  display: flex;
+  align-items: center;
+}
+
+.site-header__actions {
+  justify-self: end;
+  gap: 0.75rem;
+}
+
+.site-header__menu-button,
+.site-header__mobile-layer {
+  display: none;
+}
+
+#main-content > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid transparent;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+#main-content > a p {
+  margin: 0;
+}
+
+#site-shell,
+#site-shell *,
+#site-shell *::before,
+#site-shell *::after {
+  box-sizing: border-box;
+}
+
+#site-shell {
+  width: 100%;
+  max-width: 70rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+#main-content > main {
+  margin-top: 1.5rem;
+  align-items: flex-start;
+}
+
+#main-content > main > article {
+  min-width: 0;
+}
+
+#content {
+  min-width: 0;
+  margin-top: 2rem;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  #site-shell {
+    padding-inline: 1.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  #main-content > main {
+    display: flex;
+    column-gap: 2.5rem;
+  }
+
+  #main-content > main > article {
+    flex-grow: 1;
+  }
+
+  #main-content > main > #sidebar {
+    position: sticky;
+    top: 5rem;
+    min-width: 12rem;
+    flex-basis: 15rem;
+    order: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  #site-shell {
+    padding-inline: 2.5rem;
+  }
+
+  #main-content > main > #sidebar {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-header {
+    height: 64px;
+  }
+
+  .site-header__bar {
+    grid-template-columns: 1fr auto;
+    width: calc(100% - 40px);
+  }
+
+  .site-header__desktop,
+  .site-header__desktop-actions {
+    display: none;
+  }
+
+  .site-header__menu-button {
+    display: grid;
+  }
+
+  .site-header__mobile-layer {
+    display: block;
+  }
+
+  #main-content > main > #sidebar {
+    display: none;
+  }
+}
+
 @keyframes fade-in-up {
   0% {
     transform: translateY(2rem);

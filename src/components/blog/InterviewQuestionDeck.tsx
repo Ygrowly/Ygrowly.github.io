@@ -1,17 +1,33 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { InterviewQuestion } from './interview-question-types'
 import { markInterviewQuestionViewed, toggleInterviewQuestion } from './interview-question-state'
+import type { InterviewQuestion } from './interview-question-types'
 import InterviewQuestionCard from './InterviewQuestionCard'
+
 import './interview-question-deck.css'
 
 interface Props {
   questions: InterviewQuestion[]
 }
 
+interface ModalOrigin {
+  x: number
+  y: number
+}
+
+function getModalOrigin(element: HTMLElement): ModalOrigin {
+  const rect = element.getBoundingClientRect()
+
+  return {
+    x: rect.left + rect.width / 2 - window.innerWidth / 2,
+    y: rect.top + rect.height / 2 - window.innerHeight / 2
+  }
+}
+
 export default function InterviewQuestionDeck({ questions }: Props) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [viewedIds, setViewedIds] = useState<Set<string>>(() => new Set())
+  const [modalOrigin, setModalOrigin] = useState<ModalOrigin | null>(null)
   const cardRefs = useRef<Record<string, HTMLElement | null>>({})
 
   const setViewed = useCallback((id: string) => {
@@ -25,8 +41,9 @@ export default function InterviewQuestionDeck({ questions }: Props) {
   }, [])
 
   const toggleQuestion = useCallback(
-    (id: string) => {
+    (id: string, trigger: HTMLElement) => {
       setViewed(id)
+      setModalOrigin(getModalOrigin(trigger))
       setOpenId((current) => toggleInterviewQuestion(current, id))
     },
     [setViewed]
@@ -43,6 +60,8 @@ export default function InterviewQuestionDeck({ questions }: Props) {
   const navigateToQuestion = useCallback(
     (id: string) => {
       setViewed(id)
+      const card = cardRefs.current[id]
+      if (card) setModalOrigin(getModalOrigin(card))
       setOpenId(id)
 
       window.requestAnimationFrame(() => {
@@ -51,11 +70,68 @@ export default function InterviewQuestionDeck({ questions }: Props) {
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         card.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' })
-        focusCardTrigger(id)
       })
     },
-    [focusCardTrigger, setViewed]
+    [setViewed]
   )
+
+  useEffect(() => {
+    if (!openId) return
+
+    const dialog = document.getElementById(`${openId}-answer`)
+    if (!dialog) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      dialog.focus()
+    })
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeQuestion(openId)
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.getAttribute('aria-hidden') !== 'true')
+
+      if (!focusable.length) {
+        event.preventDefault()
+        dialog.focus()
+        return
+      }
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (!dialog.contains(document.activeElement)) {
+        event.preventDefault()
+        first.focus()
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [closeQuestion, openId])
 
   return (
     <section
@@ -107,7 +183,8 @@ export default function InterviewQuestionDeck({ questions }: Props) {
             isOpen={openId === question.id}
             isViewed={viewedIds.has(question.id)}
             onClose={() => closeQuestion(question.id)}
-            onToggle={() => toggleQuestion(question.id)}
+            onToggle={(trigger) => toggleQuestion(question.id, trigger)}
+            modalOrigin={openId === question.id ? modalOrigin : null}
             question={question}
           />
         ))}

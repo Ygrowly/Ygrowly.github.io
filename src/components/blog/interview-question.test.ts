@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs'
-
-import { describe, expect, test } from 'bun:test'
-
 import { piAgentInterviewQuestions } from '@/data/interview/pi-agent-questions'
+import { describe, expect, test } from 'bun:test'
 
 import { markInterviewQuestionViewed, toggleInterviewQuestion } from './interview-question-state'
 
@@ -37,16 +35,29 @@ describe('Pi Agent interview question deck data', () => {
 
   test('keeps the article and card styling out of the global heading/scroll contracts', () => {
     const article = readFileSync(
-      new URL('../../content/blog/20260801 - pi-agent-runtime-coding-harness/post.mdx', import.meta.url),
+      new URL(
+        '../../content/blog/20260801 - pi-agent-runtime-coding-harness/post.mdx',
+        import.meta.url
+      ),
       'utf8'
     )
+    const card = readFileSync(new URL('./InterviewQuestionCard.tsx', import.meta.url), 'utf8')
     const styles = readFileSync(new URL('./interview-question-deck.css', import.meta.url), 'utf8')
 
-    expect(article).toContain('<InterviewQuestionDeck questions={piAgentInterviewQuestions} client:load />')
+    expect(article).toContain(
+      '<InterviewQuestionDeck questions={piAgentInterviewQuestions} client:load />'
+    )
     expect(article).not.toContain('## Q1：')
     expect(article).not.toContain('### 面试标答')
-    expect(styles).not.toMatch(/overflow\s*:\s*(auto|scroll)/)
-    expect(styles).toContain('grid-column: 1 / -1')
+    expect(styles).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))')
+    expect(styles).toContain('position: fixed')
+    expect(styles).toContain('.iq-answer-dialog')
+    expect(styles).toContain('.iq-answer[hidden]')
+    expect(styles).toContain('@keyframes iq-modal-dialog-in')
+    expect(card).toContain('createPortal(answerDialog, document.body)')
+
+    const answerDialogStyles = styles.split('.iq-answer-dialog')[1]?.split('}')[0] ?? ''
+    expect(answerDialogStyles).not.toMatch(/overflow\s*:\s*(auto|scroll)/)
     expect(styles).toContain('prefers-reduced-motion: reduce')
   })
 })

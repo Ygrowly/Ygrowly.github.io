@@ -1,4 +1,5 @@
-import type { RefCallback } from 'react'
+import { useEffect, useState, type CSSProperties, type RefCallback } from 'react'
+import { createPortal } from 'react-dom'
 
 import type { InterviewQuestion } from './interview-question-types'
 
@@ -7,8 +8,9 @@ interface Props {
   index: number
   isOpen: boolean
   isViewed: boolean
+  modalOrigin: { x: number; y: number } | null
   onClose: () => void
-  onToggle: () => void
+  onToggle: (trigger: HTMLElement) => void
   question: InterviewQuestion
 }
 
@@ -37,73 +39,60 @@ export default function InterviewQuestionCard({
   index,
   isOpen,
   isViewed,
+  modalOrigin,
   onClose,
   onToggle,
   question
 }: Props) {
+  const [isMounted, setIsMounted] = useState(false)
   const number = String(index + 1).padStart(2, '0')
   const legacyId = `q${index + 1}`
   const answerId = `${question.id}-answer`
   const triggerId = `${question.id}-trigger`
 
-  return (
-    <article
-      ref={cardRef}
-      id={question.id}
-      className={`iq-card${isOpen ? ' is-open' : ''}${isViewed ? ' is-viewed' : ''}`}
-      data-open={isOpen}
-      data-question-id={question.id}
-      data-viewed={isViewed}
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const answerDialog = (
+    <div
+      id={answerId}
+      className={`iq-answer${isOpen ? ' is-open' : ''}`}
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby={`${answerId}-title`}
+      aria-hidden={!isOpen}
+      hidden={!isOpen}
+      tabIndex={-1}
+      style={
+        modalOrigin
+          ? ({
+              '--iq-modal-origin-x': `${modalOrigin.x}px`,
+              '--iq-modal-origin-y': `${modalOrigin.y}px`
+            } as CSSProperties)
+          : undefined
+      }
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
     >
-      <span id={legacyId} className='iq-legacy-anchor' aria-hidden='true' />
-
-      <div className='iq-card-header'>
-        <button
-          id={triggerId}
-          type='button'
-          className={`iq-card-toggle${isOpen ? ' is-open' : ''}`}
-          aria-controls={answerId}
-          aria-expanded={isOpen}
-          onClick={onToggle}
-        >
-          <span className='iq-card-topline'>
-            <span className='iq-number'>Q{number}</span>
-            <span className='iq-category'>{question.category}</span>
-          </span>
-
-          <span className='iq-question'>{renderInlineText(question.question)}</span>
-
-          {!isOpen && (
-            <>
-              <span className='iq-key-points'>
-                <span className='iq-key-points-label'>考察：</span>
-                {question.keyPoints.join(' · ')}
-              </span>
-              <span className='iq-card-hint'>先回答，再查看标答 →</span>
-            </>
-          )}
-        </button>
-
-        {isOpen && (
-          <button
-            type='button'
-            className='iq-return-button'
-            onClick={onClose}
-            aria-label={`返回问题 ${index + 1}`}
-          >
-            返回问题
+      <div className='iq-answer-dialog'>
+        <div className='iq-modal-header'>
+          <div className='iq-modal-heading'>
+            <div className='iq-modal-topline'>
+              <span className='iq-number'>Q{number}</span>
+              <span className='iq-category'>{question.category}</span>
+            </div>
+            <p id={`${answerId}-title`} className='iq-modal-question'>
+              {renderInlineText(question.question)}
+            </p>
+          </div>
+          <button type='button' className='iq-modal-close' onClick={onClose}>
+            <span aria-hidden='true'>×</span>
+            <span className='sr-only'>返回问题</span>
           </button>
-        )}
-      </div>
+        </div>
 
-      <div
-        id={answerId}
-        className={`iq-answer${isOpen ? ' is-open' : ''}`}
-        role='region'
-        aria-label={`Q${number} 的答案与源码证据`}
-        aria-hidden={!isOpen}
-        hidden={!isOpen}
-      >
         <div className='iq-answer-grid'>
           <div className='iq-answer-main'>
             <div className='iq-panel'>
@@ -157,6 +146,49 @@ export default function InterviewQuestionCard({
           </div>
         </div>
       </div>
+    </div>
+  )
+
+  return (
+    <article
+      ref={cardRef}
+      id={question.id}
+      className={`iq-card${isOpen ? ' is-open' : ''}${isViewed ? ' is-viewed' : ''}`}
+      data-open={isOpen}
+      data-question-id={question.id}
+      data-viewed={isViewed}
+    >
+      <span id={legacyId} className='iq-legacy-anchor' aria-hidden='true' />
+
+      <div className='iq-card-header'>
+        <button
+          id={triggerId}
+          type='button'
+          className={`iq-card-toggle${isOpen ? ' is-open' : ''}`}
+          aria-controls={answerId}
+          aria-expanded={isOpen}
+          onClick={(event) => onToggle(event.currentTarget)}
+        >
+          <span className='iq-card-topline'>
+            <span className='iq-number'>Q{number}</span>
+            <span className='iq-category'>{question.category}</span>
+          </span>
+
+          <span className='iq-question'>{renderInlineText(question.question)}</span>
+
+          {!isOpen && (
+            <>
+              <span className='iq-key-points'>
+                <span className='iq-key-points-label'>考察：</span>
+                {question.keyPoints.join(' · ')}
+              </span>
+              <span className='iq-card-hint'>先回答，再查看标答 →</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {isMounted ? createPortal(answerDialog, document.body) : answerDialog}
     </article>
   )
 }

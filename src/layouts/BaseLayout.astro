@@ -42,7 +42,7 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
     <ThemeProvider />
   </head>
 
-  <body class='flex justify-center bg-background text-foreground' {...props}>
+  <body class='bg-background text-foreground' {...props}>
     <a class='skip-link' href='#main-content'>
       {lang === 'en' ? 'Skip to main content' : '跳到主要内容'}
     </a>
@@ -55,7 +55,10 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
         />
       )
     }
-    <div class:list={['w-full', chrome && !home && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}>
+    <div
+      id={chrome && !home ? 'site-shell' : undefined}
+      class:list={['w-full', chrome && !home && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}
+    >
       {chrome && <Header lang={lang} {home} />}
       <div id='main-content'>
         <slot />
