@@ -97,12 +97,12 @@ astro-island {
   padding-inline: 1rem;
 }
 
-#main-content > main {
+#main-content > main:not(.home-page) {
   margin-top: 1.5rem;
   align-items: flex-start;
 }
 
-#main-content > main > article {
+#main-content > main:not(.home-page) > article {
   min-width: 0;
 }
 
@@ -119,16 +119,16 @@ astro-island {
 }
 
 @media (min-width: 768px) {
-  #main-content > main {
+  #main-content > main:not(.home-page) {
     display: flex;
     column-gap: 2.5rem;
   }
 
-  #main-content > main > article {
+  #main-content > main:not(.home-page) > article {
     flex-grow: 1;
   }
 
-  #main-content > main > #sidebar {
+  #main-content > main:not(.home-page) > #sidebar {
     position: sticky;
     top: 5rem;
     min-width: 12rem;
@@ -142,7 +142,7 @@ astro-island {
     padding-inline: 2.5rem;
   }
 
-  #main-content > main > #sidebar {
+  #main-content > main:not(.home-page) > #sidebar {
     flex-shrink: 0;
   }
 }
@@ -170,7 +170,7 @@ astro-island {
     display: block;
   }
 
-  #main-content > main > #sidebar {
+  #main-content > main:not(.home-page) > #sidebar {
     display: none;
   }
 }
