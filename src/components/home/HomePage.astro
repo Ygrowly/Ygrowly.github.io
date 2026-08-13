@@ -7,6 +7,7 @@ import { resolvedResume } from '@/lib/resume'
 
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import ExperienceLab from '@/components/home/ExperienceLab.astro'
+import NightChapter from '@/components/home/NightChapter.astro'
 import ProfileContact from '@/components/home/ProfileContact.astro'
 import SelectedSystems from '@/components/home/SelectedSystems.astro'
 import WritingSection from '@/components/home/WritingSection.astro'
@@ -124,6 +125,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
       footer={content.footer}
       resumeHref={resume}
     />
+    <NightChapter content={content.night} />
   </main>
 </BaseLayout>
 

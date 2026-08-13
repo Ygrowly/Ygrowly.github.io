@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Ygrowly Personal Site
-description: A solo engineer's personal site (Astro) for job hunting, blogging, and notes. Design direction is a "mission console": modern business as the base (white/charcoal/navy, structured, trustworthy) with future-tech instrumentation as the garnish (cyan HUD lines, glow, glass, micro-motion). Two accent colors with distinct roles — navy is the business interactive color, cyan is the tech instrument color (HUD labels, focus rings, status, glow). A separate, deliberately playful terminal/dev-mode/mascot layer exists as an easter egg and does not follow these tokens (see Sub-themes).
+description: A solo engineer's personal site (Astro) for job hunting, blogging, and notes. Design direction is a "mission console": modern business as the base (white/charcoal/navy, structured, trustworthy) with future-tech instrumentation as the garnish (cyan HUD lines, glow, glass, micro-motion). Two accent colors with distinct roles — navy is the business interactive color, cyan is the tech instrument color (HUD labels, focus rings, status, glow). The homepage ends in a "night chapter" (System Echoes + Explore Beyond) with a lazy-loaded Three.js starfield and low-poly objects, inspired by Tripo's spatial scroll storytelling. A separate, deliberately playful terminal/dev-mode/mascot layer exists as an easter egg and does not follow these tokens (see Sub-themes).
 colors:
   background: '0 0% 100%'
   foreground: '240 6% 10%'
@@ -332,4 +332,49 @@ device matches its new HUD frame while keeping its own radius
 The theater (`SelectedSystems.astro`) and contact
 (`ProfileContact.astro`) sections are always-dark instrument blocks with
 their own local palette (see [Colors](#colors)) — they don't respond to
-theme switching.
+theme switching. The contact section now shares the night chapter's
+`#05070f` base so the whole ending reads as one dark band.
+
+## Night Chapter
+
+The homepage ends in an always-dark "night chapter"
+(`NightChapter.astro`) — two sections sharing one lazy-loaded Three.js
+scene, directly inspired by Tripo's Feedback and Explore sections
+(spatial depth + scroll storytelling, not copied layout):
+
+- **System Echoes** (`SystemEchoes.astro`): six real project facts
+  (from `src/data/home.ts`, never fabricated quotes) arranged on a CSS
+  3D cylinder — each card sits at `rotateY(i * --step) translateZ(R)`
+  inside a ring that GSAP ScrollTrigger rotates with scroll
+  (`scrub: 0.6`, natural scroll, no hijacking). A billboard inner layer
+  counter-rotates so cards always face the viewer. **Dim/blur must live
+  on the innermost `.echo-card__body`** — `opacity < 1` or `filter` on a
+  3D layer forces `transform-style: flat` and breaks the billboard.
+  Mobile (≤767px) falls back to a fade-through deck (no 3D);
+  `prefers-reduced-motion` renders a static readable grid and skips the
+  ScrollTrigger entirely. Exactly one card carries
+  `aria-hidden="false"` at a time.
+- **Explore Beyond** (`ExploreBeyond.astro`): four asymmetric glass
+  cards (12-col grid, staggered offsets) linking to projects / blog /
+  experience / about. Each card has `data-sky-kind`; pointerenter/leave
+  dispatch `ygrowly:sky-hover` events that speed up / scale up the
+  matching low-poly object.
+- **Shared WebGL scene** (`src/lib/night-sky.ts`): starfield points +
+  low-contrast node network behind both sections, plus one procedural
+  low-poly object per explore card (cube cluster / pages / probe /
+  compass — `MeshStandardMaterial`, flat shading, navy + cyan). Objects
+  re-project their card's `getBoundingClientRect` onto the z≈0 world
+  plane on scroll/resize, float on a sine wave, and lerp toward mouse
+  parallax (≤±0.7 world units). The canvas is `position: sticky; top: 0;
+  height: 100svh; margin-bottom: -100svh` inside the chapter so it pins
+  over both sections without taking layout space.
+- **Budget rules**: three.js is loaded via dynamic `import()` only when
+  the chapter scrolls within 600px (IntersectionObserver) — never on
+  first paint. Mobile: no network lines, no objects, 30% star count.
+  Reduced motion: single static render, no RAF loop. RAF pauses when
+  the tab is hidden or the chapter is far from the viewport. DPR is
+  clamped to 2. Renderer uses `powerPreference: 'low-power'`.
+
+When extending the chapter, keep new content data in `src/data/home.ts`
+per language, and keep any new animation behind the same three gates:
+lazy load, mobile degradation, reduced-motion.

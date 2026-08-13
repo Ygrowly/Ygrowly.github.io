@@ -72,8 +72,20 @@ export type HomeContent = {
     github: string
     resume: string
   }
+  night: {
+    echoLabel: string
+    echoTitle: string
+    echoSub: string
+    echoes: { text: string; source: string }[]
+    exploreLabel: string
+    exploreTitle: string
+    exploreSub: string
+    exploreCards: { title: string; sub: string; href: string; kind: SkyKind }[]
+  }
   footer: { copyright: string; note: string; backToTop: string }
 }
+
+export type SkyKind = 'projects' | 'blog' | 'experience' | 'about'
 
 const zh: HomeContent = {
   meta: {
@@ -284,6 +296,66 @@ const zh: HomeContent = {
     email: '发送邮件',
     github: 'GitHub',
     resume: '查看简历'
+  },
+  night: {
+    echoLabel: 'SYSTEM ECHOES',
+    echoTitle: '系统回声',
+    echoSub: '真实项目留下的可验证证据，而不是形容词。',
+    echoes: [
+      {
+        text: '从累计读数到可信统计、异常诊断与 Agent 工具调用——链路可运行、可验证。',
+        source: 'EnergyOps Agent · 金山办公 2026'
+      },
+      {
+        text: '指标计算、异常检测与损失拆解全部由代码决定，模型只组织调查。',
+        source: 'PayTrace · Deterministic Core'
+      },
+      {
+        text: '每条结论绑定 call_id + query_fingerprint + result_hash，无依据归因被阻断。',
+        source: 'PayTrace · Evidence Contract'
+      },
+      {
+        text: '支付回调通过签名、金额、状态机与幂等校验——权益一致性 99.95%。',
+        source: 'Ovanta · Payment Hook Chain'
+      },
+      {
+        text: '16 类内容模型、25 个类型化组件，支撑 11+ 产品、200+ 页面统一发布。',
+        source: 'Ovanta · Content System'
+      },
+      {
+        text: 'Root Cause F1 0.61 → 0.87，pass^3 67% → 91%——评测回归驱动连续可靠性。',
+        source: 'PayTrace · Eval Loop'
+      }
+    ],
+    exploreLabel: 'EXPLORE BEYOND',
+    exploreTitle: '再往前走一点',
+    exploreSub: '四个方向，继续浏览。',
+    exploreCards: [
+      {
+        title: '我构建的东西',
+        sub: 'EnergyOps、数驭穹图、PayTrace、Ovanta 的完整案例与证据。',
+        href: '/projects',
+        kind: 'projects'
+      },
+      {
+        title: '沿途的写作',
+        sub: '系统如何被设计、验证和修正——Blog 与 Notes。',
+        href: '/blog',
+        kind: 'blog'
+      },
+      {
+        title: '进行中的实验',
+        sub: '实习经历、Lab 与开源实践的时间线。',
+        href: '/experience',
+        kind: 'experience'
+      },
+      {
+        title: '关于我',
+        sub: '教育、技术栈与工作方式，还有联系入口。',
+        href: '/about',
+        kind: 'about'
+      }
+    ]
   },
   footer: {
     copyright: '© 2026 Liu Yuguang / Ygrowly',
@@ -530,6 +602,66 @@ const en: HomeContent = {
     email: 'Email',
     github: 'GitHub',
     resume: 'View Résumé'
+  },
+  night: {
+    echoLabel: 'SYSTEM ECHOES',
+    echoTitle: 'System Echoes',
+    echoSub: 'Verifiable evidence left by real systems, not adjectives.',
+    echoes: [
+      {
+        text: 'From cumulative readings to trusted aggregation, anomaly diagnosis, and agent tools — a pipeline that runs and verifies.',
+        source: 'EnergyOps Agent · Kingsoft Office 2026'
+      },
+      {
+        text: 'Metrics, anomaly detection, and loss attribution are decided in code; the model only organizes the investigation.',
+        source: 'PayTrace · Deterministic Core'
+      },
+      {
+        text: 'Every claim binds call_id + query_fingerprint + result_hash; unsupported attribution is blocked.',
+        source: 'PayTrace · Evidence Contract'
+      },
+      {
+        text: 'Payment callbacks pass signature, amount, state machine, and idempotency checks — 99.95% entitlement consistency.',
+        source: 'Ovanta · Payment Hook Chain'
+      },
+      {
+        text: '16 content models and 25 typed components power 11+ products and 200+ pages in one publishing flow.',
+        source: 'Ovanta · Content System'
+      },
+      {
+        text: 'Root-cause F1 0.61 → 0.87, pass^3 67% → 91% — the eval loop drives continuous reliability.',
+        source: 'PayTrace · Eval Loop'
+      }
+    ],
+    exploreLabel: 'EXPLORE BEYOND',
+    exploreTitle: 'Explore Beyond This Page',
+    exploreSub: 'Four directions to keep browsing.',
+    exploreCards: [
+      {
+        title: 'Things I Built',
+        sub: 'Full cases and evidence for EnergyOps, DataSphere, PayTrace, and Ovanta.',
+        href: '/en/projects',
+        kind: 'projects'
+      },
+      {
+        title: 'Writing Along the Way',
+        sub: 'How systems are designed, verified, and corrected — blog and notes.',
+        href: '/en/blog',
+        kind: 'blog'
+      },
+      {
+        title: 'Experiments in Flight',
+        sub: 'Internships, the lab, and open-source practice over time.',
+        href: '/en/experience',
+        kind: 'experience'
+      },
+      {
+        title: 'About Me',
+        sub: 'Education, stack, and how I work — plus ways to reach me.',
+        href: '/en/about',
+        kind: 'about'
+      }
+    ]
   },
   footer: {
     copyright: '© 2026 Liu Yuguang / Ygrowly',

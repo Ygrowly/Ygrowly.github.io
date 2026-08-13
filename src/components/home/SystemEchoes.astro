@@ -1,0 +1,324 @@
+---
+interface Props {
+  content: {
+    echoLabel: string
+    echoTitle: string
+    echoSub: string
+    echoes: { text: string; source: string }[]
+  }
+}
+
+const { content } = Astro.props
+---
+
+<section
+  class='echo-section'
+  aria-labelledby='echo-title'
+  data-echo-section
+  style={`--count: ${content.echoes.length}; --step: ${360 / content.echoes.length}deg`}
+>
+  <div class='echo-stage'>
+    <header class='echo-heading'>
+      <p>{content.echoLabel}</p>
+      <h2 id='echo-title'>{content.echoTitle}</h2>
+      <p class='echo-sub'>{content.echoSub}</p>
+    </header>
+
+    <div class='echo-ring' data-echo-ring>
+      {
+        content.echoes.map((echo, index) => (
+          <article
+            class:list={['echo-card', index === 0 && 'is-active']}
+            data-echo-card
+            aria-hidden={index === 0 ? 'false' : 'true'}
+            style={`--i: ${index}`}
+          >
+            <div class='echo-card__inner'>
+              <div class='echo-card__body'>
+                <p class='echo-card__text'>{echo.text}</p>
+                <p class='echo-card__source'>{echo.source}</p>
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class='echo-progress' aria-hidden='true'>
+      <span data-echo-progress></span>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap'
+  import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+  gsap.registerPlugin(ScrollTrigger)
+
+  const section = document.querySelector<HTMLElement>('[data-echo-section]')
+  if (section) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      section.classList.add('is-static')
+    } else {
+      const ring = section.querySelector<HTMLElement>('[data-echo-ring]')
+      const bar = section.querySelector<HTMLElement>('[data-echo-progress]')
+      const cards = Array.from(section.querySelectorAll<HTMLElement>('[data-echo-card]'))
+      if (ring && cards.length > 1) {
+        const count = cards.length
+        const step = 360 / count
+        let activeIndex = -1
+
+        const setActive = (index: number) => {
+          if (index === activeIndex) return
+          activeIndex = index
+          cards.forEach((card, i) => {
+            const active = i === index
+            card.classList.toggle('is-active', active)
+            card.setAttribute('aria-hidden', String(!active))
+          })
+        }
+        setActive(0)
+
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.6,
+          onUpdate: (self) => {
+            const rotation = self.progress * 360
+            ring.style.setProperty('--ring-rot', `${rotation}deg`)
+            if (bar) bar.style.setProperty('--progress', `${self.progress * 100}%`)
+            const index = Math.round(((-rotation / step) % count) + count) % count
+            setActive(index)
+          }
+        })
+      }
+    }
+  }
+</script>
+
+<style>
+  .echo-section {
+    position: relative;
+    height: 320vh;
+  }
+
+  .echo-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+    perspective: 1100px;
+    perspective-origin: 50% 50%;
+  }
+
+  .echo-heading {
+    position: absolute;
+    top: clamp(64px, 13vh, 110px);
+    right: 0;
+    left: 0;
+    z-index: 3;
+    text-align: center;
+    color: #eef2fa;
+  }
+
+  .echo-heading > p {
+    margin: 0;
+    color: #22d3ee;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+  }
+
+  .echo-heading h2 {
+    margin: var(--space-4) 0 0;
+    font-size: clamp(36px, 4.6vw, 60px);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+  }
+
+  .echo-sub {
+    margin: var(--space-3) 0 0;
+    color: #93a2bd;
+    font-size: var(--text-base);
+  }
+
+  .echo-ring {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(var(--ring-rot, 0deg));
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .echo-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(480px, 76vw);
+    translate: -50% -50%;
+    transform: rotateY(calc(var(--i) * var(--step))) translateZ(min(46vw, 560px));
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+
+  .echo-card__inner {
+    /* Billboard: counter-rotate so the card always faces the viewer. */
+    transform: rotateY(calc(-1 * var(--ring-rot) - var(--i) * var(--step)));
+    transform-style: preserve-3d;
+  }
+
+  /* Dim/blur live on the innermost body — opacity/filter on the 3D layers
+     would force transform-style to flat and break the billboard. */
+  .echo-card__body {
+    padding: var(--space-6) var(--space-6) var(--space-5);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.045);
+    box-shadow: 0 0 60px -18px rgba(34, 211, 238, 0.25);
+    opacity: 0.16;
+    filter: blur(1px);
+    transition:
+      opacity 300ms ease,
+      filter 300ms ease;
+  }
+
+  .echo-card.is-active .echo-card__body {
+    opacity: 1;
+    filter: none;
+  }
+
+  .echo-card__text {
+    margin: 0;
+    color: #eef2fa;
+    font-size: clamp(17px, 1.6vw, 21px);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.55;
+  }
+
+  .echo-card__source {
+    margin: var(--space-4) 0 0;
+    color: #22d3ee;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+  }
+
+  .echo-progress {
+    position: absolute;
+    bottom: clamp(28px, 5vh, 48px);
+    left: 50%;
+    z-index: 3;
+    width: min(240px, 40vw);
+    height: 2px;
+    translate: -50% 0;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: rgba(148, 163, 184, 0.18);
+  }
+
+  .echo-progress span {
+    display: block;
+    width: var(--progress, 0%);
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background: #22d3ee;
+  }
+
+  /* Mobile: fade-through deck instead of the 3D ring. */
+  @media (max-width: 767px) {
+    .echo-section {
+      height: 340vh;
+    }
+
+    .echo-stage {
+      perspective: none;
+    }
+
+    .echo-ring {
+      transform: none;
+      transform-style: flat;
+    }
+
+    .echo-card {
+      width: min(440px, 86vw);
+      translate: -50% -50%;
+      transform: none;
+      opacity: 0;
+      transition:
+        opacity 350ms ease,
+        transform 350ms ease;
+    }
+
+    .echo-card.is-active {
+      opacity: 1;
+      transform: translateY(-8px);
+    }
+
+    .echo-card__inner {
+      transform: none;
+      transform-style: flat;
+    }
+
+    .echo-card__body {
+      opacity: 1;
+      filter: none;
+    }
+  }
+
+  /* Reduced motion: static readable grid. */
+  .echo-section.is-static {
+    height: auto;
+    padding: var(--space-9) 0;
+  }
+
+  .echo-section.is-static .echo-stage {
+    position: relative;
+    height: auto;
+    perspective: none;
+  }
+
+  .echo-section.is-static .echo-heading {
+    position: static;
+    padding-top: var(--space-5);
+  }
+
+  .echo-section.is-static .echo-ring {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    width: min(1200px, calc(100% - 64px));
+    margin: var(--space-7) auto 0;
+    transform: none;
+  }
+
+  .echo-section.is-static .echo-card {
+    position: static;
+    translate: none;
+    transform: none;
+    opacity: 1;
+  }
+
+  .echo-section.is-static .echo-card__inner,
+  .echo-section.is-static .echo-card__body {
+    transform: none;
+    opacity: 1;
+    filter: none;
+  }
+
+  .echo-section.is-static .echo-progress {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .echo-section.is-static .echo-ring {
+      width: calc(100% - 40px);
+    }
+  }
+</style>

@@ -1,0 +1,217 @@
+---
+interface Props {
+  content: {
+    exploreLabel: string
+    exploreTitle: string
+    exploreSub: string
+    exploreCards: { title: string; sub: string; href: string; kind: string }[]
+  }
+}
+
+const { content } = Astro.props
+---
+
+<section class='explore-section' aria-labelledby='explore-title'>
+  <div class='explore-container'>
+    <header class='explore-heading'>
+      <p>{content.exploreLabel}</p>
+      <h2 id='explore-title'>{content.exploreTitle}</h2>
+      <p class='explore-sub'>{content.exploreSub}</p>
+    </header>
+
+    <div class='explore-grid'>
+      {
+        content.exploreCards.map((card, index) => (
+          <a class='explore-card' data-sky-kind={card.kind} href={card.href}>
+            <span class='explore-card__index'>0{index + 1}</span>
+            <h3>{card.title}</h3>
+            <p>{card.sub}</p>
+            <i aria-hidden='true'>→</i>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-sky-kind]').forEach((card) => {
+    const kind = card.dataset.skyKind
+    if (!kind) return
+    card.addEventListener('pointerenter', () => {
+      window.dispatchEvent(new CustomEvent('ygrowly:sky-hover', { detail: { kind } }))
+    })
+    card.addEventListener('pointerleave', () => {
+      window.dispatchEvent(new CustomEvent('ygrowly:sky-hover', { detail: { kind: null } }))
+    })
+  })
+</script>
+
+<style>
+  .explore-section {
+    padding: 0 0 var(--space-9);
+    color: #eef2fa;
+  }
+
+  .explore-container {
+    width: min(1200px, calc(100% - 64px));
+    margin: 0 auto;
+  }
+
+  .explore-heading > p {
+    margin: 0;
+    color: #22d3ee;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+  }
+
+  .explore-heading h2 {
+    margin: var(--space-4) 0 0;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+  }
+
+  .explore-sub {
+    margin: var(--space-3) 0 0;
+    color: #93a2bd;
+    font-size: var(--text-base);
+  }
+
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-5);
+    margin-top: var(--space-7);
+  }
+
+  .explore-card {
+    position: relative;
+    display: flex;
+    min-height: 220px;
+    flex-direction: column;
+    padding: 112px var(--space-5) var(--space-5);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.04);
+    color: #eef2fa;
+    transition:
+      border-color 180ms ease,
+      transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 240ms ease,
+      background-color 180ms ease;
+  }
+
+  .explore-card:hover {
+    border-color: rgba(34, 211, 238, 0.55);
+    background: rgba(255, 255, 255, 0.06);
+    color: #eef2fa;
+    transform: translateY(-4px);
+    box-shadow:
+      0 0 0 1px rgba(34, 211, 238, 0.22),
+      0 0 44px -10px rgba(34, 211, 238, 0.4);
+  }
+
+  .explore-card:nth-child(1) {
+    grid-column: 1 / 7;
+  }
+
+  .explore-card:nth-child(2) {
+    margin-top: var(--space-8);
+    grid-column: 7 / 12;
+  }
+
+  .explore-card:nth-child(3) {
+    grid-column: 2 / 8;
+  }
+
+  .explore-card:nth-child(4) {
+    margin-top: var(--space-8);
+    grid-column: 8 / 13;
+  }
+
+  .explore-card__index {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-5);
+    color: #22d3ee;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    opacity: 0.75;
+  }
+
+  .explore-card h3 {
+    margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .explore-card p {
+    max-width: 380px;
+    margin: var(--space-3) 0 0;
+    color: #93a2bd;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+  }
+
+  .explore-card i {
+    position: absolute;
+    right: var(--space-5);
+    bottom: var(--space-5);
+    color: #22d3ee;
+    font-style: normal;
+    transition: transform 180ms ease;
+  }
+
+  .explore-card:hover i {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 1023px) {
+    .explore-container {
+      width: calc(100% - 48px);
+    }
+
+    .explore-card:nth-child(1),
+    .explore-card:nth-child(3) {
+      grid-column: 1 / 8;
+    }
+
+    .explore-card:nth-child(2),
+    .explore-card:nth-child(4) {
+      margin-top: var(--space-6);
+      grid-column: 6 / 13;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .explore-container {
+      width: calc(100% - 40px);
+    }
+
+    .explore-grid {
+      grid-template-columns: 1fr;
+      margin-top: var(--space-6);
+    }
+
+    .explore-card,
+    .explore-card:nth-child(1),
+    .explore-card:nth-child(2),
+    .explore-card:nth-child(3),
+    .explore-card:nth-child(4) {
+      margin-top: 0;
+      grid-column: 1;
+      min-height: 168px;
+      padding: var(--space-5);
+    }
+
+    .explore-card h3 {
+      font-size: var(--text-xl);
+    }
+  }
+</style>
