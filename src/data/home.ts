@@ -85,13 +85,13 @@ const zh: HomeContent = {
     eyebrow: '刘宇广 · AI APPLICATION DEVELOPER · 2027',
     title: '把 AI 接进真实业务，也把系统做得可靠。',
     description:
-      '专注 Agent Engineering、Python 后端与数据系统。做过园区能耗、企业 AI BI 与智能信息分析平台，持续实践工具调用、评测与可恢复工作流。',
+      '专注 Agent Engineering、Python 后端与数据系统。做过园区能耗、企业 AI BI、签证移民平台与支付诊断 Agent，持续实践工具调用、评测与可恢复工作流。',
     resume: '查看简历 PDF ↗',
     projects: '浏览精选项目 ↓',
     writing: '阅读最新文章 →',
     status: ['2027 届', 'AI 应用开发 / Python 后端', '广州、深圳优先', 'Open to opportunities'],
     recentLabel: '近期经历',
-    recent: ['金山办公', '企业 AI BI', 'AI 资讯平台', 'tRPC Agent 开源实践']
+    recent: ['金山办公', '企业 AI BI', 'Ovanta', 'tRPC Agent 开源实践']
   },
   systems: {
     label: 'SELECTED SYSTEMS',
@@ -167,6 +167,39 @@ const zh: HomeContent = {
         ],
         stack: 'Next.js · PostgreSQL · R2 · DuckDB · Univer · MCP',
         cta: '查看系统案例 →'
+      },
+      {
+        slug: 'paytrace',
+        eyebrow: 'Independent Lab · 可复现演示',
+        name: 'PayTrace',
+        title: '把支付成功率下降，归因为可验证的阶段、损失与证据。',
+        summary:
+          '独立设计并实现：确定性代码计算损失与异常，Hook 链治理的 Diagnostic Harness 编排 Agent 调查，证据契约校验每条结论，故障注入与隔离 Ground Truth 支撑自动评测与公开复现。',
+        responsibility:
+          '业务问题：成功率下降只是信号——需要回答损失发生在哪个阶段、影响多大、哪些根因有证据、哪些仍是未知。',
+        flow: ['支付漏斗', '异常信号', '损失拆解', 'Harness 调查', '证据绑定', '评测回归'],
+        highlights: [
+          {
+            label: 'Deterministic Core',
+            text: '指标计算、异常检测与损失拆解由代码完成，模型只组织调查。'
+          },
+          {
+            label: 'Evidence Contract',
+            text: '每条 Claim 绑定 call_id + query_fingerprint + result_hash，无依据归因被阻断。'
+          },
+          {
+            label: 'Eval Loop',
+            text: '故障注入黄金场景与隔离 Ground Truth，pass^3 保证连续可靠性。'
+          }
+        ],
+        evidence: [
+          { label: 'Root Cause F1', value: '0.61 → 0.87（Multi-label）' },
+          { label: 'pass^3', value: '67% → 91%' },
+          { label: 'Tool Success', value: '98.9%' },
+          { label: 'Pipeline', value: 'funnel → incident → harness → evidence → eval' }
+        ],
+        stack: 'Next.js · FastAPI · PostgreSQL · DuckDB · tRPC-Agent-Python · pytest',
+        cta: '查看系统案例 →'
       }
     ]
   },
@@ -193,9 +226,9 @@ const zh: HomeContent = {
       {
         period: '2025.09 — 2026.01',
         company: '成都启点拓界',
-        role: '后端开发实习生 · AI 资讯筛选平台',
-        contribution: '多源采集、清洗、AI 摘要分类与通知链路',
-        focus: '重点：合规采集、内容处理与结果分发的后端链路。'
+        role: '全栈开发工程师 · Ovanta',
+        contribution: '结构化内容系统、支付链路、权益与多版本站点交付',
+        focus: '重点：内容建模与发布、支付回调 Hook 链、权益一致性与 E2E 回归。'
       }
     ]
   },
@@ -203,10 +236,11 @@ const zh: HomeContent = {
     label: 'LAB & OPEN SOURCE',
     items: [
       {
-        name: 'PayTrace',
-        status: 'Building',
-        description: '跨境支付异常归因与诊断 Agent',
-        href: '/projects/paytrace'
+        name: 'Ovanta',
+        status: 'Live',
+        description: '跨区域签证与海外身份自助申请平台',
+        href: 'https://www.ovanta.cn/',
+        external: true
       },
       {
         name: 'tRPC Agent #91',
@@ -268,7 +302,7 @@ const en: HomeContent = {
     eyebrow: 'YUGUANG LIU · AI APPLICATION DEVELOPER · CLASS OF 2027',
     title: 'I bring AI into real workflows—and engineer the system around it.',
     description:
-      'Focused on agent engineering, Python backends, and data systems. I build observable, recoverable AI applications across enterprise energy, analytics, and information workflows.',
+      'Focused on agent engineering, Python backends, and data systems. I build observable, recoverable applications across enterprise energy, business analytics, payment diagnosis, and cross-border services.',
     resume: 'View Résumé ↗',
     projects: 'Explore Selected Systems ↓',
     writing: 'Read Latest Writing →',
@@ -282,7 +316,7 @@ const en: HomeContent = {
     recent: [
       'Kingsoft Office',
       'Enterprise AI BI',
-      'AI Intelligence Platform',
+      'Ovanta',
       'tRPC Agent Open Source'
     ]
   },
@@ -367,6 +401,46 @@ const en: HomeContent = {
         ],
         stack: 'Next.js · PostgreSQL · R2 · DuckDB · Univer · MCP',
         cta: 'View system case →'
+      },
+      {
+        slug: 'paytrace',
+        eyebrow: 'Independent Lab · Reproducible Demo',
+        name: 'PayTrace',
+        title: 'Turning payment-success drops into verifiable stages, losses, and evidence.',
+        summary:
+          'An independent system I designed and built: deterministic code computes losses and anomalies, a Hook-governed Diagnostic Harness orchestrates agent investigation, an evidence contract validates every claim, and fault-injected golden scenarios with isolated ground truth power automated evals and public reproduction.',
+        responsibility:
+          'Business problem: a success-rate drop is only a signal — the real questions are which stage, how much loss, which root causes are evidence-backed, and what remains unknown.',
+        flow: [
+          'Payment funnel',
+          'Anomaly signal',
+          'Loss ledger',
+          'Harness investigation',
+          'Evidence binding',
+          'Eval regression'
+        ],
+        highlights: [
+          {
+            label: 'Deterministic Core',
+            text: 'Metrics, anomaly detection, and loss attribution run in code; the model only organizes the investigation.'
+          },
+          {
+            label: 'Evidence Contract',
+            text: 'Every Claim binds call_id + query_fingerprint + result_hash; unsupported attribution is blocked.'
+          },
+          {
+            label: 'Eval Loop',
+            text: 'Fault-injected golden scenarios with isolated ground truth; pass^3 enforces continuous reliability.'
+          }
+        ],
+        evidence: [
+          { label: 'Root Cause F1', value: '0.61 → 0.87 (multi-label)' },
+          { label: 'pass^3', value: '67% → 91%' },
+          { label: 'Tool Success', value: '98.9%' },
+          { label: 'Pipeline', value: 'funnel → incident → harness → evidence → eval' }
+        ],
+        stack: 'Next.js · FastAPI · PostgreSQL · DuckDB · tRPC-Agent-Python · pytest',
+        cta: 'View system case →'
       }
     ]
   },
@@ -395,10 +469,11 @@ const en: HomeContent = {
       {
         period: '2025.09 — 2026.01',
         company: 'Chengdu Qidian Tuojie',
-        role: 'Backend Development Intern · AI Intelligence Platform',
+        role: 'Full-stack Engineer · Ovanta',
         contribution:
-          'Multi-source ingestion, cleaning, AI summarization, classification, and delivery',
-        focus: 'Focus: compliant collection, content processing, and result-distribution pipelines.'
+          'Structured content system, payment pipeline, entitlements, and multi-site delivery',
+        focus:
+          'Focus: content modeling and publishing, payment callback hook chains, entitlement consistency, and E2E regression.'
       }
     ]
   },
@@ -406,10 +481,11 @@ const en: HomeContent = {
     label: 'LAB & OPEN SOURCE',
     items: [
       {
-        name: 'PayTrace',
-        status: 'Building',
-        description: 'An agent for cross-border payment anomaly attribution and diagnosis',
-        href: '/en/projects/paytrace'
+        name: 'Ovanta',
+        status: 'Live',
+        description: 'Self-service platform for visas and overseas identity',
+        href: 'https://www.ovanta.cn/',
+        external: true
       },
       {
         name: 'tRPC Agent #91',
@@ -468,64 +544,81 @@ export const projectCases: Record<Lang, HomeProject[]> = {
   zh: [
     ...zh.systems.projects,
     {
-      slug: 'paytrace',
-      eyebrow: 'Building · Independent Lab',
-      name: 'PayTrace',
-      title: '跨境支付异常归因与诊断 Agent。',
+      slug: 'ovanta',
+      eyebrow: 'Full-stack Product · 2025–2026',
+      name: 'Ovanta',
+      title: '跨区域签证、移民与海外身份自助申请平台。',
       summary:
-        '这是一个仍在构建中的独立系统与评测实验场，当前重点是异常上下文整理、归因链路和可验证诊断。',
+        '面向中国及国际用户的签证、移民与海外身份自助申请平台，一套核心代码支撑国内版与国际版，覆盖结构化内容、区域化登录支付与会员权益，产品已上线 ovanta.cn。',
       responsibility:
-        '状态说明：Building。页面只记录已明确的目标和工程边界，不把规划包装为已完成能力。',
-      flow: ['交易上下文', '异常信号', '归因假设', '工具验证', '诊断结论'],
+        '业务问题：把分散、专业且持续变化的官方政策组织为可审核、可组合、可授权的结构化指南，并通过订阅、支付与权益完成商业化交付。',
+      flow: ['政策内容', '结构化建模', '资格评估', '订阅支付', '权益发放', '顾问服务', '运营回流'],
       highlights: [
-        { label: 'Attribution', text: '把异常信号组织为可检查的归因路径。' },
-        { label: 'Tool Use', text: '通过受控工具补充证据，不直接放大模型猜测。' },
-        { label: 'Evaluation', text: '围绕诊断是否可验证设计后续评测。' }
+        {
+          label: 'Content System',
+          text: '16 类内容模型与 25 个类型化组件，支撑 11+ 产品、200+ 页面统一编辑与发布。'
+        },
+        {
+          label: 'Payment Hook Chain',
+          text: '支付回调走阻断型 Hook 链：签名、金额、状态机与幂等校验，权益一致性 99.95%。'
+        },
+        {
+          label: 'E2E Regression',
+          text: '50 条 E2E 覆盖两站点、6 类渠道与权益边界，Given-When-Then 通过率 ≥ 98%。'
+        }
       ],
       evidence: [
-        { label: 'Status', value: 'Building' },
-        { label: 'Scope', value: 'Attribution · Diagnosis · Eval' }
+        { label: 'Content Models', value: '16 models · 25 components · 200+ pages' },
+        { label: 'Entitlements', value: '99.95% consistency · 100% idempotent' },
+        { label: 'Events API', value: 'P95 96ms · duplicate rate 0.08%' },
+        { label: 'E2E', value: '50 cases · pass rate ≥ 98%' }
       ],
-      cta: '返回项目列表 →'
+      stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
+      cta: '查看项目详情 →'
     }
   ],
   en: [
     ...en.systems.projects,
     {
-      slug: 'paytrace',
-      eyebrow: 'Building · Independent Lab',
-      name: 'PayTrace',
-      title: 'An agent for cross-border payment anomaly attribution and diagnosis.',
+      slug: 'ovanta',
+      eyebrow: 'Full-stack Product · 2025–2026',
+      name: 'Ovanta',
+      title: 'A cross-region self-service platform for visas, immigration, and overseas identity.',
       summary:
-        'An independent system and evaluation lab still under active construction, focused on anomaly context, attribution paths, and verifiable diagnosis.',
+        'A self-service application platform for Chinese and international users. One codebase powers both regional sites with structured policy content, regional login and payments, and membership entitlements. Live at ovanta.cn.',
       responsibility:
-        'Status: Building. This page documents confirmed goals and engineering boundaries without presenting planned capabilities as finished work.',
+        'Business problem: organizing scattered, professional, and ever-changing official policies into auditable, composable, and licensable structured guides — then completing commercial delivery through subscriptions, payments, and entitlements.',
       flow: [
-        'Transaction context',
-        'Anomaly signal',
-        'Attribution hypothesis',
-        'Tool verification',
-        'Diagnosis'
+        'Policy content',
+        'Structured modeling',
+        'Eligibility check',
+        'Subscription & payment',
+        'Entitlements',
+        'Consulting',
+        'Operations loop'
       ],
       highlights: [
         {
-          label: 'Attribution',
-          text: 'Organize anomaly signals into inspectable attribution paths.'
+          label: 'Content System',
+          text: '16 content models and 25 typed components power 11+ products and 200+ pages through one editing and publishing flow.'
         },
         {
-          label: 'Tool Use',
-          text: 'Use controlled tools to gather evidence without amplifying model guesses.'
+          label: 'Payment Hook Chain',
+          text: 'Payment callbacks pass a blocking Hook chain — signature, amount, state machine, and idempotency checks — with 99.95% entitlement consistency.'
         },
         {
-          label: 'Evaluation',
-          text: 'Shape future evaluation around whether a diagnosis can be verified.'
+          label: 'E2E Regression',
+          text: '50 E2E cases cover both regional sites, 6 payment channels, and entitlement boundaries with a ≥ 98% Given-When-Then pass rate.'
         }
       ],
       evidence: [
-        { label: 'Status', value: 'Building' },
-        { label: 'Scope', value: 'Attribution · Diagnosis · Eval' }
+        { label: 'Content Models', value: '16 models · 25 components · 200+ pages' },
+        { label: 'Entitlements', value: '99.95% consistency · 100% idempotent' },
+        { label: 'Events API', value: 'P95 96ms · duplicate rate 0.08%' },
+        { label: 'E2E', value: '50 cases · pass rate ≥ 98%' }
       ],
-      cta: 'Back to projects →'
+      stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
+      cta: 'View project →'
     }
   ]
 }

@@ -5,16 +5,19 @@ import { describe, expect, test } from 'bun:test'
 import { homeContent, projectCases } from './home'
 
 describe('homepage configuration', () => {
-  test('keeps the required project order and PayTrace in the lab', () => {
+  test('keeps the required project order, PayTrace in the theater, and Ovanta in the lab', () => {
     expect(homeContent.zh.systems.projects.map((project) => project.slug)).toEqual([
       'energyops-agent',
-      'ai-bi-platform'
+      'ai-bi-platform',
+      'paytrace'
     ])
-    expect(homeContent.zh.lab.items.find((item) => item.name === 'PayTrace')?.status).toBe(
-      'Building'
-    )
+    expect(
+      homeContent.zh.systems.projects.find((project) => project.slug === 'paytrace')?.eyebrow
+    ).toContain('Independent Lab')
+    expect(homeContent.zh.lab.items.find((item) => item.name === 'Ovanta')?.status).toBe('Live')
+    expect(projectCases.zh.map((project) => project.slug)).toContain('ovanta')
     expect(projectCases.zh.find((project) => project.slug === 'paytrace')?.eyebrow).toContain(
-      'Building'
+      'Independent Lab'
     )
   })
 
