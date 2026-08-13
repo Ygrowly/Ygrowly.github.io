@@ -72,6 +72,7 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
   .profile-section h2,
   .contact-section h2 {
     margin: 0;
+    color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     letter-spacing: 0.12em;
@@ -121,22 +122,22 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
 
   .contact-section {
     padding: 112px 0;
-    background: #151a17;
-    color: #fff;
+    background: #070b16;
+    color: #eef2fa;
   }
 
   :global(.dark) .contact-section {
-    background: #0b0e0c;
+    background: #05070f;
   }
 
   .contact-section h2 {
-    color: #67e2b7;
+    color: #22d3ee;
   }
 
   .contact-section > .contact-container > p {
     max-width: 760px;
     margin: var(--space-5) 0 0;
-    color: #dce5e0;
+    color: #c8d2e3;
     font-size: var(--text-2xl);
     line-height: 1.5;
   }
@@ -153,20 +154,28 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     align-items: center;
     gap: var(--space-2);
     padding: 0 var(--space-4);
-    border: 1px solid #3a4741;
+    border: 1px solid #1c2a42;
     border-radius: var(--radius-sm);
-    color: #fff;
+    color: #eef2fa;
     font-weight: 600;
+    transition:
+      border-color 180ms ease,
+      box-shadow 240ms ease;
+  }
+
+  .contact-section nav a:hover {
+    border-color: #22d3ee;
+    box-shadow: 0 0 28px -8px rgba(34, 211, 238, 0.5);
   }
 
   .contact-section nav a:first-child {
-    border-color: #67e2b7;
-    background: #67e2b7;
-    color: #090c0b;
+    border-color: #22d3ee;
+    background: #22d3ee;
+    color: #06121f;
   }
 
   .contact-section nav a span {
-    color: #67e2b7;
+    color: #22d3ee;
     transition: transform 180ms ease;
   }
 

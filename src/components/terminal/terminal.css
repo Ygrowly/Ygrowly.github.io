@@ -1,10 +1,10 @@
 .wt-shell {
-  --wt-background: #101512;
-  --wt-chrome: #0d110f;
-  --wt-text: #dce5e0;
-  --wt-muted: #87938d;
-  --wt-accent: #67e2b7;
-  --wt-border: #26312c;
+  --wt-background: #0d1424;
+  --wt-chrome: #0a0f1e;
+  --wt-text: #e6eaf2;
+  --wt-muted: #93a2bd;
+  --wt-accent: #22d3ee;
+  --wt-border: #1c2a42;
   --wt-error: #ff8a80;
 
   position: relative;
@@ -25,9 +25,9 @@
 }
 
 :root.dark .wt-shell {
-  --wt-background: #080b09;
-  --wt-chrome: #070907;
-  --wt-border: #202923;
+  --wt-background: #080c16;
+  --wt-chrome: #060a12;
+  --wt-border: #16213a;
 }
 
 .wt-titlebar {
@@ -79,7 +79,7 @@
   padding: 20px 24px 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #3a4741 transparent;
+  scrollbar-color: #2e3d52 transparent;
   scrollbar-width: thin;
 }
 
@@ -156,7 +156,7 @@
 }
 
 .wt-link:hover {
-  color: #8ceac8;
+  color: #67e8f9;
 }
 
 .wt-input-row {

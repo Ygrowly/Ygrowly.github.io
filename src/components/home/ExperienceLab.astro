@@ -107,7 +107,7 @@ const { experience, lab } = Astro.props
   header > p,
   .lab-section > h2 {
     margin: 0;
-    color: var(--signal-accent);
+    color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
@@ -224,17 +224,19 @@ const { experience, lab } = Astro.props
     color: var(--text-primary);
     transition:
       border-color 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 240ms ease;
   }
 
   .lab-card:hover {
-    border-color: var(--border-strong);
+    border-color: var(--signal-accent);
     color: var(--text-primary);
     transform: translateY(-4px);
+    box-shadow: var(--glow-ring);
   }
 
   .lab-card > span {
-    color: var(--signal-accent);
+    color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
   }
@@ -255,7 +257,7 @@ const { experience, lab } = Astro.props
     position: absolute;
     top: 20px;
     right: 20px;
-    color: var(--signal-accent);
+    color: var(--tech-accent);
     font-style: normal;
     transition: transform 180ms ease;
   }

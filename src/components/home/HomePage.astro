@@ -49,6 +49,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
 <BaseLayout home exactTitle meta={content.meta}>
   <main id='top' class='home-page'>
     <section class='home-hero' aria-labelledby='home-title'>
+      <div class='home-hero__backdrop' aria-hidden='true'></div>
       <div class='home-container home-hero__grid'>
         <div class='home-hero__copy'>
           <p class='home-eyebrow'>{content.hero.eyebrow}</p>
@@ -85,7 +86,16 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
         </div>
 
         <div class='home-hero__terminal-slot' data-terminal-slot>
-          <Terminal {lang} />
+          <div class='home-hero__tilt' data-hero-tilt>
+            <div class='home-hero__hud' aria-hidden='true'>
+              <i class='home-hero__hud-corner home-hero__hud-corner--tl'></i>
+              <i class='home-hero__hud-corner home-hero__hud-corner--tr'></i>
+              <i class='home-hero__hud-corner home-hero__hud-corner--bl'></i>
+              <i class='home-hero__hud-corner home-hero__hud-corner--br'></i>
+              <span class='home-hero__hud-scan'></span>
+            </div>
+            <Terminal {lang} />
+          </div>
         </div>
       </div>
     </section>
@@ -117,6 +127,36 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   </main>
 </BaseLayout>
 
+<script>
+  const slot = document.querySelector<HTMLElement>('[data-terminal-slot]')
+  const tilt = document.querySelector<HTMLElement>('[data-hero-tilt]')
+
+  if (
+    slot &&
+    tilt &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    const MAX_TILT = 2.5
+
+    const onMove = (event: PointerEvent) => {
+      const rect = slot.getBoundingClientRect()
+      const px = (event.clientX - rect.left) / rect.width - 0.5
+      const py = (event.clientY - rect.top) / rect.height - 0.5
+      tilt.style.setProperty('--rx', `${(-py * MAX_TILT).toFixed(2)}deg`)
+      tilt.style.setProperty('--ry', `${(px * MAX_TILT).toFixed(2)}deg`)
+    }
+
+    const onLeave = () => {
+      tilt.style.setProperty('--rx', '0deg')
+      tilt.style.setProperty('--ry', '0deg')
+    }
+
+    slot.addEventListener('pointermove', onMove)
+    slot.addEventListener('pointerleave', onLeave)
+  }
+</script>
+
 <style>
   .home-page {
     width: 100%;
@@ -131,10 +171,48 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   }
 
   .home-hero {
+    position: relative;
     min-height: max(680px, calc(100svh - 72px));
   }
 
+  .home-hero__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(
+        720px 420px at 78% 42%,
+        color-mix(in srgb, var(--tech-glow) 9%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:
+      auto,
+      56px 56px,
+      56px 56px;
+    mask-image: radial-gradient(120% 90% at 50% 40%, black 30%, transparent 78%);
+    pointer-events: none;
+  }
+
+  :global(.dark) .home-hero__backdrop {
+    background:
+      radial-gradient(
+        720px 420px at 78% 42%,
+        color-mix(in srgb, var(--tech-glow) 16%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:
+      auto,
+      56px 56px,
+      56px 56px;
+  }
+
   .home-hero__grid {
+    position: relative;
+    z-index: 1;
     display: grid;
     min-height: max(680px, calc(100svh - 72px));
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -150,7 +228,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
 
   .home-eyebrow {
     margin: 0;
-    color: var(--signal-accent);
+    color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
@@ -158,12 +236,24 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     line-height: 1.35;
   }
 
+  .home-eyebrow::before {
+    margin-right: 0.5em;
+    content: '[ ';
+    opacity: 0.6;
+  }
+
+  .home-eyebrow::after {
+    margin-left: 0.5em;
+    content: ' ]';
+    opacity: 0.6;
+  }
+
   .home-hero h1 {
     max-width: 680px;
     margin: 20px 0 0;
     font-size: var(--text-hero);
-    font-weight: 600;
-    letter-spacing: -0.055em;
+    font-weight: 700;
+    letter-spacing: -0.045em;
     line-height: 1.04;
   }
 
@@ -192,16 +282,22 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     border-radius: var(--radius-sm);
     font-size: var(--text-sm);
     font-weight: 600;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      box-shadow 240ms ease;
   }
 
   .home-button--primary {
     background: var(--signal-accent);
-    color: #fff;
+    color: var(--accent-contrast);
   }
 
   .home-button--primary:hover {
     background: var(--signal-accent-hover);
-    color: #fff;
+    color: var(--accent-contrast);
+    box-shadow: 0 0 28px -6px color-mix(in srgb, var(--tech-glow) 60%, transparent);
   }
 
   .home-button--secondary {
@@ -212,6 +308,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   .home-button--secondary:hover {
     border-color: var(--signal-accent);
     color: var(--signal-accent);
+    box-shadow: 0 0 24px -10px color-mix(in srgb, var(--tech-glow) 50%, transparent);
   }
 
   .home-hero__writing-link {
@@ -236,7 +333,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   }
 
   .home-hero__status li:last-child {
-    color: var(--signal-accent);
+    color: var(--tech-accent);
   }
 
   .home-hero__status li:last-child::before {
@@ -246,6 +343,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     margin-right: var(--space-2);
     border-radius: var(--radius-pill);
     background: currentColor;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--tech-glow) 70%, transparent);
     content: '';
     vertical-align: 1px;
   }
@@ -279,6 +377,81 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     min-width: 0;
     height: 460px;
     grid-column: 8 / span 5;
+  }
+
+  .home-hero__tilt {
+    position: relative;
+    height: 100%;
+    transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition: transform 240ms ease-out;
+    will-change: transform;
+  }
+
+  .home-hero__hud {
+    position: absolute;
+    inset: -10px;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .home-hero__hud-corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tech-glow) 60%, transparent));
+    opacity: 0.85;
+  }
+
+  .home-hero__hud-corner--tl {
+    top: 0;
+    left: 0;
+    border-top: 1px solid var(--tech-glow);
+    border-left: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-corner--tr {
+    top: 0;
+    right: 0;
+    border-top: 1px solid var(--tech-glow);
+    border-right: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-corner--bl {
+    bottom: 0;
+    left: 0;
+    border-bottom: 1px solid var(--tech-glow);
+    border-left: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-corner--br {
+    right: 0;
+    bottom: 0;
+    border-right: 1px solid var(--tech-glow);
+    border-bottom: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-scan {
+    position: absolute;
+    top: -12%;
+    right: 0;
+    left: 0;
+    height: 48px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--tech-glow) 10%, transparent) 45%,
+      color-mix(in srgb, var(--tech-glow) 14%, transparent) 55%,
+      transparent
+    );
+    animation: hero-scan 7s linear infinite;
+  }
+
+  @keyframes hero-scan {
+    to {
+      transform: translateY(620px);
+    }
   }
 
   @media (max-width: 1023px) {

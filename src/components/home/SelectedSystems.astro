@@ -64,17 +64,23 @@ const { lang, label, title, projects } = Astro.props
       </div>
 
       <div class='systems-evidence' aria-hidden='true'>
-        <div class='systems-evidence-stack'>
-          {
-            projects.map((project, index) => (
-              <div
-                class:list={['systems-evidence-panel', index === 0 && 'is-active']}
-                data-system-evidence={index}
-              >
-                <ProjectEvidence project={project} index={index} />
-              </div>
-            ))
-          }
+        <div class='systems-evidence-frame'>
+          <i class='systems-evidence-corner systems-evidence-corner--tl'></i>
+          <i class='systems-evidence-corner systems-evidence-corner--tr'></i>
+          <i class='systems-evidence-corner systems-evidence-corner--bl'></i>
+          <i class='systems-evidence-corner systems-evidence-corner--br'></i>
+          <div class='systems-evidence-stack'>
+            {
+              projects.map((project, index) => (
+                <div
+                  class:list={['systems-evidence-panel', index === 0 && 'is-active']}
+                  data-system-evidence={index}
+                >
+                  <ProjectEvidence project={project} index={index} />
+                </div>
+              ))
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -135,25 +141,16 @@ const { lang, label, title, projects } = Astro.props
   .project-theater {
     display: block;
     padding: 128px 0;
-    background: var(--theater-bg, #090c0b);
-    color: var(--theater-text, #f3f5f1);
-    --theater-bg: #090c0b;
-    --theater-surface: #111613;
-    --theater-elevated: #151c18;
-    --theater-text: #f3f5f1;
-    --theater-muted: #9eaaa4;
-    --theater-border: #26312c;
-    --theater-accent: #67e2b7;
-    --theater-accent-soft: #173a30;
-  }
-
-  :global(.dark) .project-theater {
-    --theater-bg: #050706;
-    --theater-surface: #0c100e;
-    --theater-elevated: #111613;
-    --theater-muted: #97a39d;
-    --theater-border: #202923;
-    --theater-accent-soft: #122e26;
+    background: var(--theater-bg, #070b16);
+    color: var(--theater-text, #eef2fa);
+    --theater-bg: #070b16;
+    --theater-surface: #0d1424;
+    --theater-elevated: #121b30;
+    --theater-text: #eef2fa;
+    --theater-muted: #93a2bd;
+    --theater-border: #1c2a42;
+    --theater-accent: #22d3ee;
+    --theater-accent-soft: #0c2438;
   }
 
   .systems-container {
@@ -294,6 +291,14 @@ const { lang, label, title, projects } = Astro.props
     color: var(--theater-accent);
     font-weight: 600;
     line-height: 44px;
+    transition:
+      color 180ms ease,
+      text-shadow 180ms ease;
+  }
+
+  .system-cta:hover {
+    color: color-mix(in srgb, var(--theater-accent) 78%, white);
+    text-shadow: 0 0 24px color-mix(in srgb, var(--theater-accent) 60%, transparent);
   }
 
   .systems-evidence {
@@ -301,10 +306,62 @@ const { lang, label, title, projects } = Astro.props
     grid-column: 7 / span 6;
   }
 
-  .systems-evidence-stack {
+  .systems-evidence-frame {
     position: sticky;
     top: 112px;
     height: min(620px, calc(100vh - 144px));
+    box-shadow: 0 0 72px -28px color-mix(in srgb, var(--theater-accent) 45%, transparent);
+  }
+
+  .systems-evidence-corner {
+    position: absolute;
+    z-index: 2;
+    width: 16px;
+    height: 16px;
+    border-color: var(--theater-accent);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theater-accent) 55%, transparent));
+    opacity: 0.8;
+  }
+
+  .systems-evidence-corner--tl {
+    top: 0;
+    left: 0;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+
+  .systems-evidence-corner--tr {
+    top: 0;
+    right: 0;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-right-width: 1px;
+    border-right-style: solid;
+  }
+
+  .systems-evidence-corner--bl {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+
+  .systems-evidence-corner--br {
+    right: 0;
+    bottom: 0;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+  }
+
+  .systems-evidence-stack {
+    position: absolute;
+    inset: 0;
   }
 
   .systems-evidence-panel {
