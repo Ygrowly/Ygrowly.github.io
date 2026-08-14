@@ -283,10 +283,6 @@
     padding: 14px 16px 10px;
   }
 
-  .wt-entry:nth-child(n + 5):not(.wt-entry--input) {
-    display: none;
-  }
-
   .wt-input-row {
     bottom: -10px;
   }

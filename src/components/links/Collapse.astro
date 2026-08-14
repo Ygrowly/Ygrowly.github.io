@@ -1,0 +1,85 @@
+---
+interface Props {
+  class?: string
+  title: string
+}
+const { class: className, title, ...props } = Astro.props
+---
+
+<details class:list={['group/expand rounded-xl border px-3 my-4 sm:px-4', className]} {...props}>
+  <slot name='before' />
+  <summary class='expand-title sticky top-0 z-20 flex cursor-pointer items-center justify-between py-1.5 sm:py-2'>
+    <p class='m-0'>{title}</p>
+    <span class='expand-arrow' aria-hidden='true'>
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke-width='2.5'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+      >
+        <line x1='5' y1='12' x2='19' y2='12'></line>
+        <polyline points='12 5 19 12 12 19'></polyline>
+      </svg>
+    </span>
+  </summary>
+  <div class='expand-content'>
+    <div class='overflow-hidden'>
+      <slot />
+    </div>
+  </div>
+</details>
+
+<style>
+  .expand-title {
+    list-style: none;
+  }
+  .expand-title::-webkit-details-marker {
+    display: none;
+  }
+  .expand-title p {
+    transition: color 200ms ease;
+  }
+  .expand-title:hover p {
+    color: hsl(var(--primary));
+  }
+  .expand-arrow svg {
+    stroke: hsl(var(--muted-foreground));
+    transition:
+      transform 300ms ease,
+      stroke 200ms ease;
+  }
+  .expand-title:hover .expand-arrow svg {
+    stroke: hsl(var(--primary));
+  }
+  details[open] .expand-arrow svg {
+    transform: rotate(-90deg);
+  }
+  details[open] {
+    background: hsl(var(--muted));
+  }
+  details[open] .expand-title {
+    background: hsl(var(--muted));
+  }
+  .expand-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 300ms ease-in-out,
+      opacity 300ms ease-in-out;
+  }
+  details[open] .expand-content {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-bottom: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    details[open] .expand-content {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
