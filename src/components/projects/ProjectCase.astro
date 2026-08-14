@@ -102,12 +102,23 @@ const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
     color: var(--signal-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) header > p:first-child,
+  :global(html[lang='en']) .project-case__original-name {
     letter-spacing: 0.08em;
   }
 
   h1 {
     margin: var(--space-4) 0 0;
     font-size: clamp(48px, 8vw, 84px);
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) h1 {
     letter-spacing: -0.055em;
     line-height: 1;
   }
@@ -116,6 +127,12 @@ const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
     max-width: 760px;
     margin: var(--space-5) 0 0;
     font-size: var(--text-3xl);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+
+  :global(html[lang='en']) header h2 {
     letter-spacing: -0.035em;
     line-height: 1.15;
   }
@@ -141,8 +158,13 @@ const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
     margin: 0 0 var(--space-5);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    letter-spacing: 0.08em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  :global(html[lang='en']) section > h2 {
+    letter-spacing: 0.08em;
   }
 
   section > p {

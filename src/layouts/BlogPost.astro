@@ -55,6 +55,13 @@ const tocHeadings = headings
 
 // Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
 const lang = getLangFromUrl(Astro.url)
+
+// zh posts render the vendored astro-pure Hero, which reads the English
+// minutesRead string — swap in the localized unit for zh pages.
+const heroRemarkFrontmatter =
+  lang === 'zh' && !enHero && typeof remarkPluginFrontmatter.minutesReadZh === 'string'
+    ? { ...remarkPluginFrontmatter, minutesRead: remarkPluginFrontmatter.minutesReadZh }
+    : remarkPluginFrontmatter
 const origin = Astro.site!.origin
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href
 const articleLd = {
@@ -106,7 +113,7 @@ const breadcrumbLd = {
     enHero ? (
       <HeroEn {data} {remarkPluginFrontmatter} slot='header' />
     ) : (
-      <Hero {data} {remarkPluginFrontmatter} slot='header' />
+      <Hero {data} remarkPluginFrontmatter={heroRemarkFrontmatter} slot='header' />
     )
   }
 
@@ -126,3 +133,18 @@ const breadcrumbLd = {
 
 <MermaidRenderer />
 {integ.mediumZoom.enable && <MediumZoom />}
+
+<style>
+  /* Post title must stay larger than prose h2 (1.75em ≈ 28px at 16px base)
+     at every breakpoint — the vendored Hero ships 24px/30px. */
+  :global(#content-header h1) {
+    font-size: 1.875rem;
+    line-height: 1.25;
+  }
+
+  @media (min-width: 640px) {
+    :global(#content-header h1) {
+      font-size: 2.25rem;
+    }
+  }
+</style>

@@ -64,6 +64,10 @@ const { content } = Astro.props
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  :global(html[lang='en']) .explore-heading > p {
     letter-spacing: 0.14em;
   }
 
@@ -71,6 +75,11 @@ const { content } = Astro.props
     margin: var(--space-4) 0 0;
     font-size: clamp(32px, 4vw, 52px);
     font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .explore-heading h2 {
     letter-spacing: -0.04em;
     line-height: 1.08;
   }
@@ -140,14 +149,22 @@ const { content } = Astro.props
     color: #22d3ee;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     opacity: 0.75;
+  }
+
+  :global(html[lang='en']) .explore-card__index {
+    letter-spacing: 0.08em;
   }
 
   .explore-card h3 {
     margin: 0;
     font-size: var(--text-2xl);
     font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  :global(html[lang='en']) .explore-card h3 {
     letter-spacing: -0.02em;
   }
 

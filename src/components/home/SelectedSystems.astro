@@ -169,14 +169,25 @@ const { lang, label, title, projects } = Astro.props
     color: var(--theater-accent);
     font-family: var(--font-mono);
     font-size: 14px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.06em;
     line-height: 1.35;
+  }
+
+  :global(html[lang='en']) .systems-heading p,
+  :global(html[lang='en']) .system-index,
+  :global(html[lang='en']) .system-eyebrow {
+    letter-spacing: 0.1em;
   }
 
   .systems-heading h2 {
     margin: var(--space-4) 0 0;
     font-size: var(--text-4xl);
     font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .systems-heading h2 {
     letter-spacing: -0.035em;
     line-height: 1.1;
   }
@@ -213,6 +224,11 @@ const { lang, label, title, projects } = Astro.props
     margin: var(--space-4) 0 0;
     font-size: clamp(38px, 4.4vw, 64px);
     font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .system-narrative h3 {
     letter-spacing: -0.05em;
     line-height: 1.05;
   }
@@ -223,6 +239,10 @@ const { lang, label, title, projects } = Astro.props
     color: var(--theater-accent);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) .system-narrative h3 span {
     letter-spacing: 0.06em;
   }
 
@@ -256,7 +276,7 @@ const { lang, label, title, projects } = Astro.props
     border-radius: var(--radius-sm);
     color: var(--theater-muted);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .system-highlights {

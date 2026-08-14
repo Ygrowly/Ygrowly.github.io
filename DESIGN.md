@@ -159,10 +159,14 @@ elements → `--signal-accent`; text on top of `--signal-accent` →
 | `--glass-bg`             | `rgba(255,255,255,.78)` | `rgba(10,15,30,.68)`  | Glass surfaces               |
 | `--glow-ring`            | cyan ring + soft glow  | stronger cyan ring+glow | Card hover glow shadow       |
 
-`presetWind3` (full Tailwind palette) is intentionally disabled — only
-`presetMini` + `presetTypography` run — so classes like `text-red-500`
-don't exist here; if a new color is needed, add a token to `app.css` +
-`uno.config.ts` rather than reaching for a raw Tailwind shade.
+`presetWind3` the preset is not loaded — only `presetMini` + `presetTypography`
+run. However, presetMini v66 ships the full Tailwind palette in its default
+theme, so raw palette classes like `text-red-500` **do resolve**, and `dark:`
+compiles against the site's manual `.dark` class (not `prefers-color-scheme`).
+Mechanically working is not the same as sanctioned: if a new color is needed,
+add a token to `app.css` + `uno.config.ts` rather than reaching for a raw
+Tailwind shade. (Known drift: the notes-list status/type badges use raw
+palette classes deliberately — if you touch them, migrate to tokens.)
 
 Hardcoded-color exceptions (all deliberate, all in the "dark device"
 surfaces, identical in both themes):

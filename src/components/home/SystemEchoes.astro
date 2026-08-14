@@ -61,6 +61,11 @@ const { content } = Astro.props
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced) {
       section.classList.add('is-static')
+      // The static fallback shows every card — nothing may stay aria-hidden.
+      section.querySelectorAll('[data-echo-card]').forEach((card) => {
+        card.removeAttribute('aria-hidden')
+        card.classList.add('is-active')
+      })
     } else {
       const ring = section.querySelector<HTMLElement>('[data-echo-ring]')
       const bar = section.querySelector<HTMLElement>('[data-echo-progress]')
@@ -130,6 +135,10 @@ const { content } = Astro.props
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  :global(html[lang='en']) .echo-heading > p {
     letter-spacing: 0.14em;
   }
 
@@ -137,6 +146,11 @@ const { content } = Astro.props
     margin: var(--space-4) 0 0;
     font-size: clamp(36px, 4.6vw, 60px);
     font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .echo-heading h2 {
     letter-spacing: -0.04em;
     line-height: 1.05;
   }
@@ -197,8 +211,12 @@ const { content } = Astro.props
     color: #eef2fa;
     font-size: clamp(17px, 1.6vw, 21px);
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     line-height: 1.55;
+  }
+
+  :global(html[lang='en']) .echo-card__text {
+    letter-spacing: -0.01em;
   }
 
   .echo-card__source {
@@ -206,6 +224,10 @@ const { content } = Astro.props
     color: #22d3ee;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) .echo-card__source {
     letter-spacing: 0.06em;
   }
 
@@ -300,6 +322,8 @@ const { content } = Astro.props
 
   .echo-section.is-static .echo-card {
     position: static;
+    width: 100%;
+    min-width: 0;
     translate: none;
     transform: none;
     opacity: 1;
@@ -319,6 +343,7 @@ const { content } = Astro.props
   @media (max-width: 767px) {
     .echo-section.is-static .echo-ring {
       width: calc(100% - 40px);
+      grid-template-columns: 1fr;
     }
   }
 </style>

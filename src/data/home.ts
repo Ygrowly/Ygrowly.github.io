@@ -94,7 +94,7 @@ const zh: HomeContent = {
       '刘宇广的个人网站：园区能耗、企业 AI BI、Agent 工程、Python 后端、开源实践与技术写作。'
   },
   hero: {
-    eyebrow: '刘宇广 · AI APPLICATION DEVELOPER · 2027',
+    eyebrow: '刘宇广 · AI APPLICATION DEVELOPER · CLASS OF 2027',
     title: '把 AI 接进真实业务，也把系统做得可靠。',
     description:
       '专注 Agent Engineering、Python 后端与数据系统。做过园区能耗、企业 AI BI、签证移民平台与支付诊断 Agent，持续实践工具调用、评测与可恢复工作流。',
@@ -274,8 +274,8 @@ const zh: HomeContent = {
     title: '记录系统如何被设计、验证和修正。',
     latest: '最新 Blog',
     notes: 'Notes',
-    emptyBlog: 'Writing is being prepared. Browse notes or switch language.',
-    emptyNotes: 'Notes are being organized.',
+    emptyBlog: '博客文章整理中——先看看',
+    emptyNotes: '笔记整理中，欢迎先逛逛',
     readMore: '继续阅读 →'
   },
   talks: { label: 'TALKS & DEMOS' },
@@ -360,7 +360,7 @@ const zh: HomeContent = {
   footer: {
     copyright: '© 2026 Liu Yuguang / Ygrowly',
     note: 'Built with care for systems that keep growing.',
-    backToTop: 'Back to top ↑'
+    backToTop: '回到顶部 ↑'
   }
 }
 
@@ -579,8 +579,8 @@ const en: HomeContent = {
     title: 'Notes on how systems are designed, verified, and corrected.',
     latest: 'Latest Blog',
     notes: 'Notes',
-    emptyBlog: 'Writing is being prepared. Browse notes or switch language.',
-    emptyNotes: 'Notes are being organized.',
+    emptyBlog: 'Blog posts are being organized — browse',
+    emptyNotes: 'Notes are being organized — meanwhile, browse',
     readMore: 'Continue reading →'
   },
   talks: { label: 'TALKS & DEMOS' },
@@ -669,7 +669,6 @@ const en: HomeContent = {
     backToTop: 'Back to top ↑'
   }
 }
-
 export const homeContent: Record<Lang, HomeContent> = { zh, en }
 
 export const projectCases: Record<Lang, HomeProject[]> = {

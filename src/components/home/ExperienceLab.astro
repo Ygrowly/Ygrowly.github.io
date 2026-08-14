@@ -111,12 +111,22 @@ const { experience, lab } = Astro.props
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  :global(html[lang='en']) .lab-section > h2 {
     letter-spacing: 0.12em;
   }
 
   header h2 {
     margin: var(--space-4) 0 0;
     font-size: var(--text-4xl);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  :global(html[lang='en']) header h2 {
     letter-spacing: -0.035em;
     line-height: 1.1;
   }
@@ -152,6 +162,7 @@ const { experience, lab } = Astro.props
 
   .experience-row h3 {
     font-size: var(--text-lg);
+    font-weight: 600;
   }
 
   .experience-row__identity p,
@@ -273,22 +284,6 @@ const { experience, lab } = Astro.props
 
     .experience-container {
       width: calc(100% - 48px);
-    }
-
-    .experience-row {
-      grid-template-columns: repeat(8, minmax(0, 1fr));
-    }
-
-    .experience-row time {
-      grid-column: span 2;
-    }
-
-    .experience-row__identity {
-      grid-column: span 3;
-    }
-
-    .experience-row__work {
-      grid-column: span 2;
     }
   }
 

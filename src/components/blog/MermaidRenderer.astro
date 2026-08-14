@@ -71,7 +71,8 @@
       for (const { shell, source } of sourceBlocks) {
         const target = document.createElement('figure')
         target.className = 'mermaid-diagram not-prose'
-        target.setAttribute('aria-label', 'Mermaid 架构图')
+        const isEnPage = document.documentElement.lang === 'en'
+        target.setAttribute('aria-label', isEnPage ? 'Architecture diagram' : '架构图')
 
         try {
           await renderOne(source, target)

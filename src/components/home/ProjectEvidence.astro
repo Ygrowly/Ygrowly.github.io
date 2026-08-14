@@ -12,7 +12,7 @@ const { project, index } = Astro.props
 <div class='evidence-card'>
   <div class='evidence-card__header'>
     <span>system / 0{index + 1}</span>
-    <span class='evidence-card__status'>{project.eyebrow}</span>
+    <span class='evidence-card__status' title={project.eyebrow}>{project.eyebrow}</span>
   </div>
   <div class='evidence-card__body'>
     <div class='evidence-card__path'>

@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import type { HomeContent } from '@/data/home'
-import type { Lang } from '@/i18n/ui'
+import { localizedPath, type Lang } from '@/i18n/ui'
 import { noteHref, postHref } from '@/lib/home-content'
 
 type Post = CollectionEntry<'blog'> | CollectionEntry<'blogEn'>
@@ -61,7 +61,10 @@ const formatDate = (date: Date) =>
               </dl>
             </a>
           ) : (
-            <p class='writing-empty'>{content.emptyBlog}</p>
+            <p class='writing-empty'>
+              {content.emptyBlog}
+              <a href={localizedPath('/notes', lang)}>{lang === 'zh' ? '笔记 →' : 'Notes →'}</a>
+            </p>
           )
         }
         {
@@ -91,7 +94,10 @@ const formatDate = (date: Date) =>
               ))}
             </ol>
           ) : (
-            <p class='writing-empty'>{content.emptyNotes}</p>
+            <p class='writing-empty'>
+              {content.emptyNotes}
+              <a href={localizedPath('/blog', lang)}>{lang === 'zh' ? '博客 →' : 'Blog →'}</a>
+            </p>
           )
         }
       </div>
@@ -133,6 +139,10 @@ const formatDate = (date: Date) =>
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  :global(html[lang='en']) header > p {
     letter-spacing: 0.12em;
   }
 
@@ -140,6 +150,12 @@ const formatDate = (date: Date) =>
     max-width: 760px;
     margin: var(--space-4) 0 0;
     font-size: var(--text-4xl);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  :global(html[lang='en']) header h2 {
     letter-spacing: -0.035em;
     line-height: 1.1;
   }
@@ -177,6 +193,10 @@ const formatDate = (date: Date) =>
     color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) .featured-post > span {
     letter-spacing: 0.08em;
   }
 
@@ -184,6 +204,12 @@ const formatDate = (date: Date) =>
     max-width: 620px;
     margin: var(--space-7) 0 0;
     font-size: clamp(32px, 4vw, 48px);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .featured-post h3 {
     letter-spacing: -0.045em;
     line-height: 1.1;
   }

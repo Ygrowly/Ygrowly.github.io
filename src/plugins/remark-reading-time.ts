@@ -52,6 +52,7 @@ export const remarkReadingTime: Plugin<[], Root> = function () {
 
     if (data.astro?.frontmatter) {
       data.astro.frontmatter.minutesRead = `${readingTime.displayedMinutes} min read`
+      data.astro.frontmatter.minutesReadZh = `约 ${readingTime.displayedMinutes} 分钟`
       data.astro.frontmatter.words = readingTime.cjkCharacters + readingTime.words
     }
   }

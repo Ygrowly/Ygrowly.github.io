@@ -15,14 +15,18 @@ const SCROLL_LINE = 64
 
 export default function PostViewer({ meta, html, headings, status, error, onClose }: Props) {
   const bodyRef = useRef<HTMLDivElement | null>(null)
+  const rootRef = useRef<HTMLDivElement | null>(null)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [tocOpen, setTocOpen] = useState(false)
 
-  // Blur whatever was focused (usually the terminal prompt) so keys
-  // like `g`/`j`/`k`/`1` aren't typed into it instead.
+  // Move focus into the viewer and restore it to the terminal prompt on close.
   useEffect(() => {
     const active = document.activeElement
     if (active && active instanceof HTMLElement) active.blur()
+    rootRef.current?.focus()
+    return () => {
+      if (active && active instanceof HTMLElement) active.focus()
+    }
   }, [])
 
   // h2-only nav targets — keeps `1`–`9` shortcuts to a meaningful set.
@@ -129,7 +133,14 @@ export default function PostViewer({ meta, html, headings, status, error, onClos
   }
 
   return (
-    <div className='dev-viewer-root' role='dialog' aria-modal='true' aria-label='post viewer'>
+    <div
+      className='dev-viewer-root'
+      ref={rootRef}
+      tabIndex={-1}
+      role='dialog'
+      aria-modal='true'
+      aria-label='post viewer'
+    >
       <div className='dev-viewer-bar'>
         <span className='dev-viewer-marker'>▌</span>
         <span className='dev-viewer-title'>{meta.title ?? meta.slug}</span>
@@ -160,7 +171,7 @@ export default function PostViewer({ meta, html, headings, status, error, onClos
       {tocOpen && status === 'ready' && (
         <div
           className='dev-viewer-toc'
-          role='listbox'
+          role='navigation'
           aria-label='table of contents'
           onClick={(e) => {
             // close when clicking the backdrop

@@ -8,7 +8,7 @@ const typographyConfig = {
   cssExtend: {
     // Title
     'h2,h3,h4,h5,h6': {
-      'scroll-margin-top': '3rem',
+      'scroll-margin-top': '5rem',
       'font-weight': '500',
       color: fg
     },
@@ -61,7 +61,10 @@ const typographyConfig = {
     // Table
     table: {
       display: 'block',
-      'font-size': '.875em'
+      'font-size': '.875em',
+      'overflow-x': 'auto',
+      'max-width': '100%',
+      '-webkit-overflow-scrolling': 'touch'
     },
     'table tr': {
       'border-bottom-width': '1px'
@@ -117,6 +120,9 @@ const typographyConfig = {
     a: {
       'font-weight': '500',
       color: fg
+    },
+    'p, li, dd, dt, blockquote': {
+      'overflow-wrap': 'break-word'
     },
     'code:not(pre code)': {
       'white-space': 'pre-wrap!important',

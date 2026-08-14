@@ -30,22 +30,22 @@ const sortedTags = Object.entries(tagCounts).sort(([tagA, countA], [tagB, countB
 })
 
 const meta = {
-  title: 'Note Tags',
-  description: 'Browse note entries by tag'
+  title: '笔记标签',
+  description: '按标签浏览笔记条目'
 }
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/notes' style='back' />
+  <Button title='← 返回笔记' href='/notes' style='back' />
 
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
       <h1 class='mb-2 flex items-center gap-2 text-3xl font-medium'>
         <Icon name='tag-2' />
-        Note Tags
+        笔记标签
       </h1>
       <p class='mb-6 text-muted-foreground'>
-        Browse {sortedTags.length} tags across {allNotes.length} note entries
+        浏览 {sortedTags.length} 个标签、{allNotes.length} 篇笔记
       </p>
     </div>
 
@@ -71,7 +71,7 @@ const meta = {
 
       {
         sortedTags.length === 0 && (
-          <p class='text-muted-foreground'>No tags found in note entries.</p>
+          <p class='text-muted-foreground'>笔记条目中还没有标签。</p>
         )
       }
     </section>

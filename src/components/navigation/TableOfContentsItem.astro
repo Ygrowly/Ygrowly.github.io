@@ -1,6 +1,8 @@
 ---
 import { cn } from 'astro-pure/utils'
 
+import { getLangFromUrl } from '@/i18n/ui'
+
 import type { TocItem } from './toc'
 
 interface Props {
@@ -11,6 +13,7 @@ const {
   heading: { depth, isRoot, slug, subheadings, text: rawText }
 } = Astro.props
 const text = rawText.endsWith('#') ? rawText.slice(0, -1) : rawText
+const lang = getLangFromUrl(Astro.url)
 ---
 
 <li>
@@ -21,9 +24,9 @@ const text = rawText.endsWith('#') ? rawText.slice(0, -1) : rawText
     ></span>
     <a
       data-toc-link
-      aria-label={`Scroll to section: ${text}`}
+      aria-label={`${lang === 'en' ? 'Scroll to section: ' : '滚动到小节：'}${text}`}
       class={cn(
-        'toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&.highlight]:font-medium [&.highlight]:text-primary [&.is-read]:text-input [&.highlight-bg-translucent]:bg-muted',
+        'toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&.highlight]:font-medium [&.highlight]:text-primary [&.highlight-bg-translucent]:bg-muted',
         depth > 2 ? 'ps-10' : !isRoot ? 'ps-7' : undefined
       )}
       href={`#${slug}`}>{text}</a
@@ -39,3 +42,12 @@ const text = rawText.endsWith('#') ? rawText.slice(0, -1) : rawText
     )
   }
 </li>
+
+<style>
+  .toc-item.is-read {
+    color: hsl(var(--muted-foreground) / 0.7);
+  }
+  [data-toc-progress].is-read {
+    background: hsl(var(--muted-foreground) / 0.35);
+  }
+</style>

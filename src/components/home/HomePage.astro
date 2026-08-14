@@ -42,9 +42,11 @@ const talks =
     : []
 const latestPostHref = posts[0] ? postHref(posts[0], lang) : `${lang === 'en' ? '/en' : ''}/blog`
 const featuredRender = posts[0] ? await render(posts[0]) : null
-const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead as
-  | string
-  | undefined
+const featuredReadingTime = (
+  lang === 'zh'
+    ? featuredRender?.remarkPluginFrontmatter?.minutesReadZh
+    : featuredRender?.remarkPluginFrontmatter?.minutesRead
+) as string | undefined
 ---
 
 <BaseLayout home exactTitle meta={content.meta}>
@@ -118,6 +120,7 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
       {talks}
       {featuredReadingTime}
     />
+    <NightChapter content={content.night} />
     <ProfileContact
       {lang}
       profile={content.profile}
@@ -125,7 +128,6 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
       footer={content.footer}
       resumeHref={resume}
     />
-    <NightChapter content={content.night} />
   </main>
 </BaseLayout>
 
@@ -234,8 +236,12 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.06em;
     line-height: 1.35;
+  }
+
+  :global(html[lang='en']) .home-eyebrow {
+    letter-spacing: 0.12em;
   }
 
   .home-eyebrow::before {
@@ -255,6 +261,11 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     margin: 20px 0 0;
     font-size: var(--text-hero);
     font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .home-hero h1 {
     letter-spacing: -0.045em;
     line-height: 1.04;
   }
@@ -361,8 +372,12 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
 
   .home-hero__recent > span {
     font-family: var(--font-mono);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  :global(html[lang='en']) .home-hero__recent > span {
+    letter-spacing: 0.08em;
   }
 
   .home-hero__recent ul {

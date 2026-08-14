@@ -6,6 +6,7 @@ import { Paginator, PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, getUniqueTags, sortMDByDate } from 'astro-pure/server'
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import { getLangFromUrl, useTranslations } from '@/i18n/ui'
 import config from '@/site-config'
 
 export const prerender = true
@@ -27,22 +28,29 @@ interface Props {
 }
 
 const { page, uniqueTags, collectionsCount } = Astro.props
+const lang = getLangFromUrl(Astro.url)
+const t = useTranslations(lang)
 
 const meta = {
-  description: 'Some posts or notes of my blog',
+  description: lang === 'en' ? 'Some posts or notes of my blog' : '博客与笔记文章列表',
   title: 'Blog'
 }
+
+const pageInfo = t('blog.pageInfo')
+  .replace('{current}', String(page.currentPage))
+  .replace('{count}', String(page.data.length))
+  .replace('{total}', String(collectionsCount))
 
 const paginationProps = {
   ...(page.url.prev && {
     prevUrl: {
-      text: `← Previous Posts`,
+      text: t('blog.prev'),
       url: page.url.prev
     }
   }),
   ...(page.url.next && {
     nextUrl: {
-      text: `Next Posts →`,
+      text: t('blog.next'),
       url: page.url.next
     }
   })
@@ -50,22 +58,20 @@ const paginationProps = {
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/' style='back' />
+  <Button title={t('back.home')} href='/' style='back' />
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
       <h1 class='mb-6 mt-6 text-3xl font-medium sm:mt-10'>Blog</h1>
     </div>
     {
       page.data.length === 0 ? (
-        <p>No posts yet.</p>
+        <p>{t('blog.empty')}</p>
       ) : (
         <div class='grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
-          <section aria-label='Blog posts list' class='animate' id='content'>
+          <section aria-label={t('blog.listAria')} class='animate' id='content'>
             {/* header */}
             <div class='mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row'>
-              <span class='text-muted-foreground'>
-                Page {page.currentPage} - Showing {page.data.length} of {collectionsCount} posts
-              </span>
+              <span class='text-muted-foreground'>{pageInfo}</span>
             </div>
             {/* posts */}
             <ul class='flex flex-col gap-y-4 text-start'>
@@ -81,7 +87,7 @@ const paginationProps = {
             <aside class='animate' id='sidebar'>
               <h2 class='mb-4 flex items-center text-lg font-semibold'>
                 <Icon name='tag-2' class='me-2' />
-                Tags
+                {t('blog.tags')}
               </h2>
               <ul class='text-bgColor flex flex-wrap gap-2'>
                 {uniqueTags.map((tag) => (
@@ -91,8 +97,11 @@ const paginationProps = {
                 ))}
               </ul>
               <span class='mt-4 block sm:text-end'>
-                <a aria-label='View all blog categories' href='/tags' data-astro-prefetch>
-                  View all →
+                <a
+                  aria-label={t('blog.categoriesAria')}
+                  href='/tags'
+                  data-astro-prefetch>
+                  {t('blog.viewAll')}
                 </a>
               </span>
             </aside>

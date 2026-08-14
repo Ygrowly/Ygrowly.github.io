@@ -357,7 +357,7 @@ export default function TerminalShell({
     <div
       className='wt-shell'
       role='region'
-      aria-label='Interactive portfolio terminal'
+      aria-label={lang === 'en' ? 'Interactive portfolio terminal' : '交互式个人主页终端'}
       onPointerDown={cancelDemo}
     >
       <div className='wt-titlebar'>
@@ -365,7 +365,7 @@ export default function TerminalShell({
         <button
           className='wt-help'
           type='button'
-          aria-label='Show terminal help'
+          aria-label={lang === 'en' ? 'Show terminal help' : '显示终端帮助'}
           onClick={(event) => {
             event.stopPropagation()
             void runInput('help')
@@ -432,12 +432,12 @@ export default function TerminalShell({
             spellCheck={false}
             autoCapitalize='off'
             autoCorrect='off'
-            aria-label='Terminal command input'
+            aria-label={lang === 'en' ? 'Terminal command input' : '终端命令输入'}
           />
         </div>
       </div>
 
-      <div className='wt-quick-actions' aria-label='Terminal shortcuts'>
+      <div className='wt-quick-actions' aria-label={lang === 'en' ? 'Terminal shortcuts' : '终端快捷方式'}>
         {[
           ['Projects', 'projects'],
           ['Resume', 'resume'],

@@ -1,5 +1,5 @@
 import { trackSiteEvent } from '@/lib/analytics'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import DevMode from './DevMode'
 import { fetchSiteFs } from './fs/client'
@@ -62,6 +62,26 @@ export default function DevModeHost() {
   const [mode, setMode] = useState<Mode>('human')
   const [fs, setFs] = useState<FsNode | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
+  const hostRef = useRef<HTMLDivElement | null>(null)
+
+  // While the fullscreen overlay is up, the rest of the page is inert so Tab
+  // cannot escape into obscured content (same pattern as the intro overlay).
+  useEffect(() => {
+    if (mode !== 'dev') return
+    const inerted: HTMLElement[] = []
+    Array.from(document.body.children).forEach((child) => {
+      if (!(child instanceof HTMLElement)) return
+      if (child.tagName === 'SCRIPT' || child.tagName === 'STYLE') return
+      if (hostRef.current && child.contains(hostRef.current)) return
+      if (!child.hasAttribute('inert')) {
+        child.setAttribute('inert', '')
+        inerted.push(child)
+      }
+    })
+    return () => {
+      inerted.forEach((el) => el.removeAttribute('inert'))
+    }
+  }, [mode])
 
   const enter = useCallback((method: string) => {
     trackSiteEvent('terminal_open', {
@@ -140,6 +160,15 @@ export default function DevModeHost() {
   }, [mode])
 
   if (mode !== 'dev') return null
-  if (!fs) return <DevModeLoading failed={loadFailed} />
-  return <DevMode fs={fs} onExit={exit} />
+  if (!fs)
+    return (
+      <div ref={hostRef}>
+        <DevModeLoading failed={loadFailed} />
+      </div>
+    )
+  return (
+    <div ref={hostRef}>
+      <DevMode fs={fs} onExit={exit} />
+    </div>
+  )
 }

@@ -75,6 +75,11 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
+    letter-spacing: 0.06em;
+  }
+
+  :global(html[lang='en']) .profile-section h2,
+  :global(html[lang='en']) .contact-section h2 {
     letter-spacing: 0.12em;
   }
 
@@ -107,6 +112,11 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     margin: var(--space-8) 0 0;
     font-size: var(--text-3xl);
     font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.45;
+  }
+
+  :global(html[lang='en']) .profile-statement {
     letter-spacing: -0.03em;
     line-height: 1.35;
   }
