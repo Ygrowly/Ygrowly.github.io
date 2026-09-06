@@ -20,7 +20,6 @@ export type HomeContent = {
     eyebrow: string
     title: string
     description: string
-    resume: string
     projects: string
     writing: string
     status: string[]
@@ -28,12 +27,16 @@ export type HomeContent = {
     recent: string[]
   }
   systems: {
+    code: string
     label: string
+    status: string
     title: string
     projects: HomeProject[]
   }
   experience: {
+    code: string
     label: string
+    status: string
     title: string
     expand: string
     collapse: string
@@ -50,7 +53,9 @@ export type HomeContent = {
     items: { name: string; status: string; description: string; href: string; external?: boolean }[]
   }
   writing: {
+    code: string
     label: string
+    status: string
     title: string
     latest: string
     notes: string
@@ -60,26 +65,35 @@ export type HomeContent = {
   }
   talks: { label: string }
   profile: {
+    code: string
     label: string
+    status: string
+    title: string
     rows: { label: string; value: string }[]
     statement: string
     cta: string
   }
   contact: {
+    code: string
     label: string
+    status: string
+    title: string
     text: string
     email: string
     github: string
-    resume: string
   }
   night: {
+    echoCode: string
     echoLabel: string
     echoTitle: string
     echoSub: string
+    echoStatus: string
     echoes: { text: string; source: string }[]
+    exploreCode: string
     exploreLabel: string
     exploreTitle: string
     exploreSub: string
+    exploreStatus: string
     exploreCards: { title: string; sub: string; href: string; kind: SkyKind }[]
   }
   footer: { copyright: string; note: string; backToTop: string }
@@ -98,7 +112,6 @@ const zh: HomeContent = {
     title: '把 AI 接进真实业务，也把系统做得可靠。',
     description:
       '专注 Agent Engineering、Python 后端与数据系统。做过园区能耗、企业 AI BI、签证移民平台与支付诊断 Agent，持续实践工具调用、评测与可恢复工作流。',
-    resume: '查看简历 PDF ↗',
     projects: '浏览精选项目 ↓',
     writing: '阅读最新文章 →',
     status: ['2027 届', 'AI 应用开发 / Python 后端', '广州、深圳优先', 'Open to opportunities'],
@@ -106,7 +119,9 @@ const zh: HomeContent = {
     recent: ['金山办公', '企业 AI BI', 'Ovanta', 'tRPC Agent 开源实践']
   },
   systems: {
+    code: '01',
     label: 'SELECTED SYSTEMS',
+    status: '运行中 · 可验证',
     title: '不是功能堆叠，而是可运行、可验证的工程链路。',
     projects: [
       {
@@ -216,7 +231,9 @@ const zh: HomeContent = {
     ]
   },
   experience: {
+    code: '02',
     label: 'EXPERIENCE',
+    status: '2025 → 现在',
     title: '在真实项目中，把数据、后端和 AI 能力接成闭环。',
     expand: '展开重点',
     collapse: '收起重点',
@@ -270,7 +287,9 @@ const zh: HomeContent = {
     ]
   },
   writing: {
+    code: '03',
     label: 'WRITING',
+    status: '持续更新',
     title: '记录系统如何被设计、验证和修正。',
     latest: '最新 Blog',
     notes: 'Notes',
@@ -280,7 +299,10 @@ const zh: HomeContent = {
   },
   talks: { label: 'TALKS & DEMOS' },
   profile: {
+    code: '05',
     label: 'PROFILE',
+    status: '公开档案',
+    title: '教育、技术栈与工作方式。',
     rows: [
       { label: 'Education', value: '数据科学与大数据技术 · 2027 届' },
       { label: 'Focus', value: 'AI Application Engineering · Agent · Data Systems' },
@@ -291,16 +313,20 @@ const zh: HomeContent = {
     cta: '了解更多关于我 →'
   },
   contact: {
-    label: 'OPEN TO OPPORTUNITIES',
+    code: '06',
+    label: 'CONTACT',
+    status: '在线 · 接洽中',
+    title: '聊聊系统、Agent 与下一步。',
     text: '正在寻找 2027 届 AI 应用开发 / Python 后端相关机会，也欢迎交流 Agent 工程、数据系统与开源实践。',
     email: '发送邮件',
-    github: 'GitHub',
-    resume: '查看简历'
+    github: 'GitHub'
   },
   night: {
+    echoCode: '04 · A',
     echoLabel: 'SYSTEM ECHOES',
     echoTitle: '系统回声',
     echoSub: '真实项目留下的可验证证据，而不是形容词。',
+    echoStatus: '回放中',
     echoes: [
       {
         text: '从累计读数到可信统计、异常诊断与 Agent 工具调用——链路可运行、可验证。',
@@ -327,9 +353,11 @@ const zh: HomeContent = {
         source: 'PayTrace · Eval Loop'
       }
     ],
+    exploreCode: '04 · B',
     exploreLabel: 'EXPLORE BEYOND',
     exploreTitle: '再往前走一点',
     exploreSub: '四个方向，继续浏览。',
+    exploreStatus: '浏览',
     exploreCards: [
       {
         title: '我构建的东西',
@@ -375,7 +403,6 @@ const en: HomeContent = {
     title: 'I bring AI into real workflows—and engineer the system around it.',
     description:
       'Focused on agent engineering, Python backends, and data systems. I build observable, recoverable applications across enterprise energy, business analytics, payment diagnosis, and cross-border services.',
-    resume: 'View Résumé ↗',
     projects: 'Explore Selected Systems ↓',
     writing: 'Read Latest Writing →',
     status: [
@@ -393,7 +420,9 @@ const en: HomeContent = {
     ]
   },
   systems: {
+    code: '01',
     label: 'SELECTED SYSTEMS',
+    status: 'RUNNING · VERIFIED',
     title: 'Not feature collections, but systems that can be operated and verified.',
     projects: [
       {
@@ -517,7 +546,9 @@ const en: HomeContent = {
     ]
   },
   experience: {
+    code: '02',
     label: 'EXPERIENCE',
+    status: '2025 → NOW',
     title: 'Connecting data, backend systems, and AI inside real projects.',
     expand: 'Show focus',
     collapse: 'Hide focus',
@@ -575,7 +606,9 @@ const en: HomeContent = {
     ]
   },
   writing: {
+    code: '03',
     label: 'WRITING',
+    status: 'UPDATING',
     title: 'Notes on how systems are designed, verified, and corrected.',
     latest: 'Latest Blog',
     notes: 'Notes',
@@ -585,7 +618,10 @@ const en: HomeContent = {
   },
   talks: { label: 'TALKS & DEMOS' },
   profile: {
+    code: '05',
     label: 'PROFILE',
+    status: 'PUBLIC RECORD',
+    title: 'Education, stack, and how I work.',
     rows: [
       { label: 'Education', value: 'Data Science and Big Data Technology · Class of 2027' },
       { label: 'Focus', value: 'AI Application Engineering · Agent · Data Systems' },
@@ -597,16 +633,20 @@ const en: HomeContent = {
     cta: 'More about me →'
   },
   contact: {
-    label: 'OPEN TO OPPORTUNITIES',
+    code: '06',
+    label: 'CONTACT',
+    status: 'ONLINE · OPEN',
+    title: 'Let’s talk systems, agents, and what comes next.',
     text: 'I’m looking for 2027 graduate opportunities in AI application and Python backend engineering, and I’m always open to conversations about agents, data systems, and open source.',
     email: 'Email',
-    github: 'GitHub',
-    resume: 'View Résumé'
+    github: 'GitHub'
   },
   night: {
+    echoCode: '04 · A',
     echoLabel: 'SYSTEM ECHOES',
     echoTitle: 'System Echoes',
     echoSub: 'Verifiable evidence left by real systems, not adjectives.',
+    echoStatus: 'PLAYBACK',
     echoes: [
       {
         text: 'From cumulative readings to trusted aggregation, anomaly diagnosis, and agent tools — a pipeline that runs and verifies.',
@@ -633,9 +673,11 @@ const en: HomeContent = {
         source: 'PayTrace · Eval Loop'
       }
     ],
+    exploreCode: '04 · B',
     exploreLabel: 'EXPLORE BEYOND',
     exploreTitle: 'Explore Beyond This Page',
     exploreSub: 'Four directions to keep browsing.',
+    exploreStatus: 'BROWSE',
     exploreCards: [
       {
         title: 'Things I Built',

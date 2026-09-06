@@ -11,7 +11,6 @@ import './terminal.css'
 
 type Props = {
   lang?: 'zh' | 'en'
-  resumeHref?: string
 }
 
 type RenderEntry = HistoryEntry & { id: string }
@@ -82,17 +81,14 @@ function staticEntries(lang: 'zh' | 'en'): RenderEntry[] {
         {
           kind: 'text',
           tone: 'muted',
-          text: 'projects  experience  writing  resume  contact'
+          text: 'projects  experience  writing  github  contact'
         }
       ]
     }
   ]
 }
 
-export default function TerminalShell({
-  lang = 'zh',
-  resumeHref = lang === 'en' ? '/resume-en.pdf' : '/resume.pdf'
-}: Props) {
+export default function TerminalShell({ lang = 'zh' }: Props) {
   const [fs, setFs] = useState<FsNode | null>(null)
   const [entries, setEntries] = useState<RenderEntry[]>(() => staticEntries(lang))
   const [input, setInput] = useState('')
@@ -281,7 +277,6 @@ export default function TerminalShell({
           /* The legacy command remains registered; visual overlays stay out of the homepage. */
         },
         navigate,
-        resumeHref
       }
 
       try {
@@ -299,7 +294,7 @@ export default function TerminalShell({
         })
       }
     },
-    [appendEntry, cancelDemo, cwd, fs, loadFs, navigate, resumeHref, setTheme, updateStream]
+    [appendEntry, cancelDemo, cwd, fs, loadFs, navigate, setTheme, updateStream]
   )
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -412,7 +407,7 @@ export default function TerminalShell({
             <span className='wt-tone-fg'>{input}</span>
             <span className={`wt-caret ${focused ? '' : 'wt-caret--idle'}`} aria-hidden />
             {!input && !focused && (
-              <span className='wt-input-hint'>type help, projects, or resume</span>
+              <span className='wt-input-hint'>type help, projects, or contact</span>
             )}
           </span>
           <input
@@ -440,7 +435,7 @@ export default function TerminalShell({
       <div className='wt-quick-actions' aria-label={lang === 'en' ? 'Terminal shortcuts' : '终端快捷方式'}>
         {[
           ['Projects', 'projects'],
-          ['Resume', 'resume'],
+          ['GitHub', 'github'],
           ['Contact', 'contact']
         ].map(([label, command]) => (
           <button key={command} type='button' onClick={() => void runInput(command)}>

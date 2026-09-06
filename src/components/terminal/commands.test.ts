@@ -11,7 +11,6 @@ const requiredCommands = [
   'experience',
   'writing',
   'skills',
-  'resume',
   'github',
   'contact',
   'theme',
@@ -50,18 +49,6 @@ describe('portfolio terminal commands', () => {
       await commands.theme.run({ ...context, args: [mode] })
     }
     expect(modes).toEqual(['light', 'dark', 'system'])
-  })
-
-  test('resume reports the provided stable path without opening it automatically', async () => {
-    const lines: OutputLine[][] = []
-    const context = commandContext({
-      resumeHref: '/resume.pdf',
-      push: (output) => lines.push(output)
-    })
-
-    await commands.resume.run(context)
-    expect(lines).toHaveLength(1)
-    expect(JSON.stringify(lines)).toContain('/resume.pdf')
   })
 })
 

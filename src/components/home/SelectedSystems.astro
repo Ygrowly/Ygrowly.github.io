@@ -4,30 +4,33 @@ import { projectHref } from '@/data/home'
 import type { Lang } from '@/i18n/ui'
 
 import ProjectEvidence from './ProjectEvidence.astro'
+import SectionHead from './SectionHead.astro'
 
 interface Props {
   lang: Lang
+  code: string
   label: string
+  status: string
   title: string
   projects: HomeProject[]
 }
 
-const { lang, label, title, projects } = Astro.props
+const { lang, code, label, status, title, projects } = Astro.props
 ---
 
 <systems-theater id='projects' class='project-theater' aria-labelledby='projects-title'>
   <div class='systems-container'>
-    <header class='systems-heading'>
-      <p>{label}</p>
-      <h2 id='projects-title'>{title}</h2>
-    </header>
+    <SectionHead id='projects' {code} {label} {title} {status} />
 
     <div class='systems-stage'>
       <div class='systems-narratives'>
         {
           projects.map((project, index) => (
             <article class='system-narrative' data-system-narrative={index}>
-              <p class='system-index'>0{index + 1}</p>
+              <p class='system-index'>
+                0{index + 1}
+                <span aria-hidden='true'>/ 0{projects.length}</span>
+              </p>
               <p class='system-eyebrow'>{project.eyebrow}</p>
               <h3>
                 <span>{project.name}</span>
@@ -151,6 +154,11 @@ const { lang, label, title, projects } = Astro.props
     --theater-border: #1c2a42;
     --theater-accent: #22d3ee;
     --theater-accent-soft: #0c2438;
+    /* Re-ink the shared module header for the dark theater. */
+    --mh-ink: #eef2fa;
+    --mh-muted: #93a2bd;
+    --mh-accent: #22d3ee;
+    --mh-line: #1c2a42;
   }
 
   .systems-container {
@@ -158,11 +166,6 @@ const { lang, label, title, projects } = Astro.props
     margin: 0 auto;
   }
 
-  .systems-heading {
-    max-width: 720px;
-  }
-
-  .systems-heading p,
   .system-index,
   .system-eyebrow {
     margin: 0;
@@ -173,23 +176,17 @@ const { lang, label, title, projects } = Astro.props
     line-height: 1.35;
   }
 
-  :global(html[lang='en']) .systems-heading p,
   :global(html[lang='en']) .system-index,
   :global(html[lang='en']) .system-eyebrow {
     letter-spacing: 0.1em;
   }
 
-  .systems-heading h2 {
-    margin: var(--space-4) 0 0;
-    font-size: var(--text-4xl);
-    font-weight: 600;
-    letter-spacing: 0;
-    line-height: 1.2;
+  .system-index {
+    color: var(--theater-muted);
   }
 
-  :global(html[lang='en']) .systems-heading h2 {
-    letter-spacing: -0.035em;
-    line-height: 1.1;
+  .system-index span {
+    opacity: 0.55;
   }
 
   .systems-stage {
@@ -209,10 +206,6 @@ const { lang, label, title, projects } = Astro.props
     flex-direction: column;
     justify-content: center;
     padding: var(--space-9) 0;
-  }
-
-  .system-index {
-    color: var(--theater-muted);
   }
 
   .system-eyebrow {
@@ -443,10 +436,6 @@ const { lang, label, title, projects } = Astro.props
 
     .systems-container {
       width: calc(100% - 40px);
-    }
-
-    .systems-heading h2 {
-      font-size: var(--text-3xl);
     }
 
     .system-narrative h3 {

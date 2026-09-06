@@ -1,5 +1,4 @@
 import { hasEnAlternate, withLangPrefix } from '@/i18n/ui'
-import { resolvedResume } from '@/lib/resume'
 import { describe, expect, test } from 'bun:test'
 
 import { homeContent, projectCases } from './home'
@@ -28,12 +27,10 @@ describe('homepage configuration', () => {
     expect(withLangPrefix('/about', 'en')).toBe('/en/about')
   })
 
-  test('falls back to the Chinese résumé when an English PDF is absent', () => {
-    const resume = resolvedResume('en')
-    if (resume.fallbackToChinese) {
-      expect(resume.href).toBe('/resume.pdf')
-    } else {
-      expect(resume.href).toBe('/resume-en.pdf')
+  test('does not expose résumé entry points in homepage content', () => {
+    for (const content of [homeContent.zh, homeContent.en]) {
+      expect(content.hero).not.toHaveProperty('resume')
+      expect(content.contact).not.toHaveProperty('resume')
     }
   })
 })

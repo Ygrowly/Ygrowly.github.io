@@ -236,28 +236,6 @@ export const commands: CommandRegistry = {
     }
   },
 
-  resume: {
-    name: 'resume',
-    summary: 'show the résumé PDF link',
-    run: ({ push, resumeHref }) => {
-      const href = resumeHref ?? (isEnglishPage() ? '/resume-en.pdf' : '/resume.pdf')
-      push([
-        {
-          kind: 'node',
-          node: (
-            <span>
-              <span className='wt-tone-muted'>résumé: </span>
-              <a className='wt-link' href={href} target='_blank' rel='noopener noreferrer'>
-                {href}
-              </a>
-            </span>
-          )
-        },
-        { kind: 'text', tone: 'muted', text: 'Open the link above when you are ready.' }
-      ])
-    }
-  },
-
   github: {
     name: 'github',
     summary: 'show the public GitHub profile',

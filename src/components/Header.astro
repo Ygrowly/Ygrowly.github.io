@@ -1,6 +1,5 @@
 ---
 import { getLangFromUrl, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
-import { resolvedResume } from '@/lib/resume'
 
 import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
@@ -14,13 +13,6 @@ const lang = (Astro.props.lang ?? getLangFromUrl(Astro.url)) as Lang
 const home = Astro.props.home ?? false
 const t = useTranslations(lang)
 const homeHref = localizedPath('/', lang)
-const resume = resolvedResume(lang)
-const resumeLabel =
-  lang === 'en' && resume.fallbackToChinese ? `${t('nav.resume')} · CN` : t('nav.resume')
-const resumeAria =
-  lang === 'en' && resume.fallbackToChinese
-    ? 'Open Chinese résumé PDF in a new tab'
-    : t('nav.resumeAria')
 const navItems = [
   { label: t('nav.homeProjects'), href: localizedPath('/projects', lang), section: 'projects' },
   { label: t('nav.homeExperience'), href: localizedPath('/experience', lang), section: 'experience' },
@@ -68,17 +60,6 @@ const navItems = [
         <Icon class='theme-icon dark' name='moon' />
       </button>
 
-      <a
-        class='site-header__resume site-header__desktop-actions'
-        href={resume.href}
-        target='_blank'
-        rel='noopener noreferrer'
-        aria-label={resumeAria}
-      >
-        {resumeLabel}
-        <span aria-hidden='true'>↗</span>
-      </a>
-
       <button
         id='toggleMenu'
         class='site-header__icon-button site-header__menu-button'
@@ -113,16 +94,6 @@ const navItems = [
         <span>{lang === 'en' ? 'Language' : '语言'}</span>
         <LanguageSwitcher {lang} />
       </div>
-      <a
-        class='site-header__mobile-resume'
-        href={resume.href}
-        target='_blank'
-        rel='noopener noreferrer'
-        aria-label={resumeAria}
-      >
-        {resumeLabel}
-        <span aria-hidden='true'>↗</span>
-      </a>
     </nav>
   </div>
 </header-component>
@@ -443,28 +414,6 @@ const navItems = [
     transform: scale(1);
   }
 
-  .site-header__resume {
-    min-height: 44px;
-    padding: 0 var(--space-4);
-    border-radius: var(--radius-sm);
-    background: var(--signal-accent);
-    color: var(--accent-contrast);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    line-height: 44px;
-    white-space: nowrap;
-  }
-
-  .site-header__resume:hover {
-    background: var(--signal-accent-hover);
-    color: var(--accent-contrast);
-  }
-
-  .site-header[data-over-theater] .site-header__resume {
-    background: #22d3ee;
-    color: #06121f;
-  }
-
   .site-header__menu-button,
   .site-header__mobile-layer {
     display: none;
@@ -579,18 +528,6 @@ const navItems = [
       height: 44px;
       padding: 0;
       border: 0;
-    }
-
-    .site-header__mobile-menu .site-header__mobile-resume {
-      justify-content: center;
-      min-height: 48px;
-      margin-top: var(--space-4);
-      border: 0;
-      border-radius: var(--radius-sm);
-      background: var(--signal-accent);
-      color: var(--accent-contrast);
-      font-size: var(--text-base);
-      font-weight: 600;
     }
 
     .site-header.is-menu-open .menu-icon {

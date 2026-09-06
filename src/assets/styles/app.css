@@ -1,4 +1,5 @@
 @import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 
 /* Font */
 html {
@@ -6,23 +7,25 @@ html {
 }
 
 /* Theme
-   Design direction: "mission console" — modern business as the base
-   (white/charcoal/navy, structured), future tech as the garnish
-   (cyan HUD lines, glow, glass). Navy = business interactive color,
-   cyan = tech instrument color (HUD, focus, status, glow). */
+   Design direction: "ops deck" — the whole homepage speaks one console
+   language in both day and night modes. Sans (Geist) carries the prose;
+   mono (JetBrains Mono) carries the structure: module codes, readouts,
+   statuses. Navy = business interactive color, cyan = instrument accent,
+   green = verified/online, amber = in-progress. Section headers open with
+   a ticked ruler + module code (01 / SELECTED SYSTEMS · RUNNING). */
 :root {
   color-scheme: light;
 
   /* Homepage design tokens. Keep the legacy HSL aliases below because
      astro-pure and UnoCSS consume them throughout the existing site. */
-  --bg-page: #ffffff;
-  --bg-surface: #f8fafc;
+  --bg-page: #f6f8fb;
+  --bg-surface: #fbfcfe;
   --bg-elevated: #ffffff;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-tertiary: #71717a;
-  --border-default: #e4e4e7;
-  --border-strong: #d4d4d8;
+  --text-primary: #111826;
+  --text-secondary: #4d5665;
+  --text-tertiary: #6d7686;
+  --border-default: #e3e7ee;
+  --border-strong: #cdd4df;
   --signal-accent: #1d4ed8;
   --signal-accent-hover: #1e40af;
   --accent-contrast: #ffffff;
@@ -31,6 +34,8 @@ html {
   --accent-soft: #eff6ff;
   --focus-ring: #0891b2;
   --selection-bg: #bfdbfe;
+  --status-ok: #0f7b4d;
+  --status-warn: #b45309;
   --grid-line: rgba(30, 64, 175, 0.06);
   --glass-bg: rgba(255, 255, 255, 0.78);
   --glow-ring: 0 0 0 1px rgba(6, 182, 212, 0.28), 0 0 28px -8px rgba(6, 182, 212, 0.4);
@@ -38,7 +43,9 @@ html {
   --font-sans:
     'Instrument Sans', 'Geist Variable', 'Geist', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei',
     system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono',
+    monospace;
 
   --text-xs: 12px;
   --text-sm: 14px;
@@ -116,6 +123,8 @@ html {
   --accent-soft: #12283a;
   --focus-ring: #22d3ee;
   --selection-bg: #164e63;
+  --status-ok: #4ade80;
+  --status-warn: #fbbf24;
   --grid-line: rgba(148, 163, 184, 0.06);
   --glass-bg: rgba(10, 15, 30, 0.68);
   --glow-ring: 0 0 0 1px rgba(34, 211, 238, 0.38), 0 0 36px -6px rgba(34, 211, 238, 0.45);
@@ -170,6 +179,11 @@ body {
 
 ::selection {
   background: var(--selection-bg);
+}
+
+/* Anchored homepage sections must clear the sticky header on jump. */
+main [id] {
+  scroll-margin-top: 88px;
 }
 
 a {

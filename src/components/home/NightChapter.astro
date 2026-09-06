@@ -4,13 +4,17 @@ import SystemEchoes from './SystemEchoes.astro'
 
 interface Props {
   content: {
+    echoCode: string
     echoLabel: string
     echoTitle: string
     echoSub: string
+    echoStatus: string
     echoes: { text: string; source: string }[]
+    exploreCode: string
     exploreLabel: string
     exploreTitle: string
     exploreSub: string
+    exploreStatus: string
     exploreCards: { title: string; sub: string; href: string; kind: string }[]
   }
 }
@@ -77,6 +81,7 @@ const { content } = Astro.props
 <style>
   .night-chapter {
     position: relative;
+    overflow: clip;
     background: #05070f;
     color: #eef2fa;
   }

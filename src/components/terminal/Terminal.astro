@@ -1,6 +1,4 @@
 ---
-import { resolvedResume } from '@/lib/resume'
-
 import TerminalShell from './TerminalShell'
 
 interface Props {
@@ -8,7 +6,6 @@ interface Props {
 }
 
 const { lang = 'zh' } = Astro.props
-const resumeHref = resolvedResume(lang).href
 ---
 
-<TerminalShell client:load {lang} {resumeHref} />
+<TerminalShell client:load {lang} />

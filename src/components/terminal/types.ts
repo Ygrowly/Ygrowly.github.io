@@ -37,7 +37,6 @@ export type CommandContext = {
   setTheme: (mode: 'dark' | 'light' | 'system' | 'toggle') => void
   setMatrix: (on: boolean) => void
   navigate: (path: string) => void
-  resumeHref?: string
   /**
    * Open a `FileNode` in the inline post viewer. Supplied by DevMode
    * (which renders the overlay); absent in the home-page TerminalShell.
