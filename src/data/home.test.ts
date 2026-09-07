@@ -4,20 +4,21 @@ import { describe, expect, test } from 'bun:test'
 import { homeContent, projectCases } from './home'
 
 describe('homepage configuration', () => {
-  test('keeps the required project order, PayTrace in the theater, and Ovanta in the lab', () => {
+  test('keeps the required project order, RuleArena in the theater, and PayTrace in the lab', () => {
     expect(homeContent.zh.systems.projects.map((project) => project.slug)).toEqual([
       'energyops-agent',
       'ai-bi-platform',
-      'paytrace'
+      'rulearena'
     ])
     expect(
-      homeContent.zh.systems.projects.find((project) => project.slug === 'paytrace')?.eyebrow
-    ).toContain('Independent Lab')
-    expect(homeContent.zh.lab.items.find((item) => item.name === 'Ovanta')?.status).toBe('Live')
+      homeContent.zh.systems.projects.find((project) => project.slug === 'rulearena')?.eyebrow
+    ).toContain('Personal Project')
+    expect(
+      homeContent.zh.lab.items.find((item) => item.name === 'Ovanta')?.status
+    ).toBe('Live')
+    expect(homeContent.zh.lab.items.find((item) => item.name === 'PayTrace')).toBeDefined()
     expect(projectCases.zh.map((project) => project.slug)).toContain('ovanta')
-    expect(projectCases.zh.find((project) => project.slug === 'paytrace')?.eyebrow).toContain(
-      'Independent Lab'
-    )
+    expect(projectCases.zh.map((project) => project.slug)).toContain('rulearena')
   })
 
   test('keeps bilingual homepage routes and translation fallback helpers stable', () => {

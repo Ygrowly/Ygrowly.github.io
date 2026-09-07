@@ -149,7 +149,8 @@ export const commands: CommandRegistry = {
           isEnglishPage() ? 'DataSphere AI BI / 数驭穹图' : '数驭穹图 AI BI',
           localizedPath('/projects/ai-bi-platform')
         ],
-        ['PayTrace [building]', localizedPath('/projects/paytrace')]
+        ['RuleArena', localizedPath('/projects/rulearena')],
+        ['PayTrace [lab]', localizedPath('/projects/paytrace')]
       ]
       push(
         projects.map<OutputLine>(([label, href]) => ({
@@ -465,6 +466,7 @@ export const commands: CommandRegistry = {
       const projectRoutes: Record<string, string> = {
         'energyops-agent': localizedPath('/projects/energyops-agent'),
         'ai-bi-platform': localizedPath('/projects/ai-bi-platform'),
+        rulearena: localizedPath('/projects/rulearena'),
         paytrace: localizedPath('/projects/paytrace')
       }
       if (projectRoutes[args[0]]) {

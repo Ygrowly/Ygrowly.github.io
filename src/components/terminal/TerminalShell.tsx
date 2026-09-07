@@ -69,7 +69,8 @@ function staticEntries(lang: 'zh' | 'en'): RenderEntry[] {
       lines: [
         { kind: 'text', text: 'energyops-agent' },
         { kind: 'text', text: 'ai-bi-platform' },
-        { kind: 'text', text: 'paytrace  [building]' },
+        { kind: 'text', text: 'rulearena' },
+        { kind: 'text', text: 'paytrace  [lab]' },
         { kind: 'spacer' }
       ]
     },
