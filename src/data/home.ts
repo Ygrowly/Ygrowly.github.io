@@ -9,7 +9,8 @@ export type HomeProject = {
   responsibility: string
   flow: string[]
   highlights: { label: string; text: string }[]
-  evidence: { label: string; value: string }[]
+  /** `detailOnly` rows are withheld from the homepage theater and shown only on the project page. */
+  evidence: { label: string; value: string; detailOnly?: boolean }[]
   /** Decision → why → what it costs. The part interviewers actually probe. */
   tradeoffs: { decision: string; why: string; cost: string }[]
   /** Deliberate non-goals. Knowing the boundary is a stronger signal than claiming reach. */
@@ -326,10 +327,9 @@ const zh: HomeContent = {
           }
         ],
         evidence: [
-          { label: 'Eval Set', value: '24 Case 双评测集 · 16 开发 + 8 隔离' },
-          { label: 'False Positive', value: '正常场景 0' },
-          { label: 'Replay', value: '同版本独立重放 3/3' },
-          { label: 'GT Leak', value: '0' },
+          { label: 'Eval Set', value: '设计 · 24 Case 双评测集，16 开发 + 8 隔离' },
+          { label: 'Mechanism', value: '实测 · 正常场景误报 0 · Ground Truth 泄漏 0 · 同版本重放 3/3' },
+          { label: 'Discovery', value: '实测 · 发现率 0–20%，设计门禁 ≥75% 未达标', detailOnly: true },
           { label: 'Gate', value: '反例 → pytest 回归 → 发布门禁' }
         ],
         tradeoffs: [
@@ -758,10 +758,16 @@ const en: HomeContent = {
           }
         ],
         evidence: [
-          { label: 'Eval Set', value: '24 cases · 16 dev + 8 hidden (physically isolated)' },
-          { label: 'False Positive', value: '0 on normal scenarios' },
-          { label: 'Replay', value: '3/3 independent same-version replays' },
-          { label: 'GT Leak', value: '0' },
+          { label: 'Eval Set', value: 'design · 24 cases, 16 dev + 8 hidden (isolated)' },
+          {
+            label: 'Mechanism',
+            value: 'measured · 0 false positives · 0 ground-truth leaks · 3/3 same-version replays'
+          },
+          {
+            label: 'Discovery',
+            value: 'measured · 0–20%, below the ≥75% design gate',
+            detailOnly: true
+          },
           { label: 'Gate', value: 'counterexample → pytest regression → release gate' }
         ],
         tradeoffs: [

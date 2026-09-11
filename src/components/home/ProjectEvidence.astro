@@ -27,12 +27,14 @@ const { project, index } = Astro.props
     </div>
     <dl>
       {
-        project.evidence.map((item) => (
-          <div>
-            <dt>{item.label}</dt>
-            <dd>{item.value}</dd>
-          </div>
-        ))
+        project.evidence
+          .filter((item) => !item.detailOnly)
+          .map((item) => (
+            <div>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))
       }
     </dl>
     {project.stack && <p class='evidence-card__stack'>{project.stack}</p>}

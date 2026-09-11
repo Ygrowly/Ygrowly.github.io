@@ -34,4 +34,35 @@ describe('homepage configuration', () => {
       expect(content.contact).not.toHaveProperty('resume')
     }
   })
+
+  test('gives every project case the three depth sections', () => {
+    for (const projects of [projectCases.zh, projectCases.en]) {
+      for (const project of projects) {
+        expect(project.tradeoffs.length).toBeGreaterThan(0)
+        expect(project.outOfScope.length).toBeGreaterThan(0)
+        expect(project.openQuestions.length).toBeGreaterThan(0)
+
+        for (const { decision, why, cost } of project.tradeoffs) {
+          expect(decision.trim()).not.toBe('')
+          expect(why.trim()).not.toBe('')
+          expect(cost.trim()).not.toBe('')
+        }
+      }
+    }
+  })
+
+  test('withholds detail-only evidence rows from the homepage theater', () => {
+    const forHome = (project: (typeof projectCases.zh)[number]) =>
+      project.evidence.filter((item) => !item.detailOnly)
+
+    const rulearena = projectCases.zh.find((project) => project.slug === 'rulearena')
+    const discovery = rulearena?.evidence.find((item) => item.label === 'Discovery')
+
+    expect(discovery?.detailOnly).toBe(true)
+    expect(rulearena && forHome(rulearena)).not.toContain(discovery)
+
+    for (const project of projectCases.zh) {
+      expect(forHome(project).length).toBeGreaterThan(0)
+    }
+  })
 })
