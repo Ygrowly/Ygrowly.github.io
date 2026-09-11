@@ -763,6 +763,48 @@ export const projectCases: Record<Lang, HomeProject[]> = {
       ],
       stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
       cta: '查看项目详情 →'
+    },
+    {
+      slug: 'paytrace',
+      eyebrow: 'Personal Project · Open Source',
+      name: 'PayTrace',
+      title: '把支付转化异常归因，从「可能是渠道问题」变成可复核的证据链。',
+      summary:
+        '证据驱动的支付转化异常归因与诊断 Agent：确定性损失拆解定位「哪里损失、损失多少」，受 Hook 链治理的诊断 Agent 在证据契约约束下回答「为什么」。全程模拟数据与可配置故障注入，不接入真实支付渠道，不使用真实用户隐私数据。',
+      responsibility:
+        '业务问题：支付完成率下降时，看板只能说明「下降了」，日志只能解释单次请求，而错误码、优惠变更和配置发布可能同时出现——相关不等于因果。我独立完成从事件模型、确定性损失账本到诊断 Agent 与评测体系的设计和实现。',
+      flow: [
+        '支付事件',
+        '统一漏斗',
+        '损失拆解',
+        'Incident 冻结',
+        '只读调查',
+        '证据登记',
+        '多根因诊断',
+        '人工处置'
+      ],
+      highlights: [
+        {
+          label: 'Deterministic Core',
+          text: '九阶段漏斗与购买意图关联由确定性代码计算，损失数值可精确复算——模型不参与事实计算。'
+        },
+        {
+          label: 'Governed Investigation',
+          text: '工具调用走 Before/After Hook 链：参数与 Incident 范围校验失败即阻断，大结果外置为 Artifact，上下文只留摘要与引用。'
+        },
+        {
+          label: 'Evidence Contract',
+          text: '每条结论必须绑定证据 ID，结论分 SUPPORTED / PARTIAL / UNKNOWN 三级——UNKNOWN 是防止模型硬凑答案的合法输出，不是失败。'
+        }
+      ],
+      evidence: [
+        { label: 'Data', value: '全量模拟数据 + 故障注入 · 无真实渠道与隐私数据' },
+        { label: 'Eval', value: '双轨评测 · 结果评测 + 轨迹评测' },
+        { label: 'Stability', value: '按 pass^k 连续可靠性口径，而非 pass@k' },
+        { label: 'GT Leak', value: 'Ground Truth 隔离 · 评测器主动检查泄漏' }
+      ],
+      stack: 'Python · FastAPI · PostgreSQL · Redis · MCP · 显式 FSM · 故障注入 · pytest',
+      cta: '查看项目详情 →'
     }
   ],
   en: [
@@ -806,6 +848,48 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         { label: 'E2E', value: 'Given-When-Then pass rate ≥ 98%' }
       ],
       stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
+      cta: 'View project →'
+    },
+    {
+      slug: 'paytrace',
+      eyebrow: 'Personal Project · Open Source',
+      name: 'PayTrace',
+      title: 'Turning payment conversion anomalies from “probably the channel” into a reviewable chain of evidence.',
+      summary:
+        'An evidence-driven diagnostic agent for payment conversion anomalies: deterministic loss decomposition establishes where and how much was lost, while a hook-governed diagnostic agent answers why under an evidence contract. Fully simulated data with configurable fault injection — no real payment channels and no real user data.',
+      responsibility:
+        'Business problem: when payment completion drops, dashboards only say it dropped and logs only explain a single request — while error codes, promotion changes, and config releases may all land at once. Correlation is not causation. I independently designed and built everything from the event model and deterministic loss ledger to the diagnostic agent and its evaluation system.',
+      flow: [
+        'Payment events',
+        'Unified funnel',
+        'Loss decomposition',
+        'Incident freeze',
+        'Read-only investigation',
+        'Evidence registry',
+        'Multi-root-cause diagnosis',
+        'Human disposition'
+      ],
+      highlights: [
+        {
+          label: 'Deterministic Core',
+          text: 'A nine-stage funnel and purchase-intent correlation are computed by deterministic code, so loss figures are exactly reproducible — the model never computes facts.'
+        },
+        {
+          label: 'Governed Investigation',
+          text: 'Tool calls pass a Before/After hook chain: failed parameter or incident-scope validation blocks execution outright, and large results are offloaded to artifacts so context keeps only summaries and references.'
+        },
+        {
+          label: 'Evidence Contract',
+          text: 'Every conclusion must bind evidence IDs, and conclusions are graded SUPPORTED / PARTIAL / UNKNOWN — UNKNOWN is a legitimate output that stops the model from inventing a complete-looking answer.'
+        }
+      ],
+      evidence: [
+        { label: 'Data', value: 'fully simulated data + fault injection · no real channels or personal data' },
+        { label: 'Eval', value: 'two-track eval · response evaluation + trajectory evaluation' },
+        { label: 'Stability', value: 'scored on pass^k continuous reliability, not pass@k' },
+        { label: 'GT Leak', value: 'ground truth isolated · evaluator actively checks for leaks' }
+      ],
+      stack: 'Python · FastAPI · PostgreSQL · Redis · MCP · explicit FSM · fault injection · pytest',
       cta: 'View project →'
     }
   ]
