@@ -10,6 +10,12 @@ export type HomeProject = {
   flow: string[]
   highlights: { label: string; text: string }[]
   evidence: { label: string; value: string }[]
+  /** Decision → why → what it costs. The part interviewers actually probe. */
+  tradeoffs: { decision: string; why: string; cost: string }[]
+  /** Deliberate non-goals. Knowing the boundary is a stronger signal than claiming reach. */
+  outOfScope: string[]
+  /** Known gaps and unresolved questions — an honest invitation to dig in. */
+  openQuestions: string[]
   stack?: string
   cta: string
 }
@@ -165,6 +171,44 @@ const zh: HomeContent = {
           { label: 'Ops', value: '人工补数约 -70% · 调度成功率 99%+' },
           { label: 'Pipeline', value: 'raw → interval → hourly → daily' }
         ],
+        tradeoffs: [
+          {
+            decision: '把安全边界交给 Hook 链，而不是写进 Prompt',
+            why: '对模型来说「查询」和「发布」只是两个不同的工具名，它不理解操作的真实代价。用 Prompt 划边界等于把安全交给概率。',
+            cost: '每个写工具都要显式定义参数 Schema、风险等级、幂等键与审计字段，R2 级还要设计二次确认态——新增一个写工具的成本远高于加一句 Prompt。'
+          },
+          {
+            decision: '异常候选与业务告警拆成三层，不直接等价',
+            why: '把「数据偏离」直接等同于「发送告警」，结果是大量低价值通知淹没真正需要处理的问题。',
+            cost: '自适应基线、候选评分、静默窗口变成三套要维护的配置，运营侧多了一层需要理解的模型；冷启动阶段样本不足，只能如实标记「不可判定」。'
+          },
+          {
+            decision: '只让可信区间进入聚合，质量存疑的读数不做估算',
+            why: '估算出来的数据看起来更完整，但一旦进入结算就无法追溯。宁可在覆盖率上开天窗，也不让来源不明的数字进账。',
+            cost: '覆盖率指标会低于「什么都算上」的方案，需要向业务解释缺口；补数依赖人工流程，短期无法自动化。'
+          },
+          {
+            decision: '大结果外置为 Artifact，不进入模型上下文',
+            why: '读数明细动辄数万行，塞进上下文只会挤掉真正需要推理的信息，还会推高成本。',
+            cost: '模型手里只剩聚合摘要和引用，需要细节时必须二次取用——多一次工具往返，换上下文可控。'
+          }
+        ],
+        outOfScope: [
+          '不替代既有采集平台完成物理设备采集与底层协议接入',
+          '不直接控制空调、照明、冷站等设施',
+          '不负责设备维修的派工、排班与 SLA 计时——工单只覆盖「通知—指南—反馈—关单」的信息闭环',
+          '不替代财务系统完成记账、付款、开票或总账管理',
+          '不开展正式碳核算、ESG 披露或 ISO 50001 认证',
+          '不把异常候选自动等同于正式业务事故',
+          '不允许模型直接修改原始读数、决定费用或绕过业务规则',
+          '不扩展为门禁、消防、资产与物业的完整智慧园区平台'
+        ],
+        openQuestions: [
+          '自适应基线在季节切换期会同时抬高误报和漏报，目前靠人工确认兜底；按业态分别建模是方向，但样本量还不够',
+          '异常候选的评分权重仍来自人工经验，缺少「候选→真实事故」的标注数据来校准',
+          '工单只覆盖信息闭环，没有和维修系统的排班、SLA 数据打通，处置效果无法量化回流',
+          'R2 级写操作目前要求逐次人工确认，批量与高频场景下的确认体验还没有好答案'
+        ],
         stack: 'Python · FastAPI · PostgreSQL · MCP · WPS Comate · pytest',
         cta: '查看系统案例 →'
       },
@@ -206,6 +250,44 @@ const zh: HomeContent = {
           { label: 'Safety', value: '对抗请求全部拦截 · 误拦约 3%' },
           { label: 'Cost', value: '分析上下文 Token 约 -80%' },
           { label: 'Trust', value: '图表绑定 call_id + fingerprint + hash' }
+        ],
+        tradeoffs: [
+          {
+            decision: 'Workflow 管主流程，Agent 只处理局部决策',
+            why: '完全固定的 Pipeline 应付不了自然语言的变化；完全自主的 Agent Loop 又让权限、成本和业务前置条件变得不可控。',
+            cost: '状态与转移必须显式设计，改一条主流程比改一句 Prompt 慢得多；跨域前置条件要写死在代码里，灵活性换可控性。'
+          },
+          {
+            decision: '指标口径沉淀在语义层，而不是让模型每次现推',
+            why: 'SQL 能执行不等于业务答案正确——「销售额」到底是下单金额还是支付金额，必须由业务定义一次，而不是由模型每次猜。',
+            cost: '领域包、指标、维度、术语别名都要持续维护；新接入一个数据源得先做语义资产，起步比直连数据库慢。'
+          },
+          {
+            decision: '图表必须绑定证据，绑定失败降级而不是阻断',
+            why: '合法 JSON 只能保证字段存在，不能保证数值来自真实查询、没有被模型补写。但因为一张图就中断整条回答，代价又过高。',
+            cost: '要在 Tool Call 与渲染之间维护 call_id、query_fingerprint、result_hash 三者的传递，任何一环改动都要同步；降级意味着用户偶尔会看到「不可信」的图表。'
+          },
+          {
+            decision: '数据过期时 fail closed，而不是展示旧结果',
+            why: '无法证明数据是当前的，就不该生成「当前」结论。静默展示旧数据比明确报错危险得多。',
+            cost: '可用性下降——数据源抖动时用户拿到的是失败原因而非答案，需要额外的缓存与重试策略来把这种情况压到最低。'
+          }
+        ],
+        outOfScope: [
+          '不替代 ERP、CRM、电商平台与财务系统承担业务交易',
+          '不替代企业建设完整的离线数仓、实时数仓或大型数据治理平台',
+          '不自动修复源系统中缺失、错误或长期未更新的数据',
+          '不允许大模型绕过权限访问全部数据库、系统表或敏感字段',
+          '不向模型提供生产数据库的任意写入能力',
+          '不由 AI 单方面决定销售额、有效用户、利润等正式业务定义',
+          '不把模型生成的解释自动视为经过证明的因果结论',
+          '不在数据质量差、语义缺失或权限不足时强行生成确定答案'
+        ],
+        openQuestions: [
+          '语义资产的维护成本随数据源数量线性增长，还没有好办法让它自动跟上源系统的结构变更',
+          '指标口径冲突时系统能检测并澄清，但「谁有权最终裁定」是组织问题——技术只能把冲突暴露出来',
+          '结果合理性检查依赖结构特征（粒度、JOIN 膨胀、单位一致性），对物理上合法但业务上无意义的查询仍会放行',
+          '跨多个数据源的关联查询，在只读、限时、限量的约束下如何兼顾性能与安全，目前没有定论'
         ],
         stack: 'Python · FastAPI · PostgreSQL · DuckDB · Parquet · R2 · Univer · MCP',
         cta: '查看系统案例 →'
@@ -249,6 +331,49 @@ const zh: HomeContent = {
           { label: 'Replay', value: '同版本独立重放 3/3' },
           { label: 'GT Leak', value: '0' },
           { label: 'Gate', value: '反例 → pytest 回归 → 发布门禁' }
+        ],
+        tradeoffs: [
+          {
+            decision: '用确定性 Oracle 裁决，不用 LLM Judge',
+            why: '资金守恒与生命周期不变量可以稳定计算；LLM Judge 适合评价表达质量，不适合裁决钱对不对。',
+            cost: '每条规则的不变量都得显式建模成可执行断言，覆盖不到的语义只能如实声明为未知，没有兜底判断的余地。'
+          },
+          {
+            decision: '参考模拟器快速探索 + 独立 Sandbox 真实 HTTP 重放',
+            why: '只在模拟器里跑等于自证——模拟器说有问题，不代表真实系统有问题；全部走真实 HTTP 又太慢，搜索根本展不开。',
+            cost: '要维护两层世界并保证语义一致，「晋升」这条路径本身变成需要被测试的对象。'
+          },
+          {
+            decision: '显式 Workflow / FSM 控制主流程，Agent 只负责搜索未知路径',
+            why: '这个系统的生命周期是有限的，状态和失败语义都能写清楚；把主流程交给编排框架会把关键机制藏起来。',
+            cost: '放弃框架带来的搭建速度——重试、恢复、状态转移全部自己实现并测试，前期投入明显更高。'
+          },
+          {
+            decision: '先编译成 RuleSpec 并人工确认，不让 Agent 直接读自然语言规则',
+            why: '自然语言规则里的歧义必须被人确认并冻结版本，否则后面所有裁决都建立在一套会漂移的语义上。',
+            cost: '规则接入多了一道人工环节，吞吐受限于确认人力；RuleSpec 的表达能力同时也框住了可验证规则的范围。'
+          },
+          {
+            decision: '隔离 Ground Truth，让 Agent 全程无法触达',
+            why: '如果 Agent 能读到标准答案，它找到的「漏洞」就可能只是复述考纲——虚假的高分比低分更危险。',
+            cost: '隐藏集只能由评测侧维护，调试时看不到失败细节，定位问题要靠 Trace 反推而不是直接对答案。'
+          }
+        ],
+        outOfScope: [
+          '不执行真实支付、库存、物流与商家结算',
+          '不直接访问生产电商系统',
+          '不证明复杂真实并发与分布式事务',
+          '不支持任意行业自由建模——只有「有限动作、明确状态、可执行环境、确定性不变量」四个条件同时成立才适合迁移',
+          '不让 Agent 自动修改和发布业务代码',
+          '不做形式化证明，不声明规则绝对安全',
+          '不自动海量生成规则和用例',
+          '不用 LLM Judge 替代确定性业务裁决'
+        ],
+        openQuestions: [
+          'LLM 策略发现率实测 0–20%，还没跑赢确定性 BFS 基线（20–22%）；Single Agent 在 300s 预算内仍未提交候选——这是当前主攻方向',
+          '90s → 300s 是依据实测 p95 延迟校准的单一变量调整，更优的预算曲线还没有答案',
+          '24-Case 平台基准证明的是搜索与裁决机制的可信度，不能外推到任意新规则；单条规则的放行结论仍需按规则组合证据',
+          '换更真实的靶场解决不了搜索层短板——接入外部电商系统因此被降级为搜索层达标之后的事'
         ],
         stack: 'FastAPI · PostgreSQL · Redis · 显式 FSM · Delta Debugging · pytest',
         cta: '查看系统案例 →'
@@ -478,6 +603,44 @@ const en: HomeContent = {
           { label: 'Ops', value: 'manual backfills ≈ −70% · scheduler 99%+' },
           { label: 'Pipeline', value: 'raw → interval → hourly → daily' }
         ],
+        tradeoffs: [
+          {
+            decision: 'Put the safety boundary in a hook chain, not in the prompt',
+            why: 'To the model, “query” and “publish” are just two different tool names — it has no sense of what an operation actually costs. Drawing the boundary in a prompt means handing safety to probability.',
+            cost: 'Every write tool needs an explicit parameter schema, risk tier, idempotency key, and audit fields, and R2 additionally needs a confirmation state — far more expensive than adding a sentence to a prompt.'
+          },
+          {
+            decision: 'Split anomaly candidates from business alerts into three layers',
+            why: 'Treating “data deviates” as equivalent to “send an alert” buries the handful of incidents that matter under a flood of low-value notifications.',
+            cost: 'Adaptive baselines, candidate scoring, and quiet windows become three separate configurations to maintain, and operations inherits one more model to understand; during cold start there is not enough history, so the honest output is “undetermined”.'
+          },
+          {
+            decision: 'Only trusted intervals enter aggregation — no estimating questionable readings',
+            why: 'Estimated values look more complete, but once they reach settlement they cannot be traced back. Better to leave a visible gap in coverage than to book a number of unknown provenance.',
+            cost: 'Coverage reads lower than a “count everything” approach and the gap has to be explained to the business; backfilling stays a manual process and cannot be automated in the short term.'
+          },
+          {
+            decision: 'Offload large results to artifacts instead of putting them in context',
+            why: 'Reading detail runs to tens of thousands of rows; putting that in context only crowds out the information that actually needs reasoning, and inflates cost.',
+            cost: 'The model keeps only an aggregate summary and a reference, so detail requires a second fetch — one extra tool round-trip in exchange for a bounded context.'
+          }
+        ],
+        outOfScope: [
+          'Does not replace the existing acquisition platform for physical metering or protocol integration',
+          'Does not directly control HVAC, lighting, or chiller plant',
+          'Does not handle maintenance dispatch, shift scheduling, or SLA timing — work orders stop at the notify → guide → feedback → close loop',
+          'Does not replace the finance system for bookkeeping, payment, invoicing, or the general ledger',
+          'Does not perform formal carbon accounting, ESG disclosure, or ISO 50001 certification',
+          'Does not treat an anomaly candidate as automatically equivalent to a confirmed incident',
+          'Does not let the model modify raw readings, decide charges, or bypass business rules',
+          'Does not expand into access control, fire safety, asset, or property management'
+        ],
+        openQuestions: [
+          'The adaptive baseline raises both false positives and false negatives during seasonal changeovers; human confirmation covers it today, and per-usage-type modeling needs more samples than we have',
+          'Anomaly scoring weights still come from human judgment — there is no labeled candidate-to-incident data to calibrate against',
+          'Work orders stop at the information loop; without maintenance-system scheduling and SLA data, disposition outcomes cannot be quantified back',
+          'R2 write operations require per-action human confirmation, and there is no good answer yet for confirmation UX under batch or high-frequency load'
+        ],
         stack: 'Python · FastAPI · PostgreSQL · MCP · WPS Comate · pytest',
         cta: 'View system case →'
       },
@@ -519,6 +682,44 @@ const en: HomeContent = {
           { label: 'Safety', value: 'all adversarial requests blocked · ~3% false blocks' },
           { label: 'Cost', value: 'analysis context tokens ≈ −80%' },
           { label: 'Trust', value: 'charts bind call_id + fingerprint + hash' }
+        ],
+        tradeoffs: [
+          {
+            decision: 'Workflow drives the main flow; the agent handles only local decisions',
+            why: 'A fully fixed pipeline cannot absorb the variation in natural language, while a fully autonomous agent loop makes permissions, cost, and business preconditions uncontrollable.',
+            cost: 'States and transitions must be designed explicitly, so changing the main flow is much slower than editing a prompt; cross-domain preconditions get written into code — flexibility traded for control.'
+          },
+          {
+            decision: 'Settle metric definitions in a semantic layer instead of re-deriving them per query',
+            why: 'A SQL query executing is not the same as the business answer being right — whether “revenue” means order value or paid value has to be defined once by the business, not guessed by the model every time.',
+            cost: 'Domain packs, metrics, dimensions, and term aliases all need ongoing maintenance; onboarding a new source starts with semantic assets, which is slower than pointing the model straight at a database.'
+          },
+          {
+            decision: 'Charts must bind evidence; a failed binding degrades rather than blocks',
+            why: 'Valid JSON only guarantees the fields exist, not that the numbers came from a real query or that the model did not fill them in. But killing an entire answer over one chart costs too much.',
+            cost: 'call_id, query_fingerprint, and result_hash all have to be threaded from tool call to render, and any change to one has to be mirrored; degradation also means users occasionally see a chart marked untrusted.'
+          },
+          {
+            decision: 'Fail closed on stale data instead of showing old results',
+            why: 'If you cannot prove the data is current, you should not produce a “current” conclusion. Silently showing stale numbers is far more dangerous than an explicit error.',
+            cost: 'Availability drops — when a source wobbles the user gets a failure reason instead of an answer, and extra caching and retry strategy is needed to keep that rare.'
+          }
+        ],
+        outOfScope: [
+          'Does not replace ERP, CRM, e-commerce, or finance systems for business transactions',
+          'Does not replace building a full offline warehouse, real-time warehouse, or large-scale governance platform',
+          'Does not automatically repair missing, wrong, or long-stale data in source systems',
+          'Does not let the model bypass permissions to reach every database, system table, or sensitive field',
+          'Does not give the model arbitrary write access to production databases',
+          'Does not let AI unilaterally define revenue, active users, profit, or other official business definitions',
+          'Does not treat model-generated explanation as a proven causal conclusion',
+          'Does not force a confident answer when data quality, semantics, or permissions are insufficient'
+        ],
+        openQuestions: [
+          'Semantic asset maintenance grows linearly with the number of sources, and there is no good way yet to keep it in step with upstream schema changes automatically',
+          'The system can detect and clarify conflicting metric definitions, but who has the authority to rule is an organizational question — technology can only surface the conflict',
+          'Result sanity checks rely on structural signals (grain, join fan-out, unit consistency), so a query that is physically valid but business-nonsensical still passes',
+          'For cross-source joins under read-only, time-limited, row-limited constraints, the balance between performance and safety is still unsettled'
         ],
         stack: 'Python · FastAPI · PostgreSQL · DuckDB · Parquet · R2 · Univer · MCP',
         cta: 'View system case →'
@@ -562,6 +763,49 @@ const en: HomeContent = {
           { label: 'Replay', value: '3/3 independent same-version replays' },
           { label: 'GT Leak', value: '0' },
           { label: 'Gate', value: 'counterexample → pytest regression → release gate' }
+        ],
+        tradeoffs: [
+          {
+            decision: 'Adjudicate with a deterministic oracle, not an LLM judge',
+            why: 'Fund conservation and lifecycle invariants can be computed reliably; an LLM judge is fine for judging prose quality and wrong for deciding whether money is correct.',
+            cost: 'Every rule’s invariants must be modeled as executable assertions, and semantics outside that coverage can only be declared unknown — there is no fallback judgment.'
+          },
+          {
+            decision: 'Fast exploration in a reference simulator, real HTTP replay in an isolated sandbox',
+            why: 'Running only in a simulator is self-proof — the simulator saying something is broken does not mean the real system is broken. Routing everything through real HTTP is far too slow for search to unfold.',
+            cost: 'Two worlds have to be maintained with matching semantics, and the promotion path between them becomes an object that itself needs testing.'
+          },
+          {
+            decision: 'An explicit workflow/FSM drives the main flow; the agent only searches unknown paths',
+            why: 'The lifecycle here is finite and its states and failure semantics can be written down; handing the main flow to an orchestration framework hides the mechanisms that matter.',
+            cost: 'Gives up the setup speed a framework provides — retries, recovery, and state transitions are all implemented and tested by hand, at a clearly higher upfront cost.'
+          },
+          {
+            decision: 'Compile to RuleSpec with human confirmation instead of letting the agent read natural-language rules',
+            why: 'Ambiguity in a natural-language rule has to be confirmed by a person and frozen into a version, otherwise every downstream verdict rests on semantics that drift.',
+            cost: 'Rule onboarding gains a human step and throughput is bounded by confirmation capacity; RuleSpec’s expressiveness also bounds which rules can be verified at all.'
+          },
+          {
+            decision: 'Isolate ground truth so the agent can never reach it',
+            why: 'If the agent can read the answer key, a “bug” it finds may just be reciting the syllabus — a fake high score is more dangerous than a low one.',
+            cost: 'The hidden set can only be maintained on the evaluation side, so debugging cannot inspect failure details and problems have to be reconstructed from traces.'
+          }
+        ],
+        outOfScope: [
+          'Does not execute real payments, inventory, logistics, or merchant settlement',
+          'Does not access production e-commerce systems',
+          'Does not prove complex real-world concurrency or distributed transactions',
+          'Does not model arbitrary domains freely — portability requires all four of finite actions, explicit state, an executable environment, and deterministic invariants',
+          'Does not let the agent modify or ship business code',
+          'Does not do formal verification and never claims a rule is absolutely safe',
+          'Does not mass-generate rules and cases automatically',
+          'Does not substitute an LLM judge for deterministic business adjudication'
+        ],
+        openQuestions: [
+          'Measured LLM strategy discovery rate is 0–20%, still below the deterministic BFS baseline (20–22%), and the single agent submitted no candidate within a 300s budget — this is the current focus',
+          'The 90s → 300s change was a single-variable adjustment calibrated against measured p95 latency; a better budget curve is still open',
+          'The 24-case platform benchmark proves the search and adjudication mechanism is trustworthy, and does not extrapolate to an arbitrary new rule — a single rule’s release verdict still needs rule-specific evidence',
+          'A more realistic target system would not fix the search-layer gap, which is why external e-commerce integration was deferred until the search layer clears its bar'
         ],
         stack: 'FastAPI · PostgreSQL · Redis · Explicit FSM · Delta Debugging · pytest',
         cta: 'View system case →'
@@ -761,6 +1005,45 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         { label: 'Events API', value: 'P95 < 100ms · 重复率 < 0.1%' },
         { label: 'E2E', value: 'Given-When-Then 通过率 ≥ 98%' }
       ],
+      tradeoffs: [
+        {
+          decision: '把政策做成结构化内容模型，而不是富文本长文',
+          why: '一篇富文本很难知道哪项材料已经过期、当前评估依据的是哪个版本，也无法稳定控制会员可见章节。',
+          cost: 'Strapi/PostgreSQL 与 Django/MySQL 之间形成跨系统边界，内容模型每扩展一次都要同步改两侧。'
+        },
+        {
+          decision: '国内版与国际版共享核心业务代码，差异收敛到构建期配置',
+          why: '两套代码会立刻分叉，而订单、支付、权益恰恰是最需要保持一致的部分——一旦分叉就再也收敛不回来。',
+          cost: '区域差异被压进配置与适配器，运行时的分支判断变多；区域特有的产品需求要先评估是否值得进主干。'
+        },
+        {
+          decision: '支付回调走阻断型 Hook 链：验签、金额、状态机、幂等逐层校验',
+          why: '支付回调天然会重复、乱序、延迟到达，任何一步校验缺失都会直接变成多发或少发权益。',
+          cost: '回调链路变长，异常路径要单独设计降级与人工介入；对账从此是一项必须长期运行的独立能力。'
+        },
+        {
+          decision: '权限以服务端校验为准，前端展示状态不作为依据',
+          why: '前端隐藏一个入口不等于用户没有权限——把展示当授权，等于把权限边界交给浏览器。',
+          cost: '每个需要展示态的功能都要服务端再查一次权限，接口数量和往返次数增加。'
+        }
+      ],
+      outOfScope: [
+        '不代替政府部门受理或审批申请',
+        '不保证签证、移民、永久居民或开户结果',
+        '不在缺乏依据时自动作出专业法律判断',
+        '不替代顾问完成必须由人工判断和把关的工作',
+        '不自动从非权威来源生成并直接发布政策内容',
+        '不让 AI 直接修改内容、资格规则、价格、套餐和权益配置',
+        '不把运营数据的相关性自动解释为确定因果关系',
+        '不通过前端展示状态代替服务端的真实权限校验',
+        '不自行处理支付清算——资金仍由合规支付渠道完成'
+      ],
+      openQuestions: [
+        '内容模型的覆盖度取决于编辑对政策的拆解粒度，跨区域复用时「最小公共模型」还没有稳定答案',
+        '支付回调已按幂等键压到千次级回放零重复，但渠道侧对账文件的延迟到达仍需人工兜底',
+        '如何在「政策结论必须人工确认」这条线之内提高内容生产效率，目前只在运营侧做聚合解释，还谈不上自动化',
+        '区域化适配器把差异收敛进了配置，但新区域接入时本地支付渠道与合规要求仍需逐个评估'
+      ],
       stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
       cta: '查看项目详情 →'
     },
@@ -802,6 +1085,42 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         { label: 'Eval', value: '双轨评测 · 结果评测 + 轨迹评测' },
         { label: 'Stability', value: '按 pass^k 连续可靠性口径，而非 pass@k' },
         { label: 'GT Leak', value: 'Ground Truth 隔离 · 评测器主动检查泄漏' }
+      ],
+      tradeoffs: [
+        {
+          decision: '确定性代码算事实，模型只负责组织调查',
+          why: '损失数值必须精确可复算，而根因假设需要在不确定信息中逐步收敛——这两件事的最优解不一样。',
+          cost: '每个指标、每次拆解都要显式建模并测试，没法靠模型「顺便」算出来；数据契约一变，改动全落在代码侧。'
+        },
+        {
+          decision: '诊断过程受 Hook 链治理，而不是让 Agent 自由探索',
+          why: '越权调用、上下文膨胀、过程失忆是 Agent 的固有问题，靠 Prompt 提醒解决不了。',
+          cost: '读侧降级、写侧阻断的语义要为每个工具单独定义，工具接入成本明显高于直接暴露一个查询接口。'
+        },
+        {
+          decision: '把 UNKNOWN 作为合法结论输出',
+          why: '证据不足时生成一个看起来完整的答案，比承认不知道危险得多。',
+          cost: '报告里会明确出现「没有结论」的情况，必须有人工复核接管；评测也要专门检查 UNKNOWN 是否正确触发，而不是被模型跳过。'
+        },
+        {
+          decision: '全量模拟数据 + 可配置故障注入，不接入真实支付渠道',
+          why: '真实支付数据涉及隐私与合规风险；而带 Ground Truth 的故障注入才能做稳定演示、自动评测和版本回归。',
+          cost: '无法证明真实商户环境下的业务收益，模拟分布也不等同于任何一家真实支付平台——这条边界必须在项目里显式声明，不能含糊过去。'
+        }
+      ],
+      outOfScope: [
+        '不执行支付、不保存卡信息与支付凭据',
+        '不自动修改渠道、路由、风控或优惠配置——高风险动作留给人工',
+        '不接入真实支付渠道，不使用真实用户隐私数据',
+        '不把「预算内未发现」说成「没有问题」',
+        '不输出未绑定证据的归因结论',
+        '不把相关性解释为因果关系'
+      ],
+      openQuestions: [
+        '故障注入的分布由人工设计，覆盖不到真实生产中尚未被记录过的失败形态',
+        '结果评测与轨迹评测的权重如何组合，还没有稳定的校准方法',
+        '从生产 Trace 回流真实 Bad Case 是规划中的方向，当前评测集仍以注入场景为主',
+        '模拟数据能证明诊断能力与版本间的相对改进，不能证明线上收益——这条结论本身就是项目的诚实边界'
       ],
       stack: 'Python · FastAPI · PostgreSQL · Redis · MCP · 显式 FSM · 故障注入 · pytest',
       cta: '查看项目详情 →'
@@ -847,6 +1166,45 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         { label: 'Events API', value: 'P95 < 100ms · duplicate rate < 0.1%' },
         { label: 'E2E', value: 'Given-When-Then pass rate ≥ 98%' }
       ],
+      tradeoffs: [
+        {
+          decision: 'Model policy as structured content instead of long-form rich text',
+          why: 'In a rich-text article it is hard to tell which requirement has gone stale, which version an assessment was based on, and there is no reliable way to gate chapters by membership.',
+          cost: 'A cross-system boundary forms between Strapi/PostgreSQL and Django/MySQL, and every content-model extension has to change both sides.'
+        },
+        {
+          decision: 'Domestic and international sites share core business code, with differences pushed into build-time config',
+          why: 'Two codebases diverge immediately, and orders, payments, and entitlements are exactly the parts that most need to stay consistent — once split, they never converge again.',
+          cost: 'Regional differences get compressed into config and adapters, so runtime branching increases; region-specific product asks have to be assessed before they reach the trunk.'
+        },
+        {
+          decision: 'Payment callbacks pass a blocking hook chain: signature, amount, state machine, idempotency',
+          why: 'Payment callbacks durably duplicate, arrive out of order, and arrive late — any missing check turns directly into granted entitlements that should not exist, or missing ones that should.',
+          cost: 'The callback path gets longer and failure modes need their own degradation and manual-intervention design; reconciliation becomes a permanent independent capability.'
+        },
+        {
+          decision: 'Server-side checks are the authority for permissions; frontend display state is never the basis',
+          why: 'Hiding an entry point in the frontend does not mean the user lacks access — treating display as authorization hands the permission boundary to the browser.',
+          cost: 'Every feature with a display state re-checks permissions on the server, increasing endpoint count and round-trips.'
+        }
+      ],
+      outOfScope: [
+        'Does not accept or approve applications on behalf of government agencies',
+        'Does not guarantee visa, immigration, permanent-residency, or account-opening outcomes',
+        'Does not make professional legal judgments automatically without a factual basis',
+        'Does not replace consultants for work that requires human judgment and sign-off',
+        'Does not auto-generate and publish policy content from non-authoritative sources',
+        'Does not let AI directly modify content, eligibility rules, prices, plans, or entitlements',
+        'Does not read correlation in operations data as established causation',
+        'Does not let frontend display state stand in for real server-side permission checks',
+        'Does not clear payments itself — funds still settle through compliant payment channels'
+      ],
+      openQuestions: [
+        'Content-model coverage depends on how finely editors decompose a policy, and there is no settled “minimal common model” for cross-region reuse',
+        'Payment callbacks are down to zero duplicate grants across 1k+ replays by idempotency key, but late-arriving channel reconciliation files still need manual cover',
+        'How to raise content-production efficiency without crossing the line that policy conclusions require human confirmation — today AI only aggregates on the operations side, which is not automation',
+        'The regionalization adapter folds differences into config, but each new region still needs its payment channels and compliance requirements assessed individually'
+      ],
       stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
       cta: 'View project →'
     },
@@ -888,6 +1246,42 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         { label: 'Eval', value: 'two-track eval · response evaluation + trajectory evaluation' },
         { label: 'Stability', value: 'scored on pass^k continuous reliability, not pass@k' },
         { label: 'GT Leak', value: 'ground truth isolated · evaluator actively checks for leaks' }
+      ],
+      tradeoffs: [
+        {
+          decision: 'Deterministic code computes facts; the model only organizes the investigation',
+          why: 'Loss figures must be exactly reproducible, while root-cause hypotheses have to converge gradually out of uncertain information — the two have different optimal solutions.',
+          cost: 'Every metric and every decomposition has to be modeled and tested explicitly instead of falling out of the model; any change to the data contract lands entirely in code.'
+        },
+        {
+          decision: 'Govern the diagnosis through a hook chain instead of letting the agent explore freely',
+          why: 'Unauthorized calls, context bloat, and process amnesia are inherent agent problems that a prompt reminder does not solve.',
+          cost: 'Degrade-on-read and block-on-write semantics have to be defined per tool, making tool onboarding clearly more expensive than exposing a query endpoint directly.'
+        },
+        {
+          decision: 'Treat UNKNOWN as a legitimate conclusion',
+          why: 'Producing a complete-looking answer on thin evidence is far more dangerous than admitting you do not know.',
+          cost: 'Reports will visibly say “no conclusion”, which requires human review to take over, and evaluation has to check specifically that UNKNOWN fires correctly rather than being skipped.'
+        },
+        {
+          decision: 'Fully simulated data with configurable fault injection — no real payment channels',
+          why: 'Real payment data carries privacy and compliance risk, and only fault injection with ground truth enables stable demos, automatic evaluation, and version regression.',
+          cost: 'It cannot prove business results in a real merchant environment, and the simulated distribution does not equal any actual payment platform — a boundary that has to be declared explicitly rather than glossed over.'
+        }
+      ],
+      outOfScope: [
+        'Does not execute payments and does not store card details or payment credentials',
+        'Does not automatically change channel, routing, risk, or promotion configuration — high-risk actions stay with humans',
+        'Does not connect to real payment channels or use real user data',
+        'Does not present “not found within budget” as “no problem exists”',
+        'Does not emit a root-cause conclusion that is not bound to evidence',
+        'Does not read correlation as causation'
+      ],
+      openQuestions: [
+        'The fault-injection distribution is designed by hand, so it cannot cover failure shapes that have not yet been recorded in real production',
+        'How to weight response evaluation against trajectory evaluation has no settled calibration method yet',
+        'Feeding real bad cases back from production traces is a planned direction; today’s eval set is still mostly injected scenarios',
+        'Simulated data can demonstrate diagnostic capability and relative improvement between versions, but not online business results — that limit is itself the project’s honest boundary'
       ],
       stack: 'Python · FastAPI · PostgreSQL · Redis · MCP · explicit FSM · fault injection · pytest',
       cta: 'View project →'

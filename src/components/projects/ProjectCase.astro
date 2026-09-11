@@ -75,6 +75,57 @@ const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
       </dl>
       {project.stack && <p class='project-case__stack'>{project.stack}</p>}
     </section>
+
+    <section aria-labelledby='tradeoffs-title'>
+      <h2 id='tradeoffs-title'>{lang === 'en' ? 'Design tradeoffs' : '设计取舍'}</h2>
+      <ol class='project-case__tradeoffs'>
+        {
+          project.tradeoffs.map((item) => (
+            <li class='project-case__tradeoff'>
+              <p class='project-case__decision'>{item.decision}</p>
+              <dl>
+                <div class='project-case__tradeoff-row'>
+                  <dt>{lang === 'en' ? 'Why' : '为什么'}</dt>
+                  <dd>{item.why}</dd>
+                </div>
+                <div class='project-case__tradeoff-row'>
+                  <dt>{lang === 'en' ? 'Cost' : '代价'}</dt>
+                  <dd>{item.cost}</dd>
+                </div>
+              </dl>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby='scope-title'>
+      <h2 id='scope-title'>{lang === 'en' ? 'What this system does not do' : '系统不负责清单'}</h2>
+      <p class='project-case__scope-note'>
+        {
+          lang === 'en'
+            ? 'Deliberate non-goals. A boundary that is written down is a boundary that can be held.'
+            : '刻意划出的非目标。写下来的边界才是能守住的边界。'
+        }
+      </p>
+      <ul class='project-case__scope'>
+        {project.outOfScope.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section aria-labelledby='open-title'>
+      <h2 id='open-title'>{lang === 'en' ? 'Open questions' : '开放问题'}</h2>
+      <p class='project-case__scope-note'>
+        {
+          lang === 'en'
+            ? 'What I do not have an answer for yet. Happy to be asked about any of these.'
+            : '目前还没有答案的部分。欢迎就其中任何一条追问。'
+        }
+      </p>
+      <ul class='project-case__open'>
+        {project.openQuestions.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
   </main>
 </BaseLayout>
 
@@ -220,6 +271,73 @@ const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
     font-size: var(--text-sm);
   }
 
+  .project-case__tradeoffs,
+  .project-case__scope,
+  .project-case__open {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .project-case__tradeoff {
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--border-default);
+  }
+
+  .project-case__tradeoff:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .project-case__decision {
+    max-width: 720px;
+    margin: 0 0 var(--space-3);
+    color: var(--text-primary);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  .project-case__tradeoff-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-5);
+    padding-top: var(--space-3);
+  }
+
+  .project-case__scope-note {
+    max-width: 720px;
+    margin: 0 0 var(--space-5);
+    color: var(--text-tertiary);
+    font-size: var(--text-sm);
+  }
+
+  .project-case__scope li,
+  .project-case__open li {
+    position: relative;
+    max-width: 720px;
+    padding: 0 0 var(--space-3) var(--space-5);
+    color: var(--text-secondary);
+  }
+
+  .project-case__scope li::before,
+  .project-case__open li::before {
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .project-case__scope li::before {
+    color: var(--text-tertiary);
+    content: '×';
+  }
+
+  .project-case__open li::before {
+    color: var(--signal-accent);
+    content: '?';
+  }
+
   @media (max-width: 767px) {
     .project-case {
       padding-top: var(--space-5);
@@ -234,7 +352,8 @@ const projectsHref = lang === 'en' ? '/en#projects' : '/#projects'
     }
 
     .project-case__highlights > div,
-    .project-case__evidence > div {
+    .project-case__evidence > div,
+    .project-case__tradeoff-row {
       grid-template-columns: 1fr;
       gap: var(--space-2);
     }
