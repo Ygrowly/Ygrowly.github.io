@@ -70,6 +70,13 @@ export default defineConfig({
   site: 'https://ygrowly.github.io',
   trailingSlash: 'never',
   output: 'static',
+  // Emit `about.html` rather than `about/index.html`: GitHub Pages serves the
+  // former at `/about` with a 200, but 301s the latter from `/about` to
+  // `/about/` — which is how every canonical, hreflang and sitemap URL on this
+  // site ended up pointing at a redirect. `servedPath()` in src/lib/url.ts
+  // keeps published URLs in the extensionless form Astro's pathname reports
+  // as `about.html`.
+  build: { format: 'file' },
 
   image: {
     service: {

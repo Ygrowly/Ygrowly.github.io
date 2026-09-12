@@ -61,10 +61,7 @@ const { content } = Astro.props
 </section>
 
 <script>
-  import gsap from 'gsap'
-  import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-  gsap.registerPlugin(ScrollTrigger)
+  import { echoActiveIndex, echoScrollProgress, scrubEase } from '@/lib/home-ui'
 
   const section = document.querySelector<HTMLElement>('[data-echo-section]')
   if (section) {
@@ -82,8 +79,12 @@ const { content } = Astro.props
       const cards = Array.from(section.querySelectorAll<HTMLElement>('[data-echo-card]'))
       if (ring && cards.length > 1) {
         const count = cards.length
-        const step = 360 / count
         let activeIndex = -1
+        let target = 0
+        let current = 0
+        let frame = 0
+        let last = 0
+        let tracking = false
 
         const setActive = (index: number) => {
           if (index === activeIndex) return
@@ -94,21 +95,55 @@ const { content } = Astro.props
             card.setAttribute('aria-hidden', String(!active))
           })
         }
-        setActive(0)
 
-        ScrollTrigger.create({
-          trigger: section,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 0.6,
-          onUpdate: (self) => {
-            const rotation = self.progress * 360
-            ring.style.setProperty('--ring-rot', `${rotation}deg`)
-            if (bar) bar.style.setProperty('--progress', `${self.progress * 100}%`)
-            const index = Math.round(((-rotation / step) % count) + count) % count
-            setActive(index)
+        const paint = (progress: number) => {
+          ring.style.setProperty('--ring-rot', `${progress * 360}deg`)
+          bar?.style.setProperty('--progress', `${progress * 100}%`)
+          setActive(echoActiveIndex(progress, count))
+        }
+
+        const tick = (now: number) => {
+          frame = 0
+          const ease = scrubEase((now - last) / 1000)
+          last = now
+          current += (target - current) * ease
+          if (Math.abs(target - current) < 0.0005) current = target
+          paint(current)
+          if (current !== target) frame = requestAnimationFrame(tick)
+        }
+
+        const schedule = () => {
+          const rect = section.getBoundingClientRect()
+          target = echoScrollProgress(rect.top, rect.height, window.innerHeight)
+          if (!frame) {
+            last = performance.now()
+            frame = requestAnimationFrame(tick)
           }
-        })
+        }
+
+        const start = () => {
+          if (tracking) return
+          tracking = true
+          window.addEventListener('scroll', schedule, { passive: true })
+          window.addEventListener('resize', schedule)
+          schedule()
+        }
+
+        const stop = () => {
+          if (!tracking) return
+          tracking = false
+          window.removeEventListener('scroll', schedule)
+          window.removeEventListener('resize', schedule)
+        }
+
+        // Only pay for scroll work while the section is anywhere near the
+        // viewport; the sticky stage is 100svh inside a ~320vh section.
+        new IntersectionObserver(
+          ([entry]) => (entry.isIntersecting ? start() : stop()),
+          { rootMargin: '100% 0px' }
+        ).observe(section)
+
+        paint(0)
       }
     }
   }

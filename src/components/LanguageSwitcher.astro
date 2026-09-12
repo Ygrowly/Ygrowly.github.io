@@ -1,6 +1,7 @@
 ---
 import { hasEnVersion } from '@/i18n/translations'
 import { stripLangPrefix, useTranslations, withLangPrefix, type Lang } from '@/i18n/ui'
+import { servedPath } from '@/lib/url'
 
 interface Props {
   lang: Lang
@@ -11,7 +12,7 @@ const t = useTranslations(lang)
 const label = lang === 'en' ? '中' : 'EN'
 const targetLanguage = lang === 'en' ? '中文' : 'English'
 
-const barePath = stripLangPrefix(Astro.url.pathname)
+const barePath = stripLangPrefix(servedPath(Astro.url.pathname))
 // en -> zh：中文原文一定存在；zh -> en：只有真实英文镜像才跳，否则落回英文首页
 const target =
   lang === 'en' ? barePath : (await hasEnVersion(barePath)) ? withLangPrefix(barePath, 'en') : '/en'

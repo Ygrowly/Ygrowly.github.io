@@ -6,6 +6,7 @@ import type { CollectionEntry } from 'astro:content'
 import 'katex/dist/katex.min.css'
 
 import { getLangFromUrl } from '@/i18n/ui'
+import { servedUrl } from '@/lib/url'
 
 import { MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
@@ -63,7 +64,7 @@ const heroRemarkFrontmatter =
     ? { ...remarkPluginFrontmatter, minutesRead: remarkPluginFrontmatter.minutesReadZh }
     : remarkPluginFrontmatter
 const origin = Astro.site!.origin
-const pageUrl = new URL(Astro.url.pathname, Astro.site).href
+const pageUrl = servedUrl(Astro.url, Astro.site).href
 const articleLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
