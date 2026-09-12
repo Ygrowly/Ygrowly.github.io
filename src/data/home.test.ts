@@ -94,6 +94,30 @@ describe('homepage configuration', () => {
     }
   })
 
+  // The experience page used to repeat the homepage row and stop there: no
+  // statement of what the role actually owned, and no way through to the depth.
+  test('every role states its scope and opens into a real case page', () => {
+    const languages = [
+      { content: homeContent.zh, projects: projectCases.zh, label: 'zh' },
+      { content: homeContent.en, projects: projectCases.en, label: 'en' }
+    ]
+
+    for (const { content, projects, label } of languages) {
+      const slugs = new Set(projects.map((project) => project.slug))
+      expect(`${label}: ${content.experience.items.length > 0}`).toBe(`${label}: true`)
+      expect(content.experience.caseLink.trim()).not.toBe('')
+
+      for (const item of content.experience.items) {
+        expect(`${item.company} scope: ${item.scope.trim() !== ''}`).toBe(
+          `${item.company} scope: true`
+        )
+        expect(`${item.company} case: ${slugs.has(item.caseSlug)}`).toBe(
+          `${item.company} case: true`
+        )
+      }
+    }
+  })
+
   test('withholds detail-only evidence rows from the homepage theater', () => {
     const forHome = (project: (typeof projectCases.zh)[number]) =>
       project.evidence.filter((item) => !item.detailOnly)
