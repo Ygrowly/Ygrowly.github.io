@@ -17,6 +17,17 @@ export type HomeProject = {
   outOfScope: string[]
   /** Known gaps and unresolved questions — an honest invitation to dig in. */
   openQuestions: string[]
+  /**
+   * Where to actually go look: a public repository or a live site. A tech
+   * interviewer's first instinct is to open the code, so this sits next to the
+   * summary rather than at the bottom of the page.
+   */
+  links?: { label: string; href: string; kind: 'repo' | 'site' }[]
+  /**
+   * Shown in the same slot as {@link links} when there is no repository to link
+   * to. Company systems get this instead of an empty gap.
+   */
+  sourceNote?: { title: string; body: string; instead: string[] }
   stack?: string
   cta: string
 }
@@ -210,6 +221,15 @@ const zh: HomeContent = {
           '工单只覆盖信息闭环，没有和维修系统的排班、SLA 数据打通，处置效果无法量化回流',
           'R2 级写操作目前要求逐次人工确认，批量与高频场景下的确认体验还没有好答案'
         ],
+        sourceNote: {
+          title: '为什么没有代码仓库',
+          body: 'EnergyOps Agent 是我在金山实习期间参与的企业内部系统，代码、数据与部署环境都属于公司资产，不在公开范围内。上面写的是我能独立讲清楚的部分。',
+          instead: [
+            '架构与链路可以当面展开：质量状态判定、多层聚合、调度自愈与 Hook 链治理的具体设计',
+            '评测口径可以讲清楚：回放评测怎么构造、固定查询集怎么选、为什么用任务完成率而不是单次成功率',
+            '幂等窗口、越权拦截这类机制可以讲实现思路，内部代码与数据不带走'
+          ]
+        },
         stack: 'Python · FastAPI · PostgreSQL · MCP · WPS Comate · pytest',
         cta: '查看系统案例 →'
       },
@@ -290,6 +310,15 @@ const zh: HomeContent = {
           '结果合理性检查依赖结构特征（粒度、JOIN 膨胀、单位一致性），对物理上合法但业务上无意义的查询仍会放行',
           '跨多个数据源的关联查询，在只读、限时、限量的约束下如何兼顾性能与安全，目前没有定论'
         ],
+        sourceNote: {
+          title: '为什么没有代码仓库',
+          body: '数驭穹图是我在深圳市慧泽致远参与的产品，代码与客户数据不在公开范围内。这里保留的是方法论层面的内容。',
+          instead: [
+            '语义层与领域路由可以展开：指标口径怎么沉淀、两级意图契约怎么切分职责',
+            '查询安全可以讲：权限上下文、SQL AST 审查与输出脱敏各拦什么、为什么分层',
+            '证据绑定的三个标识可以讲传递路径，以及失败时为什么选择降级而不是阻断'
+          ]
+        },
         stack: 'Python · FastAPI · PostgreSQL · DuckDB · Parquet · R2 · Univer · MCP',
         cta: '查看系统案例 →'
       },
@@ -375,6 +404,7 @@ const zh: HomeContent = {
           '24-Case 平台基准证明的是搜索与裁决机制的可信度，不能外推到任意新规则；单条规则的放行结论仍需按规则组合证据',
           '换更真实的靶场解决不了搜索层短板——接入外部电商系统因此被降级为搜索层达标之后的事'
         ],
+        links: [{ label: '代码仓库', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' }],
         stack: 'FastAPI · PostgreSQL · Redis · 显式 FSM · Delta Debugging · pytest',
         cta: '查看系统案例 →'
       }
@@ -641,6 +671,15 @@ const en: HomeContent = {
           'Work orders stop at the information loop; without maintenance-system scheduling and SLA data, disposition outcomes cannot be quantified back',
           'R2 write operations require per-action human confirmation, and there is no good answer yet for confirmation UX under batch or high-frequency load'
         ],
+        sourceNote: {
+          title: 'Why there is no repository',
+          body: 'EnergyOps Agent is an internal enterprise system I worked on during my internship at Kingsoft. The code, data and deployment environment are company assets and are not public. What is written above is the part I can explain on my own.',
+          instead: [
+            'The architecture is fair game to walk through: quality-state decisions, layered aggregation, recoverable scheduling and hook-chain governance',
+            'The evaluation methodology is explainable: how replay evals are built, how the fixed query set is chosen, and why task completion beats a single-run success rate',
+            'Mechanisms like idempotency windows and privilege blocking can be described — the internal code and data stay inside'
+          ]
+        },
         stack: 'Python · FastAPI · PostgreSQL · MCP · WPS Comate · pytest',
         cta: 'View system case →'
       },
@@ -721,6 +760,15 @@ const en: HomeContent = {
           'Result sanity checks rely on structural signals (grain, join fan-out, unit consistency), so a query that is physically valid but business-nonsensical still passes',
           'For cross-source joins under read-only, time-limited, row-limited constraints, the balance between performance and safety is still unsettled'
         ],
+        sourceNote: {
+          title: 'Why there is no repository',
+          body: 'DataSphere is a product I worked on at Shenzhen Huize Zhiyuan. The code and customer data are not public. What remains here is the methodology.',
+          instead: [
+            'The semantic layer and domain routing can be opened up: how metric definitions settle, and how the two-level intent contract splits responsibility',
+            'Query safety is explainable: what the permission context, SQL AST review and output masking each stop, and why they are layered',
+            'The three evidence-binding identifiers can be traced end to end, along with why a failed binding degrades instead of blocking'
+          ]
+        },
         stack: 'Python · FastAPI · PostgreSQL · DuckDB · Parquet · R2 · Univer · MCP',
         cta: 'View system case →'
       },
@@ -813,6 +861,7 @@ const en: HomeContent = {
           'The 24-case platform benchmark proves the search and adjudication mechanism is trustworthy, and does not extrapolate to an arbitrary new rule — a single rule’s release verdict still needs rule-specific evidence',
           'A more realistic target system would not fix the search-layer gap, which is why external e-commerce integration was deferred until the search layer clears its bar'
         ],
+        links: [{ label: 'Repository', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' }],
         stack: 'FastAPI · PostgreSQL · Redis · Explicit FSM · Delta Debugging · pytest',
         cta: 'View system case →'
       }
@@ -1050,6 +1099,7 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         '如何在「政策结论必须人工确认」这条线之内提高内容生产效率，目前只在运营侧做聚合解释，还谈不上自动化',
         '区域化适配器把差异收敛进了配置，但新区域接入时本地支付渠道与合规要求仍需逐个评估'
       ],
+      links: [{ label: '线上站点', href: 'https://www.ovanta.cn/', kind: 'site' }],
       stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
       cta: '查看项目详情 →'
     },
@@ -1128,6 +1178,7 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         '从生产 Trace 回流真实 Bad Case 是规划中的方向，当前评测集仍以注入场景为主',
         '模拟数据能证明诊断能力与版本间的相对改进，不能证明线上收益——这条结论本身就是项目的诚实边界'
       ],
+      links: [{ label: '代码仓库', href: 'https://github.com/Ygrowly/PayTrace', kind: 'repo' }],
       stack: 'Python · FastAPI · PostgreSQL · Redis · MCP · 显式 FSM · 故障注入 · pytest',
       cta: '查看项目详情 →'
     }
@@ -1211,6 +1262,7 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         'How to raise content-production efficiency without crossing the line that policy conclusions require human confirmation — today AI only aggregates on the operations side, which is not automation',
         'The regionalization adapter folds differences into config, but each new region still needs its payment channels and compliance requirements assessed individually'
       ],
+      links: [{ label: 'Live site', href: 'https://www.ovanta.cn/', kind: 'site' }],
       stack: 'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose · Cloudflare',
       cta: 'View project →'
     },
@@ -1289,6 +1341,7 @@ export const projectCases: Record<Lang, HomeProject[]> = {
         'Feeding real bad cases back from production traces is a planned direction; today’s eval set is still mostly injected scenarios',
         'Simulated data can demonstrate diagnostic capability and relative improvement between versions, but not online business results — that limit is itself the project’s honest boundary'
       ],
+      links: [{ label: 'Repository', href: 'https://github.com/Ygrowly/PayTrace', kind: 'repo' }],
       stack: 'Python · FastAPI · PostgreSQL · Redis · MCP · explicit FSM · fault injection · pytest',
       cta: 'View project →'
     }
