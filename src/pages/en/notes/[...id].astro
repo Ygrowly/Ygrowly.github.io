@@ -5,6 +5,7 @@ import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import PageInfo from '@/components/comment/PageInfo.astro'
 import JsonLd from '@/components/JsonLd.astro'
+import { servedUrl } from '@/lib/url'
 
 export const prerender = true
 
@@ -51,7 +52,7 @@ const meta = {
 // Structured data: BlogPosting + breadcrumbs; author/publisher reference the
 // site-wide Person emitted by BaseHead
 const origin = Astro.site!.origin
-const pageUrl = new URL(Astro.url.pathname, Astro.site).href
+const pageUrl = servedUrl(Astro.url, Astro.site).href
 const noteLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',

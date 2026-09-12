@@ -2,6 +2,7 @@
 import { cn } from 'astro-pure/utils'
 
 import { getLangFromUrl } from '@/i18n/ui'
+import { servedPath } from '@/lib/url'
 
 interface Props {
   class?: string
@@ -12,7 +13,7 @@ interface Props {
 const { class: className, path: pathProp, hideComment } = Astro.props as Props
 
 const stripEn = (p: string) => p.replace(/^\/en(?=\/|$)/, '') || '/'
-const path = stripEn(pathProp ?? Astro.url.pathname)
+const path = stripEn(servedPath(pathProp ?? Astro.url.pathname))
 const lang = getLangFromUrl(Astro.url)
 const isEn = lang === 'en'
 ---

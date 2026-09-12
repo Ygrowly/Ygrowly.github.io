@@ -1,3 +1,5 @@
+import { servedPath } from '@/lib/url'
+
 export const languages = {
   zh: '中',
   en: 'EN'
@@ -106,7 +108,11 @@ export const ui = {
 } as const satisfies Record<Lang, Record<string, string>>
 
 export function getLangFromUrl(url: URL | string): Lang {
-  const pathname = typeof url === 'string' ? url : url.pathname
+  const raw = typeof url === 'string' ? url : url.pathname
+  // `build.format: 'file'` means the /en page reports itself as `/en.html`, so
+  // normalize before reading the leading segment — otherwise every English
+  // page falls back to the default language.
+  const pathname = servedPath(raw)
   const first = pathname.split('/').filter(Boolean)[0]
   if (first === 'en') return 'en'
   return defaultLang
@@ -164,6 +170,8 @@ export function hasEnAlternate(barePath: string): boolean {
   // blog & notes: only the paginated list is mirrored under /en, not detail pages
   if (/^\/blog(\/\d+)?$/.test(barePath)) return true
   if (/^\/notes(\/\d+)?$/.test(barePath)) return true
+  // project case pages are authored in both languages from src/data/home.ts
+  if (/^\/projects\/[^/]+$/.test(barePath)) return true
   // /tags/<tag> detail pages are NOT mirrored: en posts carry translated tag
   // names, so there is no 1:1 /en/tags/<zh-tag> URL
   return false
