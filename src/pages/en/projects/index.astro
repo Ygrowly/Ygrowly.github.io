@@ -2,16 +2,15 @@
 import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 
-const headings = [
-  { depth: 2, slug: 'systems', text: 'Systems' },
-  { depth: 2, slug: 'open-source', text: 'Open Source' }
-]
+const headings = [{ depth: 2, slug: 'systems', text: 'Systems' }]
 ---
 
 <PageLayout title='Projects' {headings} info={{ slug: '/en/projects', hideComment: true }}>
   <p>
     Projects I'm building and maintaining. The current focus: putting AI agents and data systems
-    into real business workflows — running, observable, and continuously iterable.
+    into real business workflows — running, observable, and continuously iterable. The repo icon
+    opens the code where it is public; the internal systems from my internships are not, and each
+    case page says why.
   </p>
 
   <h2 id='systems'>Systems</h2>
@@ -37,14 +36,20 @@ const headings = [
         name: 'RuleArena',
         description:
           'Adversarial verification and release gates for e-commerce rule changes: rules compile into human-confirmed contracts, a governed agent searches high-risk sequences, a clean environment replays them, and a deterministic oracle adjudicates.',
-        links: [{ type: 'doc', href: '/en/projects/rulearena' }]
+        links: [
+          { type: 'doc', href: '/en/projects/rulearena' },
+          { type: 'github', href: 'https://github.com/Ygrowly/RuleArena' }
+        ]
       },
       {
         id: 'paytrace',
         name: 'PayTrace',
         description:
           'Evidence-driven payment conversion anomaly attribution and diagnosis agent: deterministic loss attribution, a Hook-governed Diagnostic Harness, an evidence contract, and fault-injected evaluation (simulated data).',
-        links: [{ type: 'doc', href: '/en/projects/paytrace' }]
+        links: [
+          { type: 'doc', href: '/en/projects/paytrace' },
+          { type: 'github', href: 'https://github.com/Ygrowly/PayTrace' }
+        ]
       },
       {
         id: 'ovanta',
@@ -58,10 +63,4 @@ const headings = [
       }
     ]}
   />
-
-  <h2 id='open-source'>Open Source</h2>
-  <p>
-    Open-source work is being organized — meanwhile, feel free to browse my
-    <a href='https://github.com/Ygrowly' target='_blank'>GitHub</a>.
-  </p>
 </PageLayout>

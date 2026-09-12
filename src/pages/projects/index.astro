@@ -2,16 +2,13 @@
 import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 
-const headings = [
-  { depth: 2, slug: 'systems', text: 'Systems' },
-  { depth: 2, slug: 'open-source', text: 'Open Source' }
-]
+const headings = [{ depth: 2, slug: 'systems', text: 'Systems' }]
 ---
 
 <PageLayout title='Projects' {headings} info={{ slug: '/projects', hideComment: true }}>
   <p>
     这里是我正在构建和维护的项目。当前重点是把 AI Agent 与数据系统落到真实业务里 ——
-    能运行、可观测、可持续迭代。
+    能运行、可观测、可持续迭代。公开仓库的图标可以直接点开代码；实习所在公司的内部系统不公开，案例页里写了为什么。
   </p>
 
   <h2 id='systems'>Systems</h2>
@@ -36,14 +33,20 @@ const headings = [
         name: 'RuleArena',
         description:
           '电商规则对抗验证与发布门禁平台：规则编译为人工确认的可执行契约，受控 Agent 对抗搜索、干净环境重放、确定性 Oracle 裁决，沉淀可回归最小反例。',
-        links: [{ type: 'doc', href: '/projects/rulearena' }]
+        links: [
+          { type: 'doc', href: '/projects/rulearena' },
+          { type: 'github', href: 'https://github.com/Ygrowly/RuleArena' }
+        ]
       },
       {
         id: 'paytrace',
         name: 'PayTrace',
         description:
           '证据驱动的支付转化异常归因与诊断 Agent：确定性损失拆解、Hook 链治理的 Diagnostic Harness、证据契约与故障注入评测（模拟数据）。',
-        links: [{ type: 'doc', href: '/projects/paytrace' }]
+        links: [
+          { type: 'doc', href: '/projects/paytrace' },
+          { type: 'github', href: 'https://github.com/Ygrowly/PayTrace' }
+        ]
       },
       {
         id: 'ovanta',
@@ -57,9 +60,4 @@ const headings = [
       }
     ]}
   />
-
-  <h2 id='open-source'>Open Source</h2>
-  <p>
-    开源项目整理中，欢迎先到 <a href='https://github.com/Ygrowly' target='_blank'>GitHub</a> 围观。
-  </p>
 </PageLayout>
