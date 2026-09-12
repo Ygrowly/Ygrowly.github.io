@@ -18,11 +18,11 @@ export type HomeProject = {
   /** Known gaps and unresolved questions — an honest invitation to dig in. */
   openQuestions: string[]
   /**
-   * Where to actually go look: a public repository or a live site. A tech
-   * interviewer's first instinct is to open the code, so this sits next to the
-   * summary rather than at the bottom of the page.
+   * Where to actually go look: a public repository, a live site, or an
+   * interactive system diagram. A tech interviewer's first instinct is to open
+   * the code, so this sits next to the summary rather than at the bottom.
    */
-  links?: { label: string; href: string; kind: 'repo' | 'site' }[]
+  links?: { label: string; href: string; kind: 'repo' | 'site' | 'diagram' }[]
   /**
    * Shown in the same slot as {@link links} when there is no repository to link
    * to. Company systems get this instead of an empty gap.
@@ -404,7 +404,10 @@ const zh: HomeContent = {
           '24-Case 平台基准证明的是搜索与裁决机制的可信度，不能外推到任意新规则；单条规则的放行结论仍需按规则组合证据',
           '换更真实的靶场解决不了搜索层短板——接入外部电商系统因此被降级为搜索层达标之后的事'
         ],
-        links: [{ label: '代码仓库', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' }],
+        links: [
+          { label: '代码仓库', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' },
+          { label: '可交互系统图', href: '/diagrams/rulearena.html', kind: 'diagram' }
+        ],
         stack: 'FastAPI · PostgreSQL · Redis · 显式 FSM · Delta Debugging · pytest',
         cta: '查看系统案例 →'
       }
@@ -861,7 +864,10 @@ const en: HomeContent = {
           'The 24-case platform benchmark proves the search and adjudication mechanism is trustworthy, and does not extrapolate to an arbitrary new rule — a single rule’s release verdict still needs rule-specific evidence',
           'A more realistic target system would not fix the search-layer gap, which is why external e-commerce integration was deferred until the search layer clears its bar'
         ],
-        links: [{ label: 'Repository', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' }],
+        links: [
+          { label: 'Repository', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' },
+          { label: 'Interactive system map', href: '/diagrams/rulearena.html', kind: 'diagram' }
+        ],
         stack: 'FastAPI · PostgreSQL · Redis · Explicit FSM · Delta Debugging · pytest',
         cta: 'View system case →'
       }

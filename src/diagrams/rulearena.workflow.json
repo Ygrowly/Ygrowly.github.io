@@ -1,0 +1,208 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "RuleArena · 规则变更验证流水线",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "happy-path",
+        "label": "主路径",
+        "focus": [
+          "rule_change",
+          "rulespec",
+          "adversarial_search",
+          "sandbox_replay",
+          "oracle",
+          "release_gate"
+        ],
+        "note": "从一次规则变更，到一条可以阻断发布的结论。"
+      },
+      {
+        "id": "anti-self-proof",
+        "label": "防自证",
+        "focus": ["adversarial_search", "simulator", "sandbox_replay", "oracle", "ground_truth"],
+        "note": "候选风险不等于是漏洞：只有重放与裁决能确认问题。"
+      },
+      {
+        "id": "isolation",
+        "label": "隔离边界",
+        "focus": ["adversarial_search", "ground_truth", "oracle"],
+        "note": "搜索侧全程看不到标准答案，裁决侧才读得到。"
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "authoring", "label": "规则接入" },
+    { "id": "verification", "label": "对抗验证" },
+    { "id": "explore", "label": "参考模拟器" },
+    { "id": "isolation", "label": "Ground Truth 隔离", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "contract", "label": "冻结语义", "fromCol": 0, "toCol": 1 },
+    { "id": "prove", "label": "重放与裁决", "fromCol": 2, "toCol": 4, "variant": "emphasis" },
+    { "id": "gate", "label": "门禁", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    {
+      "id": "trusted_verdict",
+      "label": "只有这里能定论",
+      "lane": "verification",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "security"
+    }
+  ],
+  "mainPath": [
+    "rule_change",
+    "rulespec",
+    "adversarial_search",
+    "sandbox_replay",
+    "oracle",
+    "release_gate"
+  ],
+  "nodes": [
+    {
+      "id": "rule_change",
+      "lane": "authoring",
+      "col": 0,
+      "type": "external",
+      "label": "规则变更",
+      "sublabel": "促销 / 退款 / 积分 / 权益",
+      "tag": "输入",
+      "width": 112
+    },
+    {
+      "id": "rulespec",
+      "lane": "authoring",
+      "col": 1,
+      "type": "security",
+      "label": "RuleSpec 契约",
+      "sublabel": "歧义冻结为可执行断言",
+      "tag": "人工确认"
+    },
+    {
+      "id": "adversarial_search",
+      "lane": "verification",
+      "col": 2,
+      "type": "backend",
+      "label": "受控对抗搜索",
+      "sublabel": "仅固定领域原语",
+      "tag": "Agent · 可搜索不可定论"
+    },
+    {
+      "id": "sandbox_replay",
+      "lane": "verification",
+      "col": 3,
+      "type": "cloud",
+      "label": "沙箱重放",
+      "sublabel": "干净环境 · 真实 HTTP"
+    },
+    {
+      "id": "oracle",
+      "lane": "verification",
+      "col": 4,
+      "type": "security",
+      "label": "确定性 Oracle",
+      "sublabel": "资金守恒 · 生命周期不变量",
+      "tag": "不用 LLM Judge",
+      "width": 112
+    },
+    {
+      "id": "release_gate",
+      "lane": "verification",
+      "col": 5,
+      "type": "backend",
+      "label": "发布门禁",
+      "sublabel": "最小反例 → pytest 回归",
+      "tag": "阻断式"
+    },
+    {
+      "id": "simulator",
+      "lane": "explore",
+      "col": 2,
+      "type": "backend",
+      "label": "参考模拟器",
+      "sublabel": "快速探索 · 不单独定论"
+    },
+    {
+      "id": "ground_truth",
+      "lane": "isolation",
+      "col": 4,
+      "type": "database",
+      "label": "Ground Truth",
+      "sublabel": "仅评测侧维护",
+      "tag": "搜索侧不可触达"
+    }
+  ],
+  "edges": [
+    { "from": "rule_change", "to": "rulespec" },
+    {
+      "from": "rulespec",
+      "to": "adversarial_search",
+      "label": "已确认版本",
+      "variant": "emphasis"
+    },
+    {
+      "from": "adversarial_search",
+      "to": "sandbox_replay",
+      "label": "候选动作序列"
+    },
+    {
+      "from": "sandbox_replay",
+      "to": "oracle",
+      "label": "重放轨迹",
+      "variant": "emphasis"
+    },
+    {
+      "from": "oracle",
+      "to": "release_gate",
+      "label": "违规确认",
+      "variant": "security"
+    },
+    {
+      "from": "simulator",
+      "to": "adversarial_search",
+      "label": "快速探索",
+      "role": "branch",
+      "variant": "dashed"
+    },
+    {
+      "from": "ground_truth",
+      "to": "oracle",
+      "label": "对照裁决",
+      "role": "branch",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "一条主路径",
+      "items": [
+        "自然语言规则先编译成人工确认的 RuleSpec，语义在进入搜索前就冻结",
+        "Agent 只负责找路径，沙箱重放与 Oracle 负责证明路径是否真的有问题",
+        "门禁的产物是最小反例和可一键导出的 pytest，而不是一段解释"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "自证防线",
+      "items": [
+        "候选风险 ≠ 确认漏洞——搜索侧拿不到 Ground Truth",
+        "参考模拟器只用于展开搜索空间，单独跑出的结论不算证据",
+        "资金守恒与生命周期不变量由确定性代码计算，不交给 LLM Judge"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "当前未达标",
+      "items": [
+        "LLM 策略发现率实测 0–20%，低于 ≥75% 的设计门禁",
+        "还没跑赢确定性 BFS 基线（20–22%），这是当前主攻方向",
+        "24-Case 基准证明的是搜索与裁决机制可信，不能外推到任意新规则"
+      ]
+    }
+  ]
+}

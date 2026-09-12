@@ -61,7 +61,7 @@ describe('homepage configuration', () => {
         expect(`${project.slug}: ${hasLinks || hasNote}`).toBe(`${project.slug}: true`)
 
         for (const link of project.links ?? []) {
-          expect(link.href.startsWith('https://')).toBe(true)
+          expect(link.href.startsWith('https://') || link.href.startsWith('/')).toBe(true)
           expect(link.label.trim()).not.toBe('')
         }
 
