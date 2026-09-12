@@ -1,0 +1,68 @@
+---
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  class?: string
+  email: string
+  label: string
+  hint?: string
+}
+
+const { class: className, email, label, hint } = Astro.props
+---
+
+{/*
+  Email is the one contact method that works on a desktop, where a recruiter
+  reading this page cannot scan a QR code. It leads; the QR cards below are the
+  secondary path.
+*/}
+<div class={cn('not-prose', className)}>
+  <a class='contact-email' href={`mailto:${email}`}>
+    <span class='contact-email__label'>{label}</span>
+    <span class='contact-email__value'>{email}</span>
+  </a>
+  {hint && <p class='contact-email__hint'>{hint}</p>}
+</div>
+
+<style>
+  .contact-email {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--signal-accent);
+    border-radius: var(--radius-lg);
+    background: var(--signal-accent);
+    color: var(--accent-contrast);
+    text-decoration: none;
+    transition:
+      background-color 180ms ease,
+      box-shadow 240ms ease;
+  }
+
+  .contact-email:hover {
+    background: var(--signal-accent-hover);
+    box-shadow: 0 0 28px -6px color-mix(in srgb, var(--tech-glow) 60%, transparent);
+  }
+
+  .contact-email__label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+    text-transform: uppercase;
+  }
+
+  .contact-email__value {
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+
+  .contact-email__hint {
+    margin: 0.5rem 0 0;
+    color: var(--text-tertiary);
+    font-size: var(--text-sm);
+  }
+</style>

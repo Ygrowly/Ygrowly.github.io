@@ -1,8 +1,11 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
+import ContactEmail from '@/components/contact/ContactEmail.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
 import qq from '@/assets/qq-contact.jpg'
 import wechat from '@/assets/wechat-contact.jpg'
+
+const email = 'lyg3044@qq.com'
 
 const headings = [
   { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
@@ -14,7 +17,18 @@ const headings = [
   <p>欢迎来聊。AI 应用开发、实习与合作机会、技术交流都可以。 我会比较慢回，但都会回。</p>
 
   <h2 id='how-to-reach'>如何联系我</h2>
-  <p>点击或悬停卡片即可看到二维码。也可以直接发邮件到 lyg3044@qq.com。</p>
+  <p>
+    发邮件最快，电脑上直接点下面的地址就能写。写清楚来意和大致背景，我回复会更有信息量。
+  </p>
+  <ContactEmail
+    class='my-6'
+    {email}
+    label='Email'
+    hint='微信 / QQ 也可以，但二维码需要手机扫——如果你在电脑前，优先发邮件。'
+  />
+
+  <h3>或者扫码加我</h3>
+  <p>点击或悬停卡片即可看到二维码。</p>
   <ContactQR
     class='my-6'
     items={[

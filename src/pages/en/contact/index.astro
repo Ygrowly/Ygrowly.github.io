@@ -1,8 +1,11 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
+import ContactEmail from '@/components/contact/ContactEmail.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
 import qq from '@/assets/qq-contact.jpg'
 import wechat from '@/assets/wechat-contact.jpg'
+
+const email = 'lyg3044@qq.com'
 
 const headings = [
   { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
@@ -17,7 +20,19 @@ const headings = [
   </p>
 
   <h2 id='how-to-reach'>How to reach me</h2>
-  <p>Tap or hover over a card to reveal the QR code. Email also works: lyg3044@qq.com.</p>
+  <p>
+    Email is fastest, and it is the one that works from a desktop — click the address below and
+    write. Tell me what you have in mind and a little context, and my reply will be more useful.
+  </p>
+  <ContactEmail
+    class='my-6'
+    {email}
+    label='Email'
+    hint='WeChat and QQ work too, but their QR codes need a phone to scan — if you are at a desk, email first.'
+  />
+
+  <h3>Or add me by QR</h3>
+  <p>Tap or hover over a card to reveal the QR code.</p>
   <ContactQR
     class='my-6'
     items={[
