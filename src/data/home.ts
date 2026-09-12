@@ -406,7 +406,7 @@ const zh: HomeContent = {
         ],
         links: [
           { label: '代码仓库', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' },
-          { label: '可交互系统图', href: '/diagrams/rulearena.html', kind: 'diagram' }
+          { label: '可交互系统图', href: '/diagrams/rulearena', kind: 'diagram' }
         ],
         stack: 'FastAPI · PostgreSQL · Redis · 显式 FSM · Delta Debugging · pytest',
         cta: '查看系统案例 →'
@@ -866,7 +866,7 @@ const en: HomeContent = {
         ],
         links: [
           { label: 'Repository', href: 'https://github.com/Ygrowly/RuleArena', kind: 'repo' },
-          { label: 'Interactive system map', href: '/diagrams/rulearena.html', kind: 'diagram' }
+          { label: 'Interactive system map', href: '/diagrams/rulearena', kind: 'diagram' }
         ],
         stack: 'FastAPI · PostgreSQL · Redis · Explicit FSM · Delta Debugging · pytest',
         cta: 'View system case →'
