@@ -29,6 +29,7 @@ export const ui = {
     'nav.homeExperience': '经历',
     'nav.homeWriting': '写作',
     'nav.homeAbout': '关于',
+    'nav.homeContact': '联系',
     'nav.openMenu': '打开导航菜单',
     'nav.closeMenu': '关闭导航菜单',
     'notice.translating': '网站界面已提供英文版，但大部分博客与笔记仍为中文，翻译正在进行中。',
@@ -76,6 +77,7 @@ export const ui = {
     'nav.homeExperience': 'Experience',
     'nav.homeWriting': 'Writing',
     'nav.homeAbout': 'About',
+    'nav.homeContact': 'Contact',
     'nav.openMenu': 'Open navigation menu',
     'nav.closeMenu': 'Close navigation menu',
     'notice.translating':

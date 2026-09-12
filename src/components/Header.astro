@@ -13,11 +13,16 @@ const lang = (Astro.props.lang ?? getLangFromUrl(Astro.url)) as Lang
 const home = Astro.props.home ?? false
 const t = useTranslations(lang)
 const homeHref = localizedPath('/', lang)
-const navItems = [
+// Contact is a link to its own page, not a homepage section, so it carries no
+// section id for the scroll-spy to track. It is last because, on a hiring site,
+// it is the action the whole page is building toward — and until now the sticky
+// header offered no way to reach it at all.
+const navItems: { label: string; href: string; section?: string }[] = [
   { label: t('nav.homeProjects'), href: localizedPath('/projects', lang), section: 'projects' },
   { label: t('nav.homeExperience'), href: localizedPath('/experience', lang), section: 'experience' },
   { label: t('nav.homeWriting'), href: localizedPath('/blog', lang), section: 'writing' },
-  { label: t('nav.homeAbout'), href: localizedPath('/about', lang), section: 'about' }
+  { label: t('nav.homeAbout'), href: localizedPath('/about', lang), section: 'about' },
+  { label: t('nav.homeContact'), href: localizedPath('/contact', lang) }
 ]
 ---
 
