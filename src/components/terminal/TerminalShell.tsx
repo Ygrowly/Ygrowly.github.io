@@ -11,7 +11,6 @@ import './terminal.css'
 
 type Props = {
   lang?: 'zh' | 'en'
-  resumeHref?: string
 }
 
 type RenderEntry = HistoryEntry & { id: string }
@@ -70,7 +69,8 @@ function staticEntries(lang: 'zh' | 'en'): RenderEntry[] {
       lines: [
         { kind: 'text', text: 'energyops-agent' },
         { kind: 'text', text: 'ai-bi-platform' },
-        { kind: 'text', text: 'paytrace  [building]' },
+        { kind: 'text', text: 'rulearena' },
+        { kind: 'text', text: 'paytrace  [lab]' },
         { kind: 'spacer' }
       ]
     },
@@ -82,17 +82,14 @@ function staticEntries(lang: 'zh' | 'en'): RenderEntry[] {
         {
           kind: 'text',
           tone: 'muted',
-          text: 'projects  experience  writing  resume  contact'
+          text: 'projects  experience  writing  github  contact'
         }
       ]
     }
   ]
 }
 
-export default function TerminalShell({
-  lang = 'zh',
-  resumeHref = lang === 'en' ? '/resume-en.pdf' : '/resume.pdf'
-}: Props) {
+export default function TerminalShell({ lang = 'zh' }: Props) {
   const [fs, setFs] = useState<FsNode | null>(null)
   const [entries, setEntries] = useState<RenderEntry[]>(() => staticEntries(lang))
   const [input, setInput] = useState('')
@@ -281,7 +278,6 @@ export default function TerminalShell({
           /* The legacy command remains registered; visual overlays stay out of the homepage. */
         },
         navigate,
-        resumeHref
       }
 
       try {
@@ -299,7 +295,7 @@ export default function TerminalShell({
         })
       }
     },
-    [appendEntry, cancelDemo, cwd, fs, loadFs, navigate, resumeHref, setTheme, updateStream]
+    [appendEntry, cancelDemo, cwd, fs, loadFs, navigate, setTheme, updateStream]
   )
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -357,7 +353,7 @@ export default function TerminalShell({
     <div
       className='wt-shell'
       role='region'
-      aria-label='Interactive portfolio terminal'
+      aria-label={lang === 'en' ? 'Interactive portfolio terminal' : '交互式个人主页终端'}
       onPointerDown={cancelDemo}
     >
       <div className='wt-titlebar'>
@@ -365,7 +361,7 @@ export default function TerminalShell({
         <button
           className='wt-help'
           type='button'
-          aria-label='Show terminal help'
+          aria-label={lang === 'en' ? 'Show terminal help' : '显示终端帮助'}
           onClick={(event) => {
             event.stopPropagation()
             void runInput('help')
@@ -412,7 +408,7 @@ export default function TerminalShell({
             <span className='wt-tone-fg'>{input}</span>
             <span className={`wt-caret ${focused ? '' : 'wt-caret--idle'}`} aria-hidden />
             {!input && !focused && (
-              <span className='wt-input-hint'>type help, projects, or resume</span>
+              <span className='wt-input-hint'>type help, projects, or contact</span>
             )}
           </span>
           <input
@@ -432,15 +428,15 @@ export default function TerminalShell({
             spellCheck={false}
             autoCapitalize='off'
             autoCorrect='off'
-            aria-label='Terminal command input'
+            aria-label={lang === 'en' ? 'Terminal command input' : '终端命令输入'}
           />
         </div>
       </div>
 
-      <div className='wt-quick-actions' aria-label='Terminal shortcuts'>
+      <div className='wt-quick-actions' aria-label={lang === 'en' ? 'Terminal shortcuts' : '终端快捷方式'}>
         {[
           ['Projects', 'projects'],
-          ['Resume', 'resume'],
+          ['GitHub', 'github'],
           ['Contact', 'contact']
         ].map(([label, command]) => (
           <button key={command} type='button' onClick={() => void runInput(command)}>

@@ -12,7 +12,7 @@ const { project, index } = Astro.props
 <div class='evidence-card'>
   <div class='evidence-card__header'>
     <span>system / 0{index + 1}</span>
-    <span class='evidence-card__status'>{project.eyebrow}</span>
+    <span class='evidence-card__status' title={project.eyebrow}>{project.eyebrow}</span>
   </div>
   <div class='evidence-card__body'>
     <div class='evidence-card__path'>
@@ -27,12 +27,14 @@ const { project, index } = Astro.props
     </div>
     <dl>
       {
-        project.evidence.map((item) => (
-          <div>
-            <dt>{item.label}</dt>
-            <dd>{item.value}</dd>
-          </div>
-        ))
+        project.evidence
+          .filter((item) => !item.detailOnly)
+          .map((item) => (
+            <div>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))
       }
     </dl>
     {project.stack && <p class='evidence-card__stack'>{project.stack}</p>}

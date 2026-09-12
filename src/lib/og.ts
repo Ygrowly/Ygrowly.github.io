@@ -1,11 +1,11 @@
 import { Resvg } from '@resvg/resvg-js'
 import satori from 'satori'
 
-const PRIMARY = '#67E2B7'
-const BACKGROUND = '#111513'
-const SURFACE = '#171C19'
-const TEXT = '#F1F3EF'
-const MUTED = '#A4ADA8'
+const PRIMARY = '#22D3EE'
+const BACKGROUND = '#0A0F1E'
+const SURFACE = '#0F1526'
+const TEXT = '#E6EAF2'
+const MUTED = '#93A2BD'
 const SITE = 'ygrowly.github.io'
 const LATIN_CHARS =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:;!?@#$%&*()[]{}<>/\\|-_=+"\'` ·⭐'

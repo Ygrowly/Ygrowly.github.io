@@ -1,6 +1,5 @@
 ---
 import { getLangFromUrl, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
-import { resolvedResume } from '@/lib/resume'
 
 import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
@@ -14,13 +13,6 @@ const lang = (Astro.props.lang ?? getLangFromUrl(Astro.url)) as Lang
 const home = Astro.props.home ?? false
 const t = useTranslations(lang)
 const homeHref = localizedPath('/', lang)
-const resume = resolvedResume(lang)
-const resumeLabel =
-  lang === 'en' && resume.fallbackToChinese ? `${t('nav.resume')} · CN` : t('nav.resume')
-const resumeAria =
-  lang === 'en' && resume.fallbackToChinese
-    ? 'Open Chinese résumé PDF in a new tab'
-    : t('nav.resumeAria')
 const navItems = [
   { label: t('nav.homeProjects'), href: localizedPath('/projects', lang), section: 'projects' },
   { label: t('nav.homeExperience'), href: localizedPath('/experience', lang), section: 'experience' },
@@ -29,7 +21,11 @@ const navItems = [
 ]
 ---
 
-<header-component class:list={['site-header', home && 'site-header--home']} data-home={home}>
+<header-component
+  class:list={['site-header', home && 'site-header--home']}
+  data-home={home}
+  role='banner'
+>
   <div class='site-header__bar'>
     <a class='site-header__brand' href={homeHref} aria-label='Ygrowly home'>Ygrowly</a>
 
@@ -54,22 +50,15 @@ const navItems = [
         class='site-header__icon-button'
         type='button'
         aria-label={t('nav.toggleDarkMode')}
+        data-toggle-label={t('nav.toggleDarkMode')}
+        data-system-label={t('theme.system')}
+        data-light-label={t('theme.light')}
+        data-dark-label={t('theme.dark')}
       >
         <Icon class='theme-icon system' name='computer' />
         <Icon class='theme-icon light' name='sun' />
         <Icon class='theme-icon dark' name='moon' />
       </button>
-
-      <a
-        class='site-header__resume site-header__desktop-actions'
-        href={resume.href}
-        target='_blank'
-        rel='noopener noreferrer'
-        aria-label={resumeAria}
-      >
-        {resumeLabel}
-        <span aria-hidden='true'>↗</span>
-      </a>
 
       <button
         id='toggleMenu'
@@ -105,16 +94,6 @@ const navItems = [
         <span>{lang === 'en' ? 'Language' : '语言'}</span>
         <LanguageSwitcher {lang} />
       </div>
-      <a
-        class='site-header__mobile-resume'
-        href={resume.href}
-        target='_blank'
-        rel='noopener noreferrer'
-        aria-label={resumeAria}
-      >
-        {resumeLabel}
-        <span aria-hidden='true'>↗</span>
-      </a>
     </nav>
   </div>
 </header-component>
@@ -149,6 +128,7 @@ const navItems = [
       this.menuButton.setAttribute('aria-label', state.buttonLabel)
       this.mobileLayer.setAttribute('aria-hidden', state.ariaHidden)
       document.documentElement.classList.toggle('mobile-menu-open', state.locksDocument)
+      this.setMenuInert(state.expanded)
 
       if (state.expanded) {
         window.requestAnimationFrame(() => {
@@ -157,6 +137,34 @@ const navItems = [
       } else if (document.activeElement && this.mobileLayer.contains(document.activeElement)) {
         this.menuButton.focus()
       }
+    }
+
+    // Mirror intro-controller's setPageInert: while the menu overlay is open,
+    // everything outside the header (which contains the menu) is inert so Tab
+    // cannot escape into scrim-obscured content.
+    private setMenuInert(expanded: boolean) {
+      Array.from(document.body.children).forEach((child) => {
+        if (!(child instanceof HTMLElement) || child.tagName === 'SCRIPT') return
+        if (child.contains(this)) return
+        if (expanded) child.setAttribute('inert', '')
+        else child.removeAttribute('inert')
+      })
+      const shell = this.parentElement
+      if (!shell) return
+      Array.from(shell.children).forEach((child) => {
+        if (!(child instanceof HTMLElement) || child === this) return
+        if (expanded) child.setAttribute('inert', '')
+        else child.removeAttribute('inert')
+      })
+    }
+
+    private updateThemeLabel(theme: string | undefined) {
+      const button = this.querySelector<HTMLButtonElement>('#toggleDarkMode')
+      if (!button) return
+      const state = theme === 'dark' ? 'dark' : theme === 'light' ? 'light' : 'system'
+      const stateLabel = button.dataset[`${state}Label`] ?? state
+      const toggleLabel = button.dataset.toggleLabel ?? ''
+      button.setAttribute('aria-label', `${toggleLabel}：${stateLabel}`)
     }
 
     private updateScrolledState = () => {
@@ -175,6 +183,7 @@ const navItems = [
       this.menuButton = this.querySelector<HTMLButtonElement>('#toggleMenu')
       this.mobileLayer = this.querySelector<HTMLElement>('#mobileMenu')
       this.updateScrolledState()
+      this.updateThemeLabel(this.querySelector<HTMLButtonElement>('#toggleDarkMode')?.dataset.theme)
 
       this.menuButton?.addEventListener('click', () => {
         this.setMenuExpanded(
@@ -194,6 +203,7 @@ const navItems = [
         (event) => {
           const button = event.currentTarget as HTMLButtonElement
           button.dataset.theme = setTheme(undefined, true)
+          this.updateThemeLabel(button.dataset.theme)
           document.documentElement.dataset.theme = document.documentElement.classList.contains(
             'dark'
           )
@@ -217,10 +227,10 @@ const navItems = [
               .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
             if (!visible) return
             this.querySelectorAll('[data-section-link]').forEach((link) => {
-              link.toggleAttribute(
-                'data-current',
-                link.getAttribute('data-section-link') === visible.target.id
-              )
+              const matches = link.getAttribute('data-section-link') === visible.target.id
+              link.toggleAttribute('data-current', matches)
+              if (matches) link.setAttribute('aria-current', 'true')
+              else link.removeAttribute('aria-current')
             })
           },
           { rootMargin: '-28% 0px -58% 0px', threshold: [0, 0.1, 0.5] }
@@ -247,6 +257,7 @@ const navItems = [
       this.sectionObserver?.disconnect()
       this.theaterObserver?.disconnect()
       document.documentElement.classList.remove('mobile-menu-open')
+      this.setMenuInert(false)
     }
   }
 
@@ -272,17 +283,17 @@ const navItems = [
 
   .site-header.is-scrolled {
     border-bottom: 1px solid var(--border-default);
-    background: color-mix(in srgb, var(--bg-page) 88%, transparent);
-    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--bg-page) 86%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
   }
 
   .site-header[data-over-theater] {
-    color: #f3f5f1;
+    color: #eef2fa;
   }
 
   .site-header[data-over-theater].is-scrolled {
-    border-bottom-color: #26312c;
-    background: rgba(9, 12, 11, 0.88);
+    border-bottom-color: #1c2a42;
+    background: rgba(7, 11, 22, 0.88);
   }
 
   .site-header__bar {
@@ -386,10 +397,12 @@ const navItems = [
     width: 20px;
     height: 20px;
     opacity: 0;
-    transform: scale(0.75);
+    filter: blur(4px);
+    transform: scale(0.6);
     transition:
-      opacity 150ms ease,
-      transform 150ms ease;
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
   }
 
   #toggleDarkMode[data-theme='system'] .theme-icon.system,
@@ -397,29 +410,8 @@ const navItems = [
   #toggleDarkMode[data-theme='light'] .theme-icon.light,
   #toggleDarkMode[data-theme='dark'] .theme-icon.dark {
     opacity: 1;
+    filter: blur(0);
     transform: scale(1);
-  }
-
-  .site-header__resume {
-    min-height: 44px;
-    padding: 0 var(--space-4);
-    border-radius: var(--radius-sm);
-    background: var(--signal-accent);
-    color: #fff;
-    font-size: var(--text-sm);
-    font-weight: 600;
-    line-height: 44px;
-    white-space: nowrap;
-  }
-
-  .site-header__resume:hover {
-    background: var(--signal-accent-hover);
-    color: #fff;
-  }
-
-  .site-header[data-over-theater] .site-header__resume {
-    background: #67e2b7;
-    color: #090c0b;
   }
 
   .site-header__menu-button,
@@ -427,11 +419,34 @@ const navItems = [
     display: none;
   }
 
+  .site-header__menu-button .menu-icon,
+  .site-header__menu-button .close-icon {
+    position: absolute;
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .menu-icon {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+
   .close-icon {
-    display: none;
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
     font-size: 28px;
     font-weight: 300;
     line-height: 1;
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .site-header__bar {
+      width: calc(100% - 48px);
+    }
   }
 
   @media (max-width: 767px) {
@@ -475,7 +490,7 @@ const navItems = [
       inset: 0;
       width: 100%;
       border: 0;
-      background: rgba(9, 12, 11, 0.42);
+      background: rgba(4, 8, 18, 0.5);
       cursor: default;
     }
 
@@ -515,24 +530,16 @@ const navItems = [
       border: 0;
     }
 
-    .site-header__mobile-menu .site-header__mobile-resume {
-      justify-content: center;
-      min-height: 48px;
-      margin-top: var(--space-4);
-      border: 0;
-      border-radius: var(--radius-sm);
-      background: var(--signal-accent);
-      color: #fff;
-      font-size: var(--text-base);
-      font-weight: 600;
-    }
-
     .site-header.is-menu-open .menu-icon {
-      display: none;
+      opacity: 0;
+      filter: blur(4px);
+      transform: scale(0.6);
     }
 
     .site-header.is-menu-open .close-icon {
-      display: block;
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
     }
   }
 

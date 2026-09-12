@@ -1,34 +1,51 @@
 @import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 
 /* Font */
 html {
   font-family: var(--font-sans);
 }
 
-/* Theme */
+/* Theme
+   Design direction: "ops deck" — the whole homepage speaks one console
+   language in both day and night modes. Sans (Geist) carries the prose;
+   mono (JetBrains Mono) carries the structure: module codes, readouts,
+   statuses. Navy = business interactive color, cyan = instrument accent,
+   green = verified/online, amber = in-progress. Section headers open with
+   a ticked ruler + module code (01 / SELECTED SYSTEMS · RUNNING). */
 :root {
   color-scheme: light;
 
-  /* Homepage redesign tokens. Keep the legacy HSL aliases below because
+  /* Homepage design tokens. Keep the legacy HSL aliases below because
      astro-pure and UnoCSS consume them throughout the existing site. */
-  --bg-page: #f4f2ec;
-  --bg-surface: #fbfaf6;
+  --bg-page: #f6f8fb;
+  --bg-surface: #fbfcfe;
   --bg-elevated: #ffffff;
-  --text-primary: #151817;
-  --text-secondary: #66706b;
-  --text-tertiary: #8a928e;
-  --border-default: #d8ddd8;
-  --border-strong: #bfc7c2;
-  --signal-accent: #087a5b;
-  --signal-accent-hover: #066348;
-  --accent-soft: #ddf3e9;
-  --focus-ring: #087a5b;
-  --selection-bg: #bfe8d8;
+  --text-primary: #111826;
+  --text-secondary: #4d5665;
+  --text-tertiary: #6d7686;
+  --border-default: #e3e7ee;
+  --border-strong: #cdd4df;
+  --signal-accent: #1d4ed8;
+  --signal-accent-hover: #1e40af;
+  --accent-contrast: #ffffff;
+  --tech-accent: #0e7490;
+  --tech-glow: #06b6d4;
+  --accent-soft: #eff6ff;
+  --focus-ring: #0891b2;
+  --selection-bg: #bfdbfe;
+  --status-ok: #0f7b4d;
+  --status-warn: #b45309;
+  --grid-line: rgba(30, 64, 175, 0.06);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glow-ring: 0 0 0 1px rgba(6, 182, 212, 0.28), 0 0 28px -8px rgba(6, 182, 212, 0.4);
 
   --font-sans:
     'Instrument Sans', 'Geist Variable', 'Geist', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei',
     system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono',
+    monospace;
 
   --text-xs: 12px;
   --text-sm: 14px;
@@ -57,29 +74,30 @@ html {
   --radius-terminal: 18px;
   --radius-pill: 999px;
 
-  --shadow-terminal: 0 1px 2px rgba(0, 0, 0, 0.08), 0 18px 60px rgba(0, 0, 0, 0.12);
-  --shadow-menu: 0 12px 40px rgba(0, 0, 0, 0.14);
+  --shadow-terminal:
+    0 1px 2px rgba(15, 23, 42, 0.05), 0 24px 64px -16px rgba(15, 23, 42, 0.16),
+    0 0 40px -12px rgba(6, 182, 212, 0.25);
+  --shadow-menu: 0 12px 40px rgba(15, 23, 42, 0.12);
 
-  --background: 210 33% 99%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
+  --background: 0 0% 100%;
+  --foreground: 240 6% 10%;
+  --card: 210 40% 98%;
+  --card-foreground: 240 6% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 200 29% 45%;
-  --primary-foreground: 0 0% 92.5%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95%;
-  --muted-foreground: 240 3.8% 28.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  --popover-foreground: 240 6% 10%;
+  --primary: 224 76% 48%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 240 6% 10%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 5% 34%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 240 6% 10%;
   --destructive: 0 72.22% 50.59%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 88%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.5rem;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 192 91% 36%;
   --term-surface: 210 20% 97%;
   --term-chrome: 210 20% 95%;
   --term-ok: 142 50% 40%;
@@ -89,43 +107,51 @@ html {
 .dark,
 [data-theme='dark'] {
   color-scheme: dark;
-  --bg-page: #111513;
-  --bg-surface: #171c19;
-  --bg-elevated: #1d231f;
-  --text-primary: #f1f3ef;
-  --text-secondary: #a4ada8;
-  --text-tertiary: #7f8a84;
-  --border-default: #2a332f;
-  --border-strong: #3a4741;
-  --signal-accent: #67e2b7;
-  --signal-accent-hover: #8ceac8;
-  --accent-soft: #173a30;
-  --focus-ring: #67e2b7;
-  --selection-bg: #285a49;
+  --bg-page: #0a0f1e;
+  --bg-surface: #0f1526;
+  --bg-elevated: #141b2e;
+  --text-primary: #e6eaf2;
+  --text-secondary: #a3adbf;
+  --text-tertiary: #7d88a0;
+  --border-default: #1e2a3a;
+  --border-strong: #2e3d52;
+  --signal-accent: #22d3ee;
+  --signal-accent-hover: #67e8f9;
+  --accent-contrast: #06121f;
+  --tech-accent: #22d3ee;
+  --tech-glow: #22d3ee;
+  --accent-soft: #12283a;
+  --focus-ring: #22d3ee;
+  --selection-bg: #164e63;
+  --status-ok: #4ade80;
+  --status-warn: #fbbf24;
+  --grid-line: rgba(148, 163, 184, 0.06);
+  --glass-bg: rgba(10, 15, 30, 0.68);
+  --glow-ring: 0 0 0 1px rgba(34, 211, 238, 0.38), 0 0 36px -6px rgba(34, 211, 238, 0.45);
 
-  --background: 240 20.54% 5.2%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 195 95% 85%;
-  --primary-foreground: 240 3.7% 15.9%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 5.9% 12%;
-  --muted-foreground: 240 5% 74.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
+  --background: 225 50% 8%;
+  --foreground: 220 3% 93%;
+  --card: 224 43% 10%;
+  --card-foreground: 220 3% 93%;
+  --popover: 224 39% 13%;
+  --popover-foreground: 220 3% 93%;
+  --primary: 187 86% 53%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 224 40% 14%;
+  --secondary-foreground: 220 3% 93%;
+  --muted: 223 40% 12%;
+  --muted-foreground: 219 8% 69%;
+  --accent: 224 40% 14%;
+  --accent-foreground: 220 3% 93%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 19.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  --border: 214 32% 17%;
+  --input: 214 32% 17%;
+  --ring: 187 86% 53%;
   --term-surface: 240 18% 7%;
   --term-chrome: 240 18% 4%;
   --term-ok: 142 60% 65%;
-  --code-bg: 240 5.9% 12%;
+  --code-bg: 223 40% 13%;
   --code-fg: 0 0% 92%;
 }
 :root {
@@ -155,6 +181,11 @@ body {
   background: var(--selection-bg);
 }
 
+/* Anchored homepage sections must clear the sticky header on jump. */
+main [id] {
+  scroll-margin-top: 88px;
+}
+
 a {
   transition: color 0.2s ease;
   &:hover {
@@ -162,7 +193,7 @@ a {
   }
 }
 
-:where(a, button, input, textarea, select, summary):focus-visible {
+:where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }

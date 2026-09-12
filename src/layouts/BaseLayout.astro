@@ -60,7 +60,7 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
       class:list={['w-full', chrome && !home && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}
     >
       {chrome && <Header lang={lang} {home} />}
-      <div id='main-content'>
+      <div id='main-content' tabindex='-1'>
         <slot />
       </div>
       {chrome && !home && <Footer />}

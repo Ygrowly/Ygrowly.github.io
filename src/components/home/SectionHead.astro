@@ -1,0 +1,202 @@
+---
+/**
+ * Signature module header: a ticked ruler, a mono module code + label row,
+ * a live status readout, then the section title. Every homepage section
+ * opens with one so the page reads as an indexed console.
+ *
+ * Colors resolve through --mh-* custom properties so dark sections can
+ * re-ink the same component without prop drilling.
+ */
+interface Props {
+  id?: string
+  code: string
+  label: string
+  title: string
+  status?: string
+  statusTone?: 'accent' | 'ok'
+  center?: boolean
+}
+
+const { id, code, label, title, status, statusTone = 'accent', center = false } = Astro.props
+---
+
+<header class:list={['module-head', center && 'module-head--center']}>
+  <div class='module-head__ruler' aria-hidden='true'></div>
+  <div class='module-head__row'>
+    <p class='module-head__meta'>
+      <span class='module-head__code'>{code}</span>
+      <span class='module-head__sep' aria-hidden='true'>/</span>
+      <span class='module-head__label'>{label}</span>
+    </p>
+    {
+      status && (
+        <p class='module-head__status' data-tone={statusTone}>
+          <i aria-hidden='true' />
+          {status}
+        </p>
+      )
+    }
+  </div>
+  <h2 {...(id ? { id: `${id}-title` } : {})}>{title}</h2>
+</header>
+
+<style>
+  /* Section scopes re-ink the header by setting --mh-* on an ancestor;
+     defaults live in var() fallbacks so an inherited value always wins. */
+  .module-head {
+    color: var(--mh-ink, var(--text-primary));
+  }
+
+  .module-head__ruler {
+    height: 13px;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--mh-line, var(--border-strong)) 80%, transparent);
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--mh-ink, var(--text-primary)) 38%, transparent) 0 1px,
+        transparent 1px 112px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--mh-ink, var(--text-primary)) 16%, transparent) 0 1px,
+        transparent 1px 14px
+      );
+    background-repeat: no-repeat;
+    background-size:
+      100% 9px,
+      100% 5px;
+  }
+
+  .module-head__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .module-head__meta {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+  }
+
+  :global(html[lang='en']) .module-head__meta {
+    letter-spacing: 0.12em;
+  }
+
+  .module-head__code {
+    color: var(--mh-accent, var(--tech-accent));
+    font-weight: 700;
+  }
+
+  .module-head__sep {
+    color: var(--mh-muted, var(--text-tertiary));
+    opacity: 0.6;
+  }
+
+  .module-head__label {
+    color: var(--mh-muted, var(--text-tertiary));
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .module-head__status {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--mh-muted, var(--text-tertiary));
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  :global(html[lang='en']) .module-head__status {
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .module-head__status i {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-pill);
+    background: currentColor;
+    box-shadow: 0 0 8px color-mix(in srgb, currentColor 70%, transparent);
+  }
+
+  .module-head__status[data-tone='accent'] {
+    color: var(--mh-accent, var(--tech-accent));
+  }
+
+  .module-head__status[data-tone='ok'] {
+    color: var(--status-ok);
+  }
+
+  .module-head__status[data-tone='ok'] i {
+    animation: module-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes module-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  .module-head h2 {
+    max-width: 780px;
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-4xl);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  :global(html[lang='en']) .module-head h2 {
+    letter-spacing: -0.035em;
+    line-height: 1.12;
+  }
+
+  /* Centered variant (night chapter): the ruler shrinks to the title. */
+  .module-head--center {
+    text-align: center;
+  }
+
+  .module-head--center .module-head__ruler {
+    width: min(560px, 72vw);
+    margin: 0 auto;
+  }
+
+  .module-head--center .module-head__row {
+    justify-content: center;
+    gap: var(--space-5);
+  }
+
+  .module-head--center h2 {
+    margin-inline: auto;
+  }
+
+  @media (max-width: 767px) {
+    .module-head__row {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .module-head--center .module-head__row {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .module-head h2 {
+      font-size: var(--text-3xl);
+    }
+  }
+</style>

@@ -261,7 +261,7 @@ Required properties:
 - `surface`: `contact_page`
 - `method_name`: `wechat` | `qq_group`
 - `action`: `reveal`
-- `method`: `hover` | `focus`
+- `method`: `hover` | `focus` | `tap`
 
 Fire once per method per pageview. Do not fire repeatedly on every mouse move.
 
@@ -277,7 +277,7 @@ Required properties:
 - `article_slug`: article identifier
 - `method_name`: `wechat`
 - `action`: `reveal`
-- `method`: `hover` | `focus`
+- `method`: `hover` | `focus` | `tap`
 
 This is a stronger consulting/contact intent signal than a generic Contact page
 view because it happens inside article context.
@@ -293,7 +293,7 @@ Required properties:
 - `surface`: `sponsorship`
 - `method_name`: `wechat_pay` | `alipay`
 - `action`: `reveal`
-- `method`: `hover` | `focus`
+- `method`: `hover` | `focus` | `tap`
 
 Fire once per method per pageview.
 

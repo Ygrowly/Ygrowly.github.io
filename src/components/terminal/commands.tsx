@@ -149,7 +149,8 @@ export const commands: CommandRegistry = {
           isEnglishPage() ? 'DataSphere AI BI / 数驭穹图' : '数驭穹图 AI BI',
           localizedPath('/projects/ai-bi-platform')
         ],
-        ['PayTrace [building]', localizedPath('/projects/paytrace')]
+        ['RuleArena', localizedPath('/projects/rulearena')],
+        ['PayTrace [lab]', localizedPath('/projects/paytrace')]
       ]
       push(
         projects.map<OutputLine>(([label, href]) => ({
@@ -232,28 +233,6 @@ export const commands: CommandRegistry = {
           kind: 'text',
           text: 'AI Engineering MCP · Tool Use · Eval · Memory · Observability'
         }
-      ])
-    }
-  },
-
-  resume: {
-    name: 'resume',
-    summary: 'show the résumé PDF link',
-    run: ({ push, resumeHref }) => {
-      const href = resumeHref ?? (isEnglishPage() ? '/resume-en.pdf' : '/resume.pdf')
-      push([
-        {
-          kind: 'node',
-          node: (
-            <span>
-              <span className='wt-tone-muted'>résumé: </span>
-              <a className='wt-link' href={href} target='_blank' rel='noopener noreferrer'>
-                {href}
-              </a>
-            </span>
-          )
-        },
-        { kind: 'text', tone: 'muted', text: 'Open the link above when you are ready.' }
       ])
     }
   },
@@ -487,6 +466,7 @@ export const commands: CommandRegistry = {
       const projectRoutes: Record<string, string> = {
         'energyops-agent': localizedPath('/projects/energyops-agent'),
         'ai-bi-platform': localizedPath('/projects/ai-bi-platform'),
+        rulearena: localizedPath('/projects/rulearena'),
         paytrace: localizedPath('/projects/paytrace')
       }
       if (projectRoutes[args[0]]) {

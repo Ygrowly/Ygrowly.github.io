@@ -82,19 +82,19 @@ const { class: className, path } = Astro.props as Props
   #waline {
     --waline-font-size: 16px;
     --waline-white: hsl(var(--background) / var(--un-bg-opacity, 1));
-    --waline-light-grey: #999;
-    --waline-dark-grey: #666;
+    --waline-light-grey: hsl(var(--muted-foreground) / 0.6);
+    --waline-dark-grey: hsl(var(--muted-foreground));
     --waline-theme-color: hsl(var(--foreground) / var(--un-text-opacity, 1));
     --waline-active-color: hsl(var(--primary) / var(--un-text-opacity, 1));
     --waline-color: hsl(var(--muted-foreground) / var(--un-text-opacity, 1));
     --waline-bg-color: hsl(var(--muted) / var(--un-bg-opacity, 1));
     --waline-bg-color-light: hsl(var(--input) / var(--un-text-opacity, 1));
-    --waline-bg-color-hover: #f0f0f0;
+    --waline-bg-color-hover: hsl(var(--muted));
     --waline-border-color: hsl(var(--border) / var(--un-border-opacity, 1));
-    --waline-disable-bg-color: #f8f8f8;
-    --waline-disable-color: #bbb;
+    --waline-disable-bg-color: hsl(var(--muted));
+    --waline-disable-color: hsl(var(--muted-foreground) / 0.5);
     --waline-code-bg-color: #282c34;
-    --waline-bq-color: #f0f0f0;
+    --waline-bq-color: hsl(var(--muted));
     --waline-avatar-size: 3.25rem;
     --waline-m-avatar-size: calc(var(--waline-avatar-size) * 9 / 13);
     --waline-badge-color: hsl(var(--border) / var(--un-border-opacity, 1));

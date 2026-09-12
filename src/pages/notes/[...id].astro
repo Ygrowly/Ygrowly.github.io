@@ -51,19 +51,19 @@ if (relatedNote && relatedNote.length > 0) {
 }
 
 const statusLabels: Record<string, string> = {
-  'in-progress': '🚧 In Progress',
-  incomplete: '⏸️ Needs more',
-  ready: '✅ Ready',
-  archived: '📦 Archived'
+  'in-progress': '🚧 进行中',
+  incomplete: '⏸️ 待补充',
+  ready: '✅ 已整理',
+  archived: '📦 已归档'
 }
 
 const typeLabels: Record<string, string> = {
-  note: '📝 Note',
-  snippet: '💡 Snippet',
-  draft: '✏️ Draft',
-  idea: '🔮 Idea',
-  research: '🔬 Research',
-  reference: '📚 Reference'
+  note: '📝 笔记',
+  snippet: '💡 片段',
+  draft: '✏️ 草稿',
+  idea: '🔮 想法',
+  research: '🔬 研究',
+  reference: '📚 参考'
 }
 
 const meta = {
@@ -147,7 +147,7 @@ const breadcrumbLd = {
           <div class='flex items-center gap-2'>
             <Icon name='calendar' />
             <span>
-              Updated{' '}
+              更新于{' '}
               {updatedDate.toLocaleDateString('zh-CN', {
                 year: 'numeric',
                 month: 'long',
@@ -164,7 +164,7 @@ const breadcrumbLd = {
         <div class='mt-4 flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm'>
           <span class='mt-0.5 shrink-0 text-muted-foreground'>🔗</span>
           <div>
-            <span class='text-muted-foreground'>Source: </span>
+            <span class='text-muted-foreground'>来源：</span>
             <a href={source} target='_blank' rel='noopener noreferrer' class='hover:underline'>
               {source}
             </a>
@@ -182,13 +182,13 @@ const breadcrumbLd = {
     {
       (relatedBlogPosts.length > 0 || relatedNoteEntries.length > 0) && (
         <>
-          <h2 class='mb-4 text-xl font-semibold'>Related Content</h2>
+          <h2 class='mb-4 text-xl font-semibold'>相关内容</h2>
 
           {relatedBlogPosts.length > 0 && (
             <div class='mb-6'>
               <h3 class='mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground'>
                 <span>📰</span>
-                Blog Posts
+                博客文章
               </h3>
               <ul class='space-y-2'>
                 {relatedBlogPosts.map((post) => (
@@ -213,7 +213,7 @@ const breadcrumbLd = {
             <div class='mb-6'>
               <h3 class='mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground'>
                 <span>🗂️</span>
-                Related Notes
+                相关笔记
               </h3>
               <ul class='space-y-2'>
                 {relatedNoteEntries.map((note) => (
@@ -246,11 +246,11 @@ const breadcrumbLd = {
       <div class='text-sm text-muted-foreground'>
         <p class='mb-2 flex items-center gap-2'>
           <span class='shrink-0'>🗂️</span>
-          <span>This is a {typeLabels[type]?.toLowerCase() || type} in the knowledge base.</span>
+          <span>这是知识库中的一篇{typeLabels[type] || type}。</span>
         </p>
-        <p class='text-xs'>Content may be incomplete or work-in-progress.</p>
+        <p class='text-xs'>内容可能不完整或仍在整理中。</p>
       </div>
-      <Button title='← Back' href='/notes' style='back' />
+      <Button title='← 返回笔记' href='/notes' style='back' />
     </div>
   </div>
 </PageLayout>

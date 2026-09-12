@@ -1,8 +1,10 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import type { HomeContent } from '@/data/home'
-import type { Lang } from '@/i18n/ui'
+import { localizedPath, type Lang } from '@/i18n/ui'
 import { noteHref, postHref } from '@/lib/home-content'
+
+import SectionHead from './SectionHead.astro'
 
 type Post = CollectionEntry<'blog'> | CollectionEntry<'blogEn'>
 type Note = CollectionEntry<'notes'> | CollectionEntry<'notesEn'>
@@ -28,10 +30,13 @@ const formatDate = (date: Date) =>
 
 <section id='writing' class='writing-section' aria-labelledby='writing-title'>
   <div class='writing-container'>
-    <header>
-      <p>{content.label}</p>
-      <h2 id='writing-title'>{content.title}</h2>
-    </header>
+    <SectionHead
+      id='writing'
+      code={content.code}
+      label={content.label}
+      title={content.title}
+      status={content.status}
+    />
 
     <div class='writing-grid'>
       <div class='writing-blog'>
@@ -61,7 +66,10 @@ const formatDate = (date: Date) =>
               </dl>
             </a>
           ) : (
-            <p class='writing-empty'>{content.emptyBlog}</p>
+            <p class='writing-empty'>
+              {content.emptyBlog}
+              <a href={localizedPath('/notes', lang)}>{lang === 'zh' ? '笔记 →' : 'Notes →'}</a>
+            </p>
           )
         }
         {
@@ -83,15 +91,21 @@ const formatDate = (date: Date) =>
               {notes.map((note) => (
                 <li>
                   <a href={noteHref(note, lang)}>
-                    <strong>{note.data.title}</strong>
-                    {note.data.description && <span>{note.data.description}</span>}
-                    <time>{formatDate(note.data.updatedDate ?? note.data.date)}</time>
+                    <span class='note-entry'>
+                      <strong>{note.data.title}</strong>
+                      <i class='note-leader' aria-hidden='true' />
+                      <time>{formatDate(note.data.updatedDate ?? note.data.date)}</time>
+                    </span>
+                    {note.data.description && <span class='note-desc'>{note.data.description}</span>}
                   </a>
                 </li>
               ))}
             </ol>
           ) : (
-            <p class='writing-empty'>{content.emptyNotes}</p>
+            <p class='writing-empty'>
+              {content.emptyNotes}
+              <a href={localizedPath('/blog', lang)}>{lang === 'zh' ? '博客 →' : 'Blog →'}</a>
+            </p>
           )
         }
       </div>
@@ -120,28 +134,12 @@ const formatDate = (date: Date) =>
   .writing-section {
     padding: var(--space-10) 0;
     background: var(--bg-surface);
+    border-block: 1px solid var(--border-default);
   }
 
   .writing-container {
     width: min(1200px, calc(100% - 64px));
     margin: 0 auto;
-  }
-
-  header > p {
-    margin: 0;
-    color: var(--signal-accent);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-  }
-
-  header h2 {
-    max-width: 760px;
-    margin: var(--space-4) 0 0;
-    font-size: var(--text-4xl);
-    letter-spacing: -0.035em;
-    line-height: 1.1;
   }
 
   .writing-grid {
@@ -162,19 +160,26 @@ const formatDate = (date: Date) =>
     color: var(--text-primary);
     transition:
       border-color 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 240ms ease;
   }
 
   .featured-post:hover {
-    border-color: var(--border-strong);
+    border-color: var(--signal-accent);
     color: var(--text-primary);
     transform: translateY(-4px);
+    box-shadow: var(--glow-ring);
   }
 
   .featured-post > span {
-    color: var(--signal-accent);
+    color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  :global(html[lang='en']) .featured-post > span {
     letter-spacing: 0.08em;
   }
 
@@ -182,13 +187,19 @@ const formatDate = (date: Date) =>
     max-width: 620px;
     margin: var(--space-7) 0 0;
     font-size: clamp(32px, 4vw, 48px);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .featured-post h3 {
     letter-spacing: -0.045em;
     line-height: 1.1;
   }
 
   .featured-post > p {
     max-width: 620px;
-    margin: var(--space-5) 0 0;
+    margin: var(--space-5) 0 var(--space-6);
     color: var(--text-secondary);
   }
 
@@ -197,12 +208,15 @@ const formatDate = (date: Date) =>
     flex-wrap: wrap;
     gap: var(--space-5);
     margin: auto 0 0;
-    padding-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px dashed var(--border-strong);
   }
 
   .featured-post dl > div {
     display: flex;
     gap: var(--space-2);
+    margin-top: var(--space-4);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
   }
 
@@ -223,9 +237,15 @@ const formatDate = (date: Date) =>
     align-items: center;
     margin-top: var(--space-4);
     padding: 0 var(--space-4);
-    border-top: 1px solid var(--border-default);
-    border-bottom: 1px solid var(--border-default);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
     color: var(--text-primary);
+    transition: border-color 180ms ease;
+  }
+
+  .secondary-post:hover {
+    border-color: var(--signal-accent);
   }
 
   .secondary-post span {
@@ -235,7 +255,7 @@ const formatDate = (date: Date) =>
   }
 
   .secondary-post i {
-    color: var(--signal-accent);
+    color: var(--tech-accent);
     font-style: normal;
     transition: transform 180ms ease;
   }
@@ -252,6 +272,7 @@ const formatDate = (date: Date) =>
   .writing-notes > h3,
   .talks-strip > h3 {
     margin: 0;
+    color: var(--text-tertiary);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     letter-spacing: 0.1em;
@@ -266,7 +287,6 @@ const formatDate = (date: Date) =>
   }
 
   .writing-notes li {
-    min-height: 116px;
     border-top: 1px solid var(--border-default);
   }
 
@@ -275,18 +295,39 @@ const formatDate = (date: Date) =>
   }
 
   .writing-notes a {
-    display: flex;
-    min-height: 116px;
-    flex-direction: column;
-    justify-content: center;
+    display: block;
+    padding: var(--space-4) 0;
     color: var(--text-primary);
   }
 
+  .note-entry {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
   .writing-notes strong {
+    font-weight: 600;
     line-height: 1.35;
   }
 
-  .writing-notes span {
+  /* Ledger leader: dotted run from the title to the date. */
+  .note-leader {
+    flex: 1;
+    min-width: 24px;
+    border-bottom: 1px dashed var(--border-strong);
+    translate: 0 -3px;
+  }
+
+  .writing-notes time {
+    flex: none;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .note-desc {
     display: -webkit-box;
     margin-top: var(--space-2);
     overflow: hidden;
@@ -294,13 +335,6 @@ const formatDate = (date: Date) =>
     font-size: var(--text-sm);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
-  }
-
-  .writing-notes time {
-    margin-top: var(--space-2);
-    color: var(--text-tertiary);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
   }
 
   .writing-empty {
@@ -361,10 +395,6 @@ const formatDate = (date: Date) =>
       width: calc(100% - 40px);
     }
 
-    header h2 {
-      font-size: var(--text-3xl);
-    }
-
     .featured-post {
       min-height: 380px;
       padding: var(--space-5);
@@ -372,11 +402,19 @@ const formatDate = (date: Date) =>
 
     .secondary-post {
       grid-template-columns: 1fr auto;
-      padding: var(--space-4) 0;
+      padding: var(--space-4);
     }
 
     .secondary-post span {
       grid-column: 1 / -1;
+    }
+
+    .note-entry {
+      flex-wrap: wrap;
+    }
+
+    .note-leader {
+      display: none;
     }
 
     .talks-strip ol {

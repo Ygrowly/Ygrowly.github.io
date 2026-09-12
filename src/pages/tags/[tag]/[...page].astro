@@ -34,20 +34,20 @@ const { page } = Astro.props
 const { tag } = Astro.params
 
 const meta = {
-  description: `View all posts with the tag - ${tag}`,
-  title: `Tag: ${tag}`
+  description: `查看带有标签「${tag}」的全部文章`,
+  title: `标签：${tag}`
 }
 
 const paginationProps = {
   ...(page.url.prev && {
     prevUrl: {
-      text: `← Previous Tags`,
+      text: `← 上一页`,
       url: page.url.prev
     }
   }),
   ...(page.url.next && {
     nextUrl: {
-      text: `Next Tags →`,
+      text: `下一页 →`,
       url: page.url.next
     }
   })
@@ -55,16 +55,16 @@ const paginationProps = {
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/blog' style='back' />
+  <Button title='← 返回博客' href='/blog' style='back' />
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
       <h1 class='mb-6 flex items-end gap-x-2 text-3xl font-medium'>
-        Tags:
+        标签：
         <span class='text-2xl'>#{tag}</span>
       </h1>
     </div>
 
-    <section id='content' class='animate' aria-label='Blog post list'>
+    <section id='content' class='animate' aria-label='博客文章列表'>
       <ul class='flex flex-col gap-y-3 text-start'>
         {page.data.map((post) => <PostPreview as='h2' {post} detailed />)}
       </ul>

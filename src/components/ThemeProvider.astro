@@ -1,7 +1,7 @@
 <script is:inline>
   ;(() => {
-    const DARK_COLOR = '#111513'
-    const LIGHT_COLOR = '#F4F2EC'
+    const DARK_COLOR = '#0A0F1E'
+    const LIGHT_COLOR = '#FFFFFF'
     const MEDIA_QUERY = '(prefers-color-scheme: dark)'
 
     function getStoredTheme() {
@@ -33,6 +33,7 @@
       if (!message || !document.body) return
 
       const toast = document.createElement('div')
+      toast.setAttribute('role', 'status')
       toast.className =
         'animate fixed bottom-8 z-20 flex items-center gap-2 rounded-lg border bg-muted px-4 py-2 text-foreground shadow-lg'
       toast.innerHTML = [
@@ -42,9 +43,27 @@
         `<span>${message}</span>`
       ].join('')
       document.body.appendChild(toast)
-      window.setTimeout(() => {
+
+      let timer = window.setTimeout(() => {
         toast.remove()
-      }, 3000)
+      }, 5000)
+
+      toast.addEventListener('mouseenter', () => {
+        window.clearTimeout(timer)
+      })
+      toast.addEventListener('mouseleave', () => {
+        timer = window.setTimeout(() => {
+          toast.remove()
+        }, 2000)
+      })
+      toast.addEventListener('focusin', () => {
+        window.clearTimeout(timer)
+      })
+      toast.addEventListener('focusout', () => {
+        timer = window.setTimeout(() => {
+          toast.remove()
+        }, 2000)
+      })
     }
 
     applyTheme()

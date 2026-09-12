@@ -2,9 +2,10 @@
 import links from 'public/links.json'
 import config from 'virtual:config'
 
-import { Collapse, Timeline } from 'astro-pure/user'
+import { Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Comment from '@/components/comment/Comment.astro'
+import Collapse from '@/components/links/Collapse.astro'
 import FriendConstellation from '@/components/links/FriendConstellation.astro'
 import FriendList from '@/components/links/FriendList.astro'
 
@@ -20,7 +21,7 @@ const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`
 const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied all info to clipboard'}}))`
 ---
 
-<PageLayout title='Links' {headings} info='/links'>
+<PageLayout title='Links' {headings} info='/en/links'>
   <h2 id='friend-links'>Friend Links</h2>
   <p>
     Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it
@@ -59,9 +60,9 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
         return (
           <>
             <span class='text-end'>{name}:</span>
-            <samp class='cursor-pointer' onclick={script}>
+            <button type='button' class='cursor-pointer text-start' onclick={script}>
               {val}
-            </samp>
+            </button>
           </>
         )
       })

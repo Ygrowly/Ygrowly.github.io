@@ -1,7 +1,11 @@
 ---
+import { getLangFromUrl, useTranslations } from '@/i18n/ui'
+
 import { Icon } from 'astro-pure/user'
 
 const { header: headerName, content: contentName, needPercent = true } = Astro.props
+const lang = getLangFromUrl(Astro.url)
+const t = useTranslations(lang)
 ---
 
 <div
@@ -10,7 +14,7 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
 >
   <slot name='other-icons' />
   <button
-    aria-label='Back to Top'
+    aria-label={t('backToTop')}
     class='relative size-10 flex items-center justify-center rounded-full border border-border/60 bg-muted text-muted-foreground duration-300 hover:border-border/90 sm:size-12 opacity-0'
     id='to-top-btn'
     style='--scroll-percent: 0;'
@@ -53,7 +57,8 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
   }
 
   scrollBtn?.addEventListener('click', () => {
-    document.documentElement.scrollTo({ behavior: 'smooth', top: 0 })
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.documentElement.scrollTo({ behavior: reducedMotion ? 'auto' : 'smooth', top: 0 })
   })
 
   if (targetHeader) {
@@ -96,9 +101,16 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
 
 <style>
   #action-buttons {
+    bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+    inset-inline-end: calc(1rem + env(safe-area-inset-right, 0px));
+    visibility: hidden;
     transform: translateY(4rem);
+    transition:
+      transform 300ms ease,
+      visibility 300ms ease;
 
     &.show {
+      visibility: visible;
       transform: translateY(0);
 
       & #to-top-btn {
@@ -140,15 +152,18 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
 
       & .top-text,
       & .top-icon {
-        transition-property: opacity;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 150ms;
+        transition:
+          opacity 0.25s ease,
+          filter 0.25s ease,
+          transform 0.25s ease;
       }
 
       & .top-text {
         box-sizing: border-box;
         width: 100%;
         opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
         gap: 0.03rem;
         padding-inline: 0.25rem;
         font-size: 0.72rem;
@@ -162,6 +177,8 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
 
       & .top-icon {
         opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.6);
       }
     }
 
@@ -169,11 +186,21 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
     & #to-top-btn:hover {
       & .top-text {
         opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.6);
       }
 
       & .top-icon {
         opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
       }
+    }
+  }
+
+  @media (min-width: 640px) {
+    #action-buttons {
+      inset-inline-end: calc(2rem + env(safe-area-inset-right, 0px));
     }
   }
 

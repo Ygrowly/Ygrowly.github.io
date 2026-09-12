@@ -47,7 +47,7 @@
 
   const revealed = new Set<string>()
 
-  function trackReveal(target: HTMLElement, method: 'hover' | 'focus') {
+  function trackReveal(target: HTMLElement, method: 'hover' | 'focus' | 'tap') {
     const eventName = target.dataset.analyticsRevealEvent
     if (!eventName) return
 
@@ -62,7 +62,7 @@
         location.pathname.split('/').filter(Boolean).pop() ?? ''
       )
     }
-    const key = `${eventName}:${location.pathname}:${JSON.stringify(properties)}`
+    const key = `${eventName}:${location.pathname}:${properties.method_name ?? ''}`
     if (revealed.has(key)) return
     revealed.add(key)
     trackSiteEvent(eventName, properties)
@@ -87,6 +87,16 @@
 
     if (!target) return
     trackReveal(target, 'focus')
+  })
+
+  document.addEventListener('click', (event) => {
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-analytics-reveal-event]')
+        : null
+
+    if (!target) return
+    trackReveal(target, 'tap')
   })
 
   document.addEventListener('site:analytics', (event) => {

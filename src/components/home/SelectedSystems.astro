@@ -4,30 +4,33 @@ import { projectHref } from '@/data/home'
 import type { Lang } from '@/i18n/ui'
 
 import ProjectEvidence from './ProjectEvidence.astro'
+import SectionHead from './SectionHead.astro'
 
 interface Props {
   lang: Lang
+  code: string
   label: string
+  status: string
   title: string
   projects: HomeProject[]
 }
 
-const { lang, label, title, projects } = Astro.props
+const { lang, code, label, status, title, projects } = Astro.props
 ---
 
 <systems-theater id='projects' class='project-theater' aria-labelledby='projects-title'>
   <div class='systems-container'>
-    <header class='systems-heading'>
-      <p>{label}</p>
-      <h2 id='projects-title'>{title}</h2>
-    </header>
+    <SectionHead id='projects' {code} {label} {title} {status} />
 
     <div class='systems-stage'>
       <div class='systems-narratives'>
         {
           projects.map((project, index) => (
             <article class='system-narrative' data-system-narrative={index}>
-              <p class='system-index'>0{index + 1}</p>
+              <p class='system-index'>
+                0{index + 1}
+                <span aria-hidden='true'>/ 0{projects.length}</span>
+              </p>
               <p class='system-eyebrow'>{project.eyebrow}</p>
               <h3>
                 <span>{project.name}</span>
@@ -64,17 +67,23 @@ const { lang, label, title, projects } = Astro.props
       </div>
 
       <div class='systems-evidence' aria-hidden='true'>
-        <div class='systems-evidence-stack'>
-          {
-            projects.map((project, index) => (
-              <div
-                class:list={['systems-evidence-panel', index === 0 && 'is-active']}
-                data-system-evidence={index}
-              >
-                <ProjectEvidence project={project} index={index} />
-              </div>
-            ))
-          }
+        <div class='systems-evidence-frame'>
+          <i class='systems-evidence-corner systems-evidence-corner--tl'></i>
+          <i class='systems-evidence-corner systems-evidence-corner--tr'></i>
+          <i class='systems-evidence-corner systems-evidence-corner--bl'></i>
+          <i class='systems-evidence-corner systems-evidence-corner--br'></i>
+          <div class='systems-evidence-stack'>
+            {
+              projects.map((project, index) => (
+                <div
+                  class:list={['systems-evidence-panel', index === 0 && 'is-active']}
+                  data-system-evidence={index}
+                >
+                  <ProjectEvidence project={project} index={index} />
+                </div>
+              ))
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -135,25 +144,21 @@ const { lang, label, title, projects } = Astro.props
   .project-theater {
     display: block;
     padding: 128px 0;
-    background: var(--theater-bg, #090c0b);
-    color: var(--theater-text, #f3f5f1);
-    --theater-bg: #090c0b;
-    --theater-surface: #111613;
-    --theater-elevated: #151c18;
-    --theater-text: #f3f5f1;
-    --theater-muted: #9eaaa4;
-    --theater-border: #26312c;
-    --theater-accent: #67e2b7;
-    --theater-accent-soft: #173a30;
-  }
-
-  :global(.dark) .project-theater {
-    --theater-bg: #050706;
-    --theater-surface: #0c100e;
-    --theater-elevated: #111613;
-    --theater-muted: #97a39d;
-    --theater-border: #202923;
-    --theater-accent-soft: #122e26;
+    background: var(--theater-bg, #070b16);
+    color: var(--theater-text, #eef2fa);
+    --theater-bg: #070b16;
+    --theater-surface: #0d1424;
+    --theater-elevated: #121b30;
+    --theater-text: #eef2fa;
+    --theater-muted: #93a2bd;
+    --theater-border: #1c2a42;
+    --theater-accent: #22d3ee;
+    --theater-accent-soft: #0c2438;
+    /* Re-ink the shared module header for the dark theater. */
+    --mh-ink: #eef2fa;
+    --mh-muted: #93a2bd;
+    --mh-accent: #22d3ee;
+    --mh-line: #1c2a42;
   }
 
   .systems-container {
@@ -161,27 +166,27 @@ const { lang, label, title, projects } = Astro.props
     margin: 0 auto;
   }
 
-  .systems-heading {
-    max-width: 720px;
-  }
-
-  .systems-heading p,
   .system-index,
   .system-eyebrow {
     margin: 0;
     color: var(--theater-accent);
     font-family: var(--font-mono);
     font-size: 14px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.06em;
     line-height: 1.35;
   }
 
-  .systems-heading h2 {
-    margin: var(--space-4) 0 0;
-    font-size: var(--text-4xl);
-    font-weight: 600;
-    letter-spacing: -0.035em;
-    line-height: 1.1;
+  :global(html[lang='en']) .system-index,
+  :global(html[lang='en']) .system-eyebrow {
+    letter-spacing: 0.1em;
+  }
+
+  .system-index {
+    color: var(--theater-muted);
+  }
+
+  .system-index span {
+    opacity: 0.55;
   }
 
   .systems-stage {
@@ -203,10 +208,6 @@ const { lang, label, title, projects } = Astro.props
     padding: var(--space-9) 0;
   }
 
-  .system-index {
-    color: var(--theater-muted);
-  }
-
   .system-eyebrow {
     margin-top: var(--space-5);
     font-size: var(--text-xs);
@@ -216,6 +217,11 @@ const { lang, label, title, projects } = Astro.props
     margin: var(--space-4) 0 0;
     font-size: clamp(38px, 4.4vw, 64px);
     font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .system-narrative h3 {
     letter-spacing: -0.05em;
     line-height: 1.05;
   }
@@ -226,6 +232,10 @@ const { lang, label, title, projects } = Astro.props
     color: var(--theater-accent);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) .system-narrative h3 span {
     letter-spacing: 0.06em;
   }
 
@@ -259,7 +269,7 @@ const { lang, label, title, projects } = Astro.props
     border-radius: var(--radius-sm);
     color: var(--theater-muted);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .system-highlights {
@@ -294,6 +304,14 @@ const { lang, label, title, projects } = Astro.props
     color: var(--theater-accent);
     font-weight: 600;
     line-height: 44px;
+    transition:
+      color 180ms ease,
+      text-shadow 180ms ease;
+  }
+
+  .system-cta:hover {
+    color: color-mix(in srgb, var(--theater-accent) 78%, white);
+    text-shadow: 0 0 24px color-mix(in srgb, var(--theater-accent) 60%, transparent);
   }
 
   .systems-evidence {
@@ -301,10 +319,62 @@ const { lang, label, title, projects } = Astro.props
     grid-column: 7 / span 6;
   }
 
-  .systems-evidence-stack {
+  .systems-evidence-frame {
     position: sticky;
     top: 112px;
     height: min(620px, calc(100vh - 144px));
+    box-shadow: 0 0 72px -28px color-mix(in srgb, var(--theater-accent) 45%, transparent);
+  }
+
+  .systems-evidence-corner {
+    position: absolute;
+    z-index: 2;
+    width: 16px;
+    height: 16px;
+    border-color: var(--theater-accent);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theater-accent) 55%, transparent));
+    opacity: 0.8;
+  }
+
+  .systems-evidence-corner--tl {
+    top: 0;
+    left: 0;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+
+  .systems-evidence-corner--tr {
+    top: 0;
+    right: 0;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-right-width: 1px;
+    border-right-style: solid;
+  }
+
+  .systems-evidence-corner--bl {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+
+  .systems-evidence-corner--br {
+    right: 0;
+    bottom: 0;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+  }
+
+  .systems-evidence-stack {
+    position: absolute;
+    inset: 0;
   }
 
   .systems-evidence-panel {
@@ -366,10 +436,6 @@ const { lang, label, title, projects } = Astro.props
 
     .systems-container {
       width: calc(100% - 40px);
-    }
-
-    .systems-heading h2 {
-      font-size: var(--text-3xl);
     }
 
     .system-narrative h3 {

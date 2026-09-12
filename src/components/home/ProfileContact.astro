@@ -2,20 +2,27 @@
 import type { HomeContent } from '@/data/home'
 import type { Lang } from '@/i18n/ui'
 
+import SectionHead from './SectionHead.astro'
+
 interface Props {
   lang: Lang
   profile: HomeContent['profile']
   contact: HomeContent['contact']
   footer: HomeContent['footer']
-  resumeHref: string
 }
 
-const { lang, profile, contact, footer, resumeHref } = Astro.props
+const { lang, profile, contact, footer } = Astro.props
 ---
 
 <section id='profile' class='profile-section' aria-labelledby='profile-title'>
   <div class='profile-container'>
-    <h2 id='profile-title'>{profile.label}</h2>
+    <SectionHead
+      id='profile'
+      code={profile.code}
+      label={profile.label}
+      title={profile.title}
+      status={profile.status}
+    />
     <dl>
       {
         profile.rows.map((row) => (
@@ -33,16 +40,19 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
 
 <section id='contact' class='contact-section' aria-labelledby='contact-title'>
   <div class='contact-container'>
-    <h2 id='contact-title'>{contact.label}</h2>
+    <SectionHead
+      id='contact'
+      code={contact.code}
+      label={contact.label}
+      title={contact.title}
+      status={contact.status}
+      statusTone='ok'
+    />
     <p>{contact.text}</p>
     <nav aria-label={lang === 'en' ? 'Contact links' : '联系方式'}>
       <a href='mailto:lyg3044@qq.com'>{contact.email} <span aria-hidden='true'>→</span></a>
       <a href='https://github.com/Ygrowly' target='_blank' rel='noopener noreferrer'>
         {contact.github}
-        <span aria-hidden='true'>↗</span>
-      </a>
-      <a href={resumeHref} target='_blank' rel='noopener noreferrer'>
-        {contact.resume}
         <span aria-hidden='true'>↗</span>
       </a>
     </nav>
@@ -69,14 +79,6 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     margin: 0 auto;
   }
 
-  .profile-section h2,
-  .contact-section h2 {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    letter-spacing: 0.12em;
-  }
-
   .profile-section dl {
     margin: var(--space-7) 0 0;
     border-bottom: 1px solid var(--border-default);
@@ -88,12 +90,23 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     gap: var(--space-5);
     padding: var(--space-4) 0;
     border-top: 1px solid var(--border-default);
+    transition: background-color 180ms ease;
+  }
+
+  .profile-section dl > div:hover {
+    background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
   }
 
   .profile-section dt {
     color: var(--text-tertiary);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) .profile-section dt {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   .profile-section dd {
@@ -106,8 +119,23 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     margin: var(--space-8) 0 0;
     font-size: var(--text-3xl);
     font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.45;
+  }
+
+  :global(html[lang='en']) .profile-statement {
     letter-spacing: -0.03em;
     line-height: 1.35;
+  }
+
+  /* The operator's stance, flagged like a line of annotated code. */
+  .profile-statement::before {
+    margin-right: 0.6em;
+    color: var(--tech-accent);
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    font-weight: 600;
+    content: '//';
   }
 
   .profile-cta {
@@ -121,22 +149,19 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
 
   .contact-section {
     padding: 112px 0;
-    background: #151a17;
-    color: #fff;
-  }
-
-  :global(.dark) .contact-section {
-    background: #0b0e0c;
-  }
-
-  .contact-section h2 {
-    color: #67e2b7;
+    background: #05070f;
+    color: #eef2fa;
+    /* Re-ink the shared module header for the night contact deck. */
+    --mh-ink: #eef2fa;
+    --mh-muted: #93a2bd;
+    --mh-accent: #22d3ee;
+    --mh-line: #1c2a42;
   }
 
   .contact-section > .contact-container > p {
     max-width: 760px;
     margin: var(--space-5) 0 0;
-    color: #dce5e0;
+    color: #c8d2e3;
     font-size: var(--text-2xl);
     line-height: 1.5;
   }
@@ -153,20 +178,28 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     align-items: center;
     gap: var(--space-2);
     padding: 0 var(--space-4);
-    border: 1px solid #3a4741;
+    border: 1px solid #1c2a42;
     border-radius: var(--radius-sm);
-    color: #fff;
+    color: #eef2fa;
     font-weight: 600;
+    transition:
+      border-color 180ms ease,
+      box-shadow 240ms ease;
+  }
+
+  .contact-section nav a:hover {
+    border-color: #22d3ee;
+    box-shadow: 0 0 28px -8px rgba(34, 211, 238, 0.5);
   }
 
   .contact-section nav a:first-child {
-    border-color: #67e2b7;
-    background: #67e2b7;
-    color: #090c0b;
+    border-color: #22d3ee;
+    background: #22d3ee;
+    color: #06121f;
   }
 
   .contact-section nav a span {
-    color: #67e2b7;
+    color: #22d3ee;
     transition: transform 180ms ease;
   }
 
@@ -183,7 +216,9 @@ const { lang, profile, contact, footer, resumeHref } = Astro.props
     border-top: 1px solid var(--border-default);
     background: var(--bg-page);
     color: var(--text-secondary);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.03em;
   }
 
   .footer-container {

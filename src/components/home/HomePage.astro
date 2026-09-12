@@ -3,10 +3,10 @@ import { getCollection, render } from 'astro:content'
 import { homeContent } from '@/data/home'
 import type { Lang } from '@/i18n/ui'
 import { postHref, selectPublishedNotes, selectPublishedPosts } from '@/lib/home-content'
-import { resolvedResume } from '@/lib/resume'
 
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import ExperienceLab from '@/components/home/ExperienceLab.astro'
+import NightChapter from '@/components/home/NightChapter.astro'
 import ProfileContact from '@/components/home/ProfileContact.astro'
 import SelectedSystems from '@/components/home/SelectedSystems.astro'
 import WritingSection from '@/components/home/WritingSection.astro'
@@ -18,16 +18,6 @@ interface Props {
 
 const { lang } = Astro.props
 const content = homeContent[lang]
-const resumeInfo = resolvedResume(lang)
-const resume = resumeInfo.href
-const heroResumeLabel =
-  lang === 'en' && resumeInfo.fallbackToChinese
-    ? 'View Résumé · Chinese PDF ↗'
-    : content.hero.resume
-const contactContent =
-  lang === 'en' && resumeInfo.fallbackToChinese
-    ? { ...content.contact, resume: 'View Résumé · Chinese PDF' }
-    : content.contact
 const blogCollection = lang === 'en' ? 'blogEn' : 'blog'
 const notesCollection = lang === 'en' ? 'notesEn' : 'notes'
 const posts = selectPublishedPosts(await getCollection(blogCollection), lang, 2)
@@ -41,33 +31,31 @@ const talks =
     : []
 const latestPostHref = posts[0] ? postHref(posts[0], lang) : `${lang === 'en' ? '/en' : ''}/blog`
 const featuredRender = posts[0] ? await render(posts[0]) : null
-const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead as
-  | string
-  | undefined
+const featuredReadingTime = (
+  lang === 'zh'
+    ? featuredRender?.remarkPluginFrontmatter?.minutesReadZh
+    : featuredRender?.remarkPluginFrontmatter?.minutesRead
+) as string | undefined
 ---
 
 <BaseLayout home exactTitle meta={content.meta}>
   <main id='top' class='home-page'>
     <section class='home-hero' aria-labelledby='home-title'>
+      <div class='home-hero__backdrop' aria-hidden='true'></div>
       <div class='home-container home-hero__grid'>
         <div class='home-hero__copy'>
-          <p class='home-eyebrow'>{content.hero.eyebrow}</p>
+          <p class='home-eyebrow'>
+            <i class='home-eyebrow__dot' aria-hidden='true'></i>
+            {content.hero.eyebrow}
+          </p>
           <h1 id='home-title'>{content.hero.title}</h1>
           <p class='home-hero__description'>{content.hero.description}</p>
 
           <div class='home-hero__actions'>
-            <a
-              class='home-button home-button--primary'
-              href={resume}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {heroResumeLabel}
-            </a>
-            <a class='home-button home-button--secondary' href='#projects'>
+            <a class='home-button home-button--primary' href='#projects'>
               {content.hero.projects}
             </a>
-            <a class='home-hero__writing-link' href={latestPostHref}>
+            <a class='home-button home-button--secondary' href={latestPostHref}>
               {content.hero.writing}
             </a>
           </div>
@@ -85,14 +73,25 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
         </div>
 
         <div class='home-hero__terminal-slot' data-terminal-slot>
-          <Terminal {lang} />
+          <div class='home-hero__tilt' data-hero-tilt>
+            <div class='home-hero__hud' aria-hidden='true'>
+              <i class='home-hero__hud-corner home-hero__hud-corner--tl'></i>
+              <i class='home-hero__hud-corner home-hero__hud-corner--tr'></i>
+              <i class='home-hero__hud-corner home-hero__hud-corner--bl'></i>
+              <i class='home-hero__hud-corner home-hero__hud-corner--br'></i>
+              <span class='home-hero__hud-scan'></span>
+            </div>
+            <Terminal {lang} />
+          </div>
         </div>
       </div>
     </section>
 
     <SelectedSystems
       {lang}
+      code={content.systems.code}
       label={content.systems.label}
+      status={content.systems.status}
       title={content.systems.title}
       projects={content.systems.projects}
     />
@@ -107,15 +106,45 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
       {talks}
       {featuredReadingTime}
     />
+    <NightChapter content={content.night} />
     <ProfileContact
       {lang}
       profile={content.profile}
-      contact={contactContent}
+      contact={content.contact}
       footer={content.footer}
-      resumeHref={resume}
     />
   </main>
 </BaseLayout>
+
+<script>
+  const slot = document.querySelector<HTMLElement>('[data-terminal-slot]')
+  const tilt = document.querySelector<HTMLElement>('[data-hero-tilt]')
+
+  if (
+    slot &&
+    tilt &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    const MAX_TILT = 2.5
+
+    const onMove = (event: PointerEvent) => {
+      const rect = slot.getBoundingClientRect()
+      const px = (event.clientX - rect.left) / rect.width - 0.5
+      const py = (event.clientY - rect.top) / rect.height - 0.5
+      tilt.style.setProperty('--rx', `${(-py * MAX_TILT).toFixed(2)}deg`)
+      tilt.style.setProperty('--ry', `${(px * MAX_TILT).toFixed(2)}deg`)
+    }
+
+    const onLeave = () => {
+      tilt.style.setProperty('--rx', '0deg')
+      tilt.style.setProperty('--ry', '0deg')
+    }
+
+    slot.addEventListener('pointermove', onMove)
+    slot.addEventListener('pointerleave', onLeave)
+  }
+</script>
 
 <style>
   .home-page {
@@ -131,10 +160,48 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   }
 
   .home-hero {
+    position: relative;
     min-height: max(680px, calc(100svh - 72px));
   }
 
+  .home-hero__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(
+        720px 420px at 78% 42%,
+        color-mix(in srgb, var(--tech-glow) 9%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:
+      auto,
+      56px 56px,
+      56px 56px;
+    mask-image: radial-gradient(120% 90% at 50% 40%, black 30%, transparent 78%);
+    pointer-events: none;
+  }
+
+  :global(.dark) .home-hero__backdrop {
+    background:
+      radial-gradient(
+        720px 420px at 78% 42%,
+        color-mix(in srgb, var(--tech-glow) 16%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:
+      auto,
+      56px 56px,
+      56px 56px;
+  }
+
   .home-hero__grid {
+    position: relative;
+    z-index: 1;
     display: grid;
     min-height: max(680px, calc(100svh - 72px));
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -149,21 +216,42 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   }
 
   .home-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
     margin: 0;
-    color: var(--signal-accent);
+    color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.06em;
     line-height: 1.35;
+  }
+
+  :global(html[lang='en']) .home-eyebrow {
+    letter-spacing: 0.12em;
+  }
+
+  .home-eyebrow__dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-pill);
+    background: var(--status-ok);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--status-ok) 70%, transparent);
   }
 
   .home-hero h1 {
     max-width: 680px;
     margin: 20px 0 0;
     font-size: var(--text-hero);
-    font-weight: 600;
-    letter-spacing: -0.055em;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :global(html[lang='en']) .home-hero h1 {
+    letter-spacing: -0.045em;
     line-height: 1.04;
   }
 
@@ -192,16 +280,22 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     border-radius: var(--radius-sm);
     font-size: var(--text-sm);
     font-weight: 600;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      box-shadow 240ms ease;
   }
 
   .home-button--primary {
     background: var(--signal-accent);
-    color: #fff;
+    color: var(--accent-contrast);
   }
 
   .home-button--primary:hover {
     background: var(--signal-accent-hover);
-    color: #fff;
+    color: var(--accent-contrast);
+    box-shadow: 0 0 28px -6px color-mix(in srgb, var(--tech-glow) 60%, transparent);
   }
 
   .home-button--secondary {
@@ -212,31 +306,39 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   .home-button--secondary:hover {
     border-color: var(--signal-accent);
     color: var(--signal-accent);
+    box-shadow: 0 0 24px -10px color-mix(in srgb, var(--tech-glow) 50%, transparent);
   }
 
-  .home-hero__writing-link {
-    flex-basis: 100%;
-    width: fit-content;
-    margin-top: var(--space-1);
-    color: var(--signal-accent);
-    font-size: var(--text-sm);
-    font-weight: 600;
-  }
-
+  /* Readout bar: the operator's status strip. */
   .home-hero__status {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-5);
-    margin: 40px 0 0;
+    margin: var(--space-7) 0 0;
+    border-block: 1px solid var(--border-default);
     padding: 0;
     color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
     list-style: none;
   }
 
+  :global(html[lang='en']) .home-hero__status {
+    letter-spacing: 0.06em;
+  }
+
+  .home-hero__status li {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 14px 20px 14px 0;
+  }
+
+  .home-hero__status li + li {
+    border-left: 1px solid var(--border-default);
+    padding-left: 20px;
+  }
+
   .home-hero__status li:last-child {
-    color: var(--signal-accent);
+    color: var(--status-ok);
   }
 
   .home-hero__status li:last-child::before {
@@ -246,21 +348,27 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     margin-right: var(--space-2);
     border-radius: var(--radius-pill);
     background: currentColor;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--status-ok) 70%, transparent);
     content: '';
     vertical-align: 1px;
   }
 
   .home-hero__recent {
     display: grid;
-    margin-top: var(--space-7);
+    margin-top: var(--space-5);
     grid-template-columns: auto 1fr;
     gap: var(--space-5);
     color: var(--text-tertiary);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+  }
+
+  :global(html[lang='en']) .home-hero__recent {
+    letter-spacing: 0.06em;
   }
 
   .home-hero__recent > span {
-    font-family: var(--font-mono);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -268,17 +376,101 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
   .home-hero__recent ul {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2) var(--space-5);
     margin: 0;
     padding: 0;
     color: var(--text-secondary);
     list-style: none;
   }
 
+  .home-hero__recent li {
+    display: inline-flex;
+  }
+
+  .home-hero__recent li + li::before {
+    margin: 0 0.9em;
+    color: var(--tech-accent);
+    content: '/';
+  }
+
   .home-hero__terminal-slot {
     min-width: 0;
     height: 460px;
     grid-column: 8 / span 5;
+  }
+
+  .home-hero__tilt {
+    position: relative;
+    height: 100%;
+    transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition: transform 240ms ease-out;
+    will-change: transform;
+  }
+
+  .home-hero__hud {
+    position: absolute;
+    inset: -10px;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .home-hero__hud-corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tech-glow) 60%, transparent));
+    opacity: 0.85;
+  }
+
+  .home-hero__hud-corner--tl {
+    top: 0;
+    left: 0;
+    border-top: 1px solid var(--tech-glow);
+    border-left: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-corner--tr {
+    top: 0;
+    right: 0;
+    border-top: 1px solid var(--tech-glow);
+    border-right: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-corner--bl {
+    bottom: 0;
+    left: 0;
+    border-bottom: 1px solid var(--tech-glow);
+    border-left: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-corner--br {
+    right: 0;
+    bottom: 0;
+    border-right: 1px solid var(--tech-glow);
+    border-bottom: 1px solid var(--tech-glow);
+  }
+
+  .home-hero__hud-scan {
+    position: absolute;
+    top: -12%;
+    right: 0;
+    left: 0;
+    height: 48px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--tech-glow) 10%, transparent) 45%,
+      color-mix(in srgb, var(--tech-glow) 14%, transparent) 55%,
+      transparent
+    );
+    animation: hero-scan 7s linear infinite;
+  }
+
+  @keyframes hero-scan {
+    to {
+      transform: translateY(620px);
+    }
   }
 
   @media (max-width: 1023px) {
@@ -299,11 +491,26 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
     }
 
     .home-hero__terminal-slot {
+      height: 400px;
       margin-top: var(--space-7);
     }
 
-    .home-hero__terminal-slot {
-      height: 400px;
+    .home-hero__status {
+      flex-wrap: wrap;
+    }
+
+    .home-hero__status li {
+      flex: 1 1 40%;
+      padding: 12px 16px 12px 0;
+    }
+
+    .home-hero__status li:nth-child(odd) {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .home-hero__status li:nth-child(n + 3) {
+      border-top: 1px solid var(--border-default);
     }
   }
 
@@ -333,9 +540,19 @@ const featuredReadingTime = featuredRender?.remarkPluginFrontmatter?.minutesRead
       width: 100%;
     }
 
-    .home-hero__writing-link {
-      min-height: 44px;
-      align-content: center;
+    .home-hero__status {
+      flex-direction: column;
+    }
+
+    .home-hero__status li {
+      flex: none;
+      padding: 12px 0;
+    }
+
+    .home-hero__status li + li {
+      border-top: 1px solid var(--border-default);
+      border-left: 0;
+      padding-left: 0;
     }
 
     .home-hero__recent {

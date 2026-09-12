@@ -105,7 +105,7 @@ const typeColors: Record<string, string> = {
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/' style='back' />
+  <Button title='← 返回首页' href='/' style='back' />
 
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
@@ -128,10 +128,10 @@ const typeColors: Record<string, string> = {
 
     {
       page.data.length === 0 ? (
-        <p class='mt-8'>No note entries yet.</p>
+        <p class='mt-8'>还没有笔记。</p>
       ) : (
         <div class='mt-10 grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
-          <section id='content' class='animate' aria-label='Note entries'>
+          <section id='content' class='animate' aria-label='笔记列表'>
             <div class='mb-3 flex flex-col justify-between text-sm text-muted-foreground sm:mb-5 sm:flex-row'>
               <span>
                 显示第 {page.start + 1}-{page.end + 1} 条，共 {page.total} 条

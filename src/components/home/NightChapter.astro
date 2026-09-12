@@ -1,0 +1,106 @@
+---
+import ExploreBeyond from './ExploreBeyond.astro'
+import SystemEchoes from './SystemEchoes.astro'
+
+interface Props {
+  content: {
+    echoCode: string
+    echoLabel: string
+    echoTitle: string
+    echoSub: string
+    echoStatus: string
+    echoes: { text: string; source: string }[]
+    exploreCode: string
+    exploreLabel: string
+    exploreTitle: string
+    exploreSub: string
+    exploreStatus: string
+    exploreCards: { title: string; sub: string; href: string; kind: string }[]
+  }
+}
+
+const { content } = Astro.props
+---
+
+<section class='night-chapter' data-night-chapter aria-label='Night chapter'>
+  <canvas class='night-sky' data-night-sky aria-hidden='true'></canvas>
+  <SystemEchoes content={content} />
+  <ExploreBeyond content={content} />
+</section>
+
+<script>
+  import type { NightSky as NightSkyType, SkyKind } from '@/lib/night-sky'
+
+  const chapter = document.querySelector<HTMLElement>('[data-night-chapter]')
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-night-sky]')
+  if (chapter && canvas) {
+    let sky: NightSkyType | null = null
+    let loaded = false
+    let nearViewport = false
+
+    const syncActive = () => {
+      sky?.setActive(nearViewport && !document.hidden)
+    }
+
+    const load = async () => {
+      if (loaded) return
+      loaded = true
+      const { NightSky } = await import('@/lib/night-sky')
+      sky = new NightSky(canvas)
+      const cards = Array.from(chapter.querySelectorAll<HTMLElement>('[data-sky-kind]'))
+        .filter((el): el is HTMLElement & { dataset: { skyKind: string } } => Boolean(el.dataset.skyKind))
+        .map((el) => ({ el, kind: el.dataset.skyKind as SkyKind }))
+      sky.mountCards(cards)
+      syncActive()
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.some((entry) => entry.isIntersecting)
+        if (visible) {
+          nearViewport = true
+          void load()
+          syncActive()
+        } else {
+          nearViewport = false
+          syncActive()
+        }
+      },
+      { rootMargin: '600px 0px' }
+    )
+    observer.observe(chapter)
+
+    window.addEventListener('ygrowly:sky-hover', (event) => {
+      sky?.setHover((event as CustomEvent).detail?.kind ?? null)
+    })
+
+    document.addEventListener('visibilitychange', syncActive)
+  }
+</script>
+
+<style>
+  .night-chapter {
+    position: relative;
+    overflow: clip;
+    background: #05070f;
+    color: #eef2fa;
+  }
+
+  /* Sticky full-viewport canvas that overlays the whole chapter without
+     taking layout space (negative margin cancels its flow height). */
+  .night-sky {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100svh;
+    margin-bottom: -100svh;
+    pointer-events: none;
+  }
+
+  .night-chapter > section {
+    position: relative;
+    z-index: 1;
+  }
+</style>

@@ -94,3 +94,6 @@ bunfig.toml
 # Local Yuque exports. These are source documents for the import CLI and must
 # remain local rather than being tracked with the blog.
 /md/
+
+# Firecrawl scrape output
+.firecrawl/
