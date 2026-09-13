@@ -97,6 +97,11 @@ const featuredReadingTime = (
       projects={content.systems.projects}
     />
 
+    {/* Immediately after the systems it draws its evidence from: the six lines
+        read as the pattern behind the three projects rather than as a detached
+        set of claims further down the page. */}
+    <SystemEchoes content={content.night} />
+
     <ExperienceLab experience={content.experience} lab={content.lab} />
     <WritingSection
       {lang}
@@ -107,7 +112,6 @@ const featuredReadingTime = (
       {talks}
       {featuredReadingTime}
     />
-    <SystemEchoes content={content.night} />
     <ExploreBeyond content={content.night} />
     <ProfileContact
       {lang}
