@@ -77,19 +77,6 @@ export const theme: ThemeUserConfig = {
 }
 
 export const integ: IntegrationUserConfig = {
-  // Links management
-  // See: https://astro-pure.js.org/docs/integrations/links
-  links: {
-    // Friend logbook
-    logbook: [{ date: '2026-07-27', content: '友链页面就绪，欢迎交换友链。' }],
-    // Yourself link info
-    applyTip: [
-      { name: 'Name', val: theme.title },
-      { name: 'Desc', val: theme.description || 'Null' },
-      { name: 'Link', val: 'https://ygrowly.github.io/' },
-      { name: 'Avatar', val: 'https://ygrowly.github.io/favicon/favicon-32x32.png' }
-    ]
-  },
   // Build the search index into dist so it works on static hosts such as GitHub Pages.
   pagefind: true,
   // Add a random quote to the footer (default on homepage footer)

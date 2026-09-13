@@ -15,7 +15,6 @@ export const ui = {
     'nav.notes': 'Notes',
     'nav.curated': 'Curated',
     'nav.projects': 'Projects',
-    'nav.links': 'Links',
     'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.search': 'Search',
@@ -38,7 +37,7 @@ export const ui = {
     'back.blog': '← 返回博客',
     'back.notes': '← 返回笔记',
     'sidebar.toggle': '切换侧边栏',
-    'backToTop': '返回顶部',
+    backToTop: '返回顶部',
     'blog.prev': '← 上一页',
     'blog.next': '下一页 →',
     'blog.pageInfo': '第 {current} 页 · 本页 {count} 篇 · 共 {total} 篇',
@@ -63,7 +62,6 @@ export const ui = {
     'nav.notes': 'Notes',
     'nav.curated': 'Curated',
     'nav.projects': 'Projects',
-    'nav.links': 'Links',
     'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.search': 'Search',
@@ -87,7 +85,7 @@ export const ui = {
     'back.blog': '← Back to blog',
     'back.notes': '← Back to notes',
     'sidebar.toggle': 'Toggle sidebar',
-    'backToTop': 'Back to Top',
+    backToTop: 'Back to Top',
     'blog.prev': '← Previous Posts',
     'blog.next': 'Next Posts →',
     'blog.pageInfo': 'Page {current} - Showing {count} of {total} posts',
@@ -157,16 +155,9 @@ export function localizedPath(path: string, lang: Lang): string {
 export function hasEnAlternate(barePath: string): boolean {
   if (barePath === '/') return true
   if (
-    [
-      '/about',
-      '/projects',
-      '/experience',
-      '/links',
-      '/contact',
-      '/search',
-      '/curated',
-      '/tags'
-    ].includes(barePath)
+    ['/about', '/projects', '/experience', '/contact', '/search', '/curated', '/tags'].includes(
+      barePath
+    )
   )
     return true
   // blog & notes: only the paginated list is mirrored under /en, not detail pages
