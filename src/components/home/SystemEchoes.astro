@@ -13,14 +13,27 @@ interface Props {
 }
 
 const { content } = Astro.props
+const count = Math.max(1, content.echoes.length)
 ---
 
+{/*
+  Six cross-project evidence lines on a rotating ring: scrolling the chapter
+  turns the ring and steps the active card, so the evidence reads as a sequence
+  rather than a list.
+
+  Two things differ from the version this replaced. It follows the theme (the
+  old one was a hardcoded dark island) and it is 240vh rather than 320vh. Below
+  768px, and under prefers-reduced-motion, it lays the same six cards out as a
+  plain grid instead of a scroll stage.
+*/}
 <section
-  class='echo-section'
-  aria-labelledby='echo-title'
+  class='echo-chapter'
   data-echo-section
-  style={`--count: ${content.echoes.length}; --step: ${360 / content.echoes.length}deg`}
+  aria-labelledby='echo-title'
+  style={`--count: ${count}; --step: ${360 / count}deg`}
 >
+  <div class='echo-chapter__backdrop' aria-hidden='true'></div>
+
   <div class='echo-stage'>
     <div class='echo-heading'>
       <SectionHead
@@ -37,12 +50,7 @@ const { content } = Astro.props
     <div class='echo-ring' data-echo-ring>
       {
         content.echoes.map((echo, index) => (
-          <article
-            class:list={['echo-card', index === 0 && 'is-active']}
-            data-echo-card
-            aria-hidden={index === 0 ? 'false' : 'true'}
-            style={`--i: ${index}`}
-          >
+          <article class:list={['echo-card', index === 0 && 'is-active']} data-echo-card style={`--i: ${index}`}>
             <div class='echo-card__inner'>
               <div class='echo-card__body'>
                 <p class='echo-card__text'>{echo.text}</p>
@@ -65,94 +73,130 @@ const { content } = Astro.props
 
   const section = document.querySelector<HTMLElement>('[data-echo-section]')
   if (section) {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) {
-      section.classList.add('is-static')
-      // The static fallback shows every card — nothing may stay aria-hidden.
-      section.querySelectorAll('[data-echo-card]').forEach((card) => {
-        card.removeAttribute('aria-hidden')
-        card.classList.add('is-active')
-      })
-    } else {
-      const ring = section.querySelector<HTMLElement>('[data-echo-ring]')
-      const bar = section.querySelector<HTMLElement>('[data-echo-progress]')
-      const cards = Array.from(section.querySelectorAll<HTMLElement>('[data-echo-card]'))
-      if (ring && cards.length > 1) {
-        const count = cards.length
-        let activeIndex = -1
-        let target = 0
-        let current = 0
-        let frame = 0
-        let last = 0
-        let tracking = false
+    const ring = section.querySelector<HTMLElement>('[data-echo-ring]')
+    const bar = section.querySelector<HTMLElement>('[data-echo-progress]')
+    const cards = Array.from(section.querySelectorAll<HTMLElement>('[data-echo-card]'))
+    const flatQuery = window.matchMedia('(max-width: 767px)')
+    const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 
-        const setActive = (index: number) => {
-          if (index === activeIndex) return
-          activeIndex = index
-          cards.forEach((card, i) => {
-            const active = i === index
-            card.classList.toggle('is-active', active)
-            card.setAttribute('aria-hidden', String(!active))
-          })
-        }
+    let activeIndex = -1
+    let target = 0
+    let current = 0
+    let frame = 0
+    let last = 0
+    let tracking = false
+    let isFlat = false
 
-        const paint = (progress: number) => {
-          ring.style.setProperty('--ring-rot', `${progress * 360}deg`)
-          bar?.style.setProperty('--progress', `${progress * 100}%`)
-          setActive(echoActiveIndex(progress, count))
-        }
+    const setActive = (index: number) => {
+      if (index === activeIndex) return
+      activeIndex = index
+      cards.forEach((card, i) => card.classList.toggle('is-active', i === index))
+    }
 
-        const tick = (now: number) => {
-          frame = 0
-          const ease = scrubEase((now - last) / 1000)
-          last = now
-          current += (target - current) * ease
-          if (Math.abs(target - current) < 0.0005) current = target
-          paint(current)
-          if (current !== target) frame = requestAnimationFrame(tick)
-        }
+    const paint = (progress: number) => {
+      ring?.style.setProperty('--ring-rot', `${progress * 360}deg`)
+      bar?.style.setProperty('--progress', `${progress * 100}%`)
+      setActive(echoActiveIndex(progress, cards.length))
+    }
 
-        const schedule = () => {
-          const rect = section.getBoundingClientRect()
-          target = echoScrollProgress(rect.top, rect.height, window.innerHeight)
-          if (!frame) {
-            last = performance.now()
-            frame = requestAnimationFrame(tick)
-          }
-        }
+    const tick = (now: number) => {
+      frame = 0
+      const ease = scrubEase((now - last) / 1000)
+      last = now
+      current += (target - current) * ease
+      if (Math.abs(target - current) < 0.0005) current = target
+      paint(current)
+      if (current !== target) frame = requestAnimationFrame(tick)
+    }
 
-        const start = () => {
-          if (tracking) return
-          tracking = true
-          window.addEventListener('scroll', schedule, { passive: true })
-          window.addEventListener('resize', schedule)
-          schedule()
-        }
-
-        const stop = () => {
-          if (!tracking) return
-          tracking = false
-          window.removeEventListener('scroll', schedule)
-          window.removeEventListener('resize', schedule)
-        }
-
-        // Only pay for scroll work while the section is anywhere near the
-        // viewport; the sticky stage is 100svh inside a ~320vh section.
-        new IntersectionObserver(
-          ([entry]) => (entry.isIntersecting ? start() : stop()),
-          { rootMargin: '100% 0px' }
-        ).observe(section)
-
-        paint(0)
+    const schedule = () => {
+      const rect = section.getBoundingClientRect()
+      target = echoScrollProgress(rect.top, rect.height, window.innerHeight)
+      if (!frame) {
+        last = performance.now()
+        frame = requestAnimationFrame(tick)
       }
     }
+
+    const start = () => {
+      if (tracking || isFlat) return
+      tracking = true
+      window.addEventListener('scroll', schedule, { passive: true })
+      window.addEventListener('resize', schedule)
+      schedule()
+    }
+
+    const stop = () => {
+      if (!tracking) return
+      tracking = false
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
+
+    /**
+     * Flat mode is the whole fallback: no ring, no scroll stage, the same six
+     * cards as a grid in normal document flow. It is also what the ring needs
+     * to be for a reader who asked for reduced motion.
+     */
+    const applyMode = () => {
+      const flat = reducedQuery.matches || flatQuery.matches
+      if (flat === isFlat) return
+      isFlat = flat
+      section.classList.toggle('is-flat', flat)
+      if (flat) {
+        stop()
+        // Every card is readable in flow, so nothing may stay dimmed.
+        cards.forEach((card) => card.classList.add('is-active'))
+      } else {
+        activeIndex = -1
+        paint(0)
+        start()
+      }
+    }
+
+    // Only pay for scroll work while the chapter is anywhere near the viewport.
+    new IntersectionObserver(
+      ([entry]) => (entry.isIntersecting ? start() : stop()),
+      { rootMargin: '100% 0px' }
+    ).observe(section)
+
+    flatQuery.addEventListener('change', applyMode)
+    reducedQuery.addEventListener('change', applyMode)
+    applyMode()
   }
 </script>
 
 <style>
-  .echo-section {
+  .echo-chapter {
     position: relative;
-    height: 320vh;
+    /* A full turn spans this, less one viewport of sticky stage: at 240vh each
+       of six cards gets roughly 230px of travel. */
+    height: 240vh;
+    border-top: 1px solid var(--border-default);
+    background: var(--bg-page);
+    color: var(--text-primary);
+    overflow: clip;
+  }
+
+  /* Same grid idiom as the hero and the system map: one deck, one backdrop. */
+  .echo-chapter__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(
+        900px 520px at 50% 46%,
+        color-mix(in srgb, var(--tech-glow) 7%, transparent),
+        transparent 72%
+      ),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:
+      auto,
+      56px 56px,
+      56px 56px;
+    mask-image: radial-gradient(120% 85% at 50% 45%, black 34%, transparent 80%);
+    pointer-events: none;
   }
 
   .echo-stage {
@@ -166,24 +210,18 @@ const { content } = Astro.props
 
   .echo-heading {
     position: absolute;
-    top: clamp(64px, 13vh, 110px);
+    top: clamp(56px, 11vh, 96px);
     right: 0;
     left: 0;
     z-index: 3;
-    color: #eef2fa;
-    /* Re-ink the shared module header for the night sky. */
-    --mh-ink: #eef2fa;
-    --mh-muted: #93a2bd;
-    --mh-accent: #22d3ee;
-    --mh-line: rgba(148, 163, 184, 0.4);
+    text-align: center;
   }
 
   .echo-sub {
     max-width: 560px;
     margin: var(--space-3) auto 0;
-    color: #93a2bd;
+    color: var(--text-secondary);
     font-size: var(--text-base);
-    text-align: center;
   }
 
   .echo-ring {
@@ -211,16 +249,19 @@ const { content } = Astro.props
     transform-style: preserve-3d;
   }
 
-  /* Dim/blur live on the innermost body — opacity/filter on the 3D layers
-     would force transform-style to flat and break the billboard. */
+  /* Dim/blur live on the innermost body — opacity/filter on the 3D layers would
+     force transform-style to flat and break the billboard. */
   .echo-card__body {
     padding: var(--space-6) var(--space-6) var(--space-5);
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.045);
-    box-shadow: 0 0 60px -18px rgba(34, 211, 238, 0.25);
+    background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 60px -18px color-mix(in srgb, var(--tech-glow) 45%, transparent);
+    /* The neighbours are meant to be sensed as a ring, not read: at 0.25 with a
+       1px blur their text was legible enough to compete with the front card. */
     opacity: 0.16;
-    filter: blur(1px);
+    filter: blur(2px);
     transition:
       opacity 300ms ease,
       filter 300ms ease;
@@ -233,7 +274,7 @@ const { content } = Astro.props
 
   .echo-card__text {
     margin: 0;
-    color: #eef2fa;
+    color: var(--text-primary);
     font-size: clamp(17px, 1.6vw, 21px);
     font-weight: 500;
     letter-spacing: 0;
@@ -246,7 +287,7 @@ const { content } = Astro.props
 
   .echo-card__source {
     margin: var(--space-4) 0 0;
-    color: #22d3ee;
+    color: var(--tech-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     letter-spacing: 0.04em;
@@ -266,7 +307,7 @@ const { content } = Astro.props
     translate: -50% 0;
     overflow: hidden;
     border-radius: var(--radius-pill);
-    background: rgba(148, 163, 184, 0.18);
+    background: color-mix(in srgb, var(--border-strong) 70%, transparent);
   }
 
   .echo-progress span {
@@ -274,99 +315,74 @@ const { content } = Astro.props
     width: var(--progress, 0%);
     height: 100%;
     border-radius: var(--radius-pill);
-    background: #22d3ee;
+    background: var(--signal-accent);
   }
 
-  /* Mobile: fade-through deck instead of the 3D ring. */
-  @media (max-width: 767px) {
-    .echo-section {
-      height: 340vh;
-    }
-
-    .echo-stage {
-      perspective: none;
-    }
-
-    .echo-ring {
-      transform: none;
-      transform-style: flat;
-    }
-
-    .echo-card {
-      width: min(440px, 86vw);
-      translate: -50% -50%;
-      transform: none;
-      opacity: 0;
-      transition:
-        opacity 350ms ease,
-        transform 350ms ease;
-    }
-
-    .echo-card.is-active {
-      opacity: 1;
-      transform: translateY(-8px);
-    }
-
-    .echo-card__inner {
-      transform: none;
-      transform-style: flat;
-    }
-
-    .echo-card__body {
-      opacity: 1;
-      filter: none;
-    }
-  }
-
-  /* Reduced motion: static readable grid. */
-  .echo-section.is-static {
+  /* Flat mode: no ring, no sticky stage, the six cards in normal flow. Used by
+     the script for narrow viewports and reduced motion alike. */
+  .echo-chapter.is-flat {
     height: auto;
     padding: var(--space-9) 0;
   }
 
-  .echo-section.is-static .echo-stage {
-    position: relative;
+  .echo-chapter.is-flat .echo-stage {
+    position: static;
     height: auto;
+    overflow: visible;
     perspective: none;
   }
 
-  .echo-section.is-static .echo-heading {
+  .echo-chapter.is-flat .echo-heading {
     position: static;
-    padding-top: var(--space-5);
   }
 
-  .echo-section.is-static .echo-ring {
+  .echo-chapter.is-flat .echo-ring {
     position: static;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--space-4);
     width: min(1200px, calc(100% - 64px));
     margin: var(--space-7) auto 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--border-default);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
     transform: none;
+    transform-style: flat;
   }
 
-  .echo-section.is-static .echo-card {
+  .echo-chapter.is-flat .echo-card {
     position: static;
-    width: 100%;
+    display: flex;
+    width: auto;
     min-width: 0;
     translate: none;
     transform: none;
     opacity: 1;
   }
 
-  .echo-section.is-static .echo-card__inner,
-  .echo-section.is-static .echo-card__body {
+  .echo-chapter.is-flat .echo-card__inner,
+  .echo-chapter.is-flat .echo-card__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
     transform: none;
-    opacity: 1;
-    filter: none;
+    transform-style: flat;
+    border: 0;
+    border-radius: 0;
+    background: var(--bg-elevated);
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
-  .echo-section.is-static .echo-progress {
+  .echo-chapter.is-flat .echo-progress {
     display: none;
   }
 
   @media (max-width: 767px) {
-    .echo-section.is-static .echo-ring {
+    .echo-chapter.is-flat .echo-ring {
       width: calc(100% - 40px);
       grid-template-columns: 1fr;
     }

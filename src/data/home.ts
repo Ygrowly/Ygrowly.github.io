@@ -141,7 +141,7 @@ const zh: HomeContent = {
       '专注 Agent 工程化与 Python 后端：数据可信 → 执行可控 → 结果可证。实习期间主导 EnergyOps Agent 的运行时治理与评测闭环，个人项目 RuleArena 把规则变更验证做成发布门禁——能由代码确定性保证的，不交给模型。',
     projects: '浏览精选项目 ↓',
     writing: '阅读最新文章 →',
-    status: ['2027 届', 'AI 应用开发 / Agent 后端', '可连续实习到毕业', 'Open to opportunities'],
+    status: ['南华大学 · 数据科学与大数据技术', '2027 届', '可连续实习到毕业', 'Open to opportunities'],
     recentLabel: '近期经历',
     recent: ['金山 EnergyOps', '数驭穹图', 'RuleArena', 'PayTrace']
   },
@@ -604,8 +604,8 @@ const en: HomeContent = {
     projects: 'Explore Selected Systems ↓',
     writing: 'Read Latest Writing →',
     status: [
+      'University of South China · Data Science',
       'Class of 2027',
-      'AI Application / Agent Backend',
       'Internship through graduation',
       'Open to opportunities'
     ],

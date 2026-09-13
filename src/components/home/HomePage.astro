@@ -6,9 +6,10 @@ import { postHref, selectPublishedNotes, selectPublishedPosts } from '@/lib/home
 
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import ExperienceLab from '@/components/home/ExperienceLab.astro'
-import NightChapter from '@/components/home/NightChapter.astro'
+import ExploreBeyond from '@/components/home/ExploreBeyond.astro'
 import ProfileContact from '@/components/home/ProfileContact.astro'
 import SelectedSystems from '@/components/home/SelectedSystems.astro'
+import SystemEchoes from '@/components/home/SystemEchoes.astro'
 import WritingSection from '@/components/home/WritingSection.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
 
@@ -96,6 +97,11 @@ const featuredReadingTime = (
       projects={content.systems.projects}
     />
 
+    {/* Immediately after the systems it draws its evidence from: the six lines
+        read as the pattern behind the three projects rather than as a detached
+        set of claims further down the page. */}
+    <SystemEchoes content={content.night} />
+
     <ExperienceLab experience={content.experience} lab={content.lab} />
     <WritingSection
       {lang}
@@ -106,7 +112,7 @@ const featuredReadingTime = (
       {talks}
       {featuredReadingTime}
     />
-    <NightChapter content={content.night} />
+    <ExploreBeyond content={content.night} />
     <ProfileContact
       {lang}
       profile={content.profile}

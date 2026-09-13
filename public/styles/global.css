@@ -119,16 +119,21 @@ astro-island {
 }
 
 @media (min-width: 768px) {
-  #main-content > main:not(.home-page) {
+  /* Only mains that actually carry a sidebar are the article+sidebar row.
+     Keying this on the page class instead caught the homepage (`21a8d69`,
+     every module forced into one narrow column) and then the project case
+     pages (header and sections laid out side by side). Key on the structure
+     the rule actually needs, so a new page type cannot fall into it again. */
+  #main-content > main:has(> #sidebar) {
     display: flex;
     column-gap: 2.5rem;
   }
 
-  #main-content > main:not(.home-page) > article {
+  #main-content > main:has(> #sidebar) > article {
     flex-grow: 1;
   }
 
-  #main-content > main:not(.home-page) > #sidebar {
+  #main-content > main:has(> #sidebar) > #sidebar {
     position: sticky;
     top: 5rem;
     min-width: 12rem;

@@ -37,22 +37,13 @@ const { lang, code, label, status, title, projects } = Astro.props
                 {project.title}
               </h3>
               <p class='system-summary'>{project.summary}</p>
-              <p class='system-responsibility'>{project.responsibility}</p>
 
-              <ol class='system-flow' aria-label={lang === 'en' ? 'System flow' : '系统链路'}>
-                {project.flow.map((step) => (
-                  <li>{step}</li>
-                ))}
-              </ol>
-
-              <dl class='system-highlights'>
-                {project.highlights.map((highlight) => (
-                  <div>
-                    <dt>{highlight.label}</dt>
-                    <dd>{highlight.text}</dd>
-                  </div>
-                ))}
-              </dl>
+              {/*
+                Responsibility, the flow and the highlights all live on the
+                case page; the flow and the evidence numbers are already in the
+                panel beside this column. What stays here is the part a
+                homepage owes: what it is, and a way in.
+              */}
 
               <div class='system-mobile-evidence'>
                 <ProjectEvidence project={project} index={index} />
@@ -197,15 +188,19 @@ const { lang, code, label, status, title, projects } = Astro.props
   }
 
   .systems-narratives {
-    grid-column: span 5;
+    grid-column: span 7;
   }
 
   .system-narrative {
     display: flex;
-    min-height: 90vh;
+    /* Each project still gets its own scene for the sticky panel beside it, but
+       that panel carries the spec (flow, numbers, stack). The column only has
+       to hold the name, what it is and the way in, so a full viewport each was
+       mostly empty. */
+    min-height: 48vh;
     flex-direction: column;
     justify-content: center;
-    padding: var(--space-9) 0;
+    padding: var(--space-7) 0;
   }
 
   .system-eyebrow {
@@ -239,62 +234,12 @@ const { lang, code, label, status, title, projects } = Astro.props
     letter-spacing: 0.06em;
   }
 
-  .system-summary,
-  .system-responsibility {
-    max-width: 560px;
+  .system-summary {
+    max-width: 640px;
     margin: var(--space-5) 0 0;
     color: var(--theater-muted);
-    font-size: 17px;
+    font-size: var(--text-lg);
     line-height: 1.65;
-  }
-
-  .system-responsibility {
-    color: var(--theater-text);
-    font-size: var(--text-sm);
-  }
-
-  .system-flow {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: var(--space-6) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .system-flow li {
-    position: relative;
-    padding: 7px 10px;
-    border: 1px solid var(--theater-border);
-    border-radius: var(--radius-sm);
-    color: var(--theater-muted);
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-
-  .system-highlights {
-    margin: var(--space-6) 0 0;
-  }
-
-  .system-highlights > div {
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: var(--space-4);
-    padding: var(--space-4) 0;
-    border-top: 1px solid var(--theater-border);
-  }
-
-  .system-highlights dt {
-    color: var(--theater-accent);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-  }
-
-  .system-highlights dd {
-    margin: 0;
-    color: var(--theater-muted);
-    font-size: var(--text-sm);
-    line-height: 1.55;
   }
 
   .system-cta {
@@ -316,13 +261,16 @@ const { lang, code, label, status, title, projects } = Astro.props
 
   .systems-evidence {
     position: relative;
-    grid-column: 7 / span 6;
+    grid-column: 8 / span 5;
   }
 
   .systems-evidence-frame {
     position: sticky;
     top: 112px;
-    height: min(620px, calc(100vh - 144px));
+    /* No fixed height. The three projects carry five, five and three evidence
+       rows plus stacks of different lengths, so one number left a 96px gap
+       under RuleArena and overflowed another panel by 17px. The frame now
+       takes its height from whichever panel is active. */
     box-shadow: 0 0 72px -28px color-mix(in srgb, var(--theater-accent) 45%, transparent);
   }
 
@@ -373,8 +321,7 @@ const { lang, code, label, status, title, projects } = Astro.props
   }
 
   .systems-evidence-stack {
-    position: absolute;
-    inset: 0;
+    position: relative;
   }
 
   .systems-evidence-panel {
@@ -387,7 +334,10 @@ const { lang, code, label, status, title, projects } = Astro.props
     transition: opacity 240ms ease;
   }
 
+  /* The active panel sits in flow so it can size the frame; the rest stay
+     absolute, so swapping one for another is still a cross-fade. */
   .systems-evidence-panel.is-active {
+    position: relative;
     opacity: 1;
   }
 
@@ -440,34 +390,6 @@ const { lang, code, label, status, title, projects } = Astro.props
 
     .system-narrative h3 {
       font-size: clamp(36px, 11vw, 50px);
-    }
-
-    .system-flow {
-      display: grid;
-      gap: 0;
-    }
-
-    .system-flow li {
-      padding: 10px 0 10px 18px;
-      border: 0;
-      border-left: 1px solid var(--theater-accent);
-      border-radius: 0;
-    }
-
-    .system-flow li::before {
-      position: absolute;
-      top: 16px;
-      left: -3px;
-      width: 5px;
-      height: 5px;
-      border-radius: var(--radius-pill);
-      background: var(--theater-accent);
-      content: '';
-    }
-
-    .system-highlights > div {
-      grid-template-columns: 1fr;
-      gap: var(--space-2);
     }
   }
 
