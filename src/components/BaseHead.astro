@@ -2,11 +2,11 @@
 // import { ClientRouter } from 'astro:transitions'
 
 import { hasEnVersion } from '@/i18n/translations'
-import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+import { getLangFromUrl, siteTitleFor, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+import { servedPath, servedUrl } from '@/lib/url'
 
 import type { SiteMeta } from 'astro-pure/types'
 import JsonLd from '@/components/JsonLd.astro'
-import { servedPath, servedUrl } from '@/lib/url'
 import config from '@/site-config'
 
 type Props = SiteMeta & {
@@ -23,14 +23,15 @@ const {
   title
 } = Astro.props
 
-const siteTitle = exactTitle ? title : `${title} ${config.titleDelimiter} ${config.title}`
+const lang = getLangFromUrl(Astro.url)
+const globalTitle = siteTitleFor(lang)
+const siteTitle = exactTitle ? title : `${title} ${config.titleDelimiter} ${globalTitle}`
 const canonicalURL = servedUrl(Astro.url, Astro.site)
 const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url).href
 const socialImageAlt = `${title} social preview`
 
 // Bilingual SEO: per-language og:locale, and hreflang alternates only for pages
 // that exist in both languages (never fabricate an /en URL for zh-only content).
-const lang = getLangFromUrl(Astro.url)
 const barePath = stripLangPrefix(servedPath(Astro.url.pathname))
 const hasAlt = await hasEnVersion(barePath)
 const ogLocale = lang === 'en' ? 'en_US' : 'zh_CN'
@@ -53,7 +54,7 @@ const siteGraph = {
       '@type': 'WebSite',
       '@id': `${origin}/#website`,
       url: `${origin}/`,
-      name: config.title,
+      name: globalTitle,
       description: config.description,
       inLanguage: lang === 'en' ? 'en' : 'zh-CN',
       publisher: { '@id': `${origin}/#person` }
@@ -104,7 +105,7 @@ const siteGraph = {
 <meta content={title} property='og:title' />
 <meta content={description} property='og:description' />
 <meta content={canonicalURL} property='og:url' />
-<meta content={config.title} property='og:site_name' />
+<meta content={globalTitle} property='og:site_name' />
 <meta content={ogLocale} property='og:locale' />
 {ogLocaleAlternate && <meta content={ogLocaleAlternate} property='og:locale:alternate' />}
 <meta content={socialImageURL} property='og:image' />
@@ -135,7 +136,7 @@ const siteGraph = {
 <link
   rel='alternate'
   type='application/rss+xml'
-  title={lang === 'en' ? `${config.title} (EN)` : config.title}
+  title={globalTitle}
   href={`${Astro.site}${lang === 'en' ? 'en/rss.xml' : 'rss.xml'}`}
 />
 

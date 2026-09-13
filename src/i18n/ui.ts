@@ -11,6 +11,7 @@ export type Lang = keyof typeof languages
 
 export const ui = {
   zh: {
+    'site.title': '刘宇广 | AI 应用开发',
     'nav.blog': 'Blog',
     'nav.notes': 'Notes',
     'nav.curated': 'Curated',
@@ -58,6 +59,7 @@ export const ui = {
     'notFound.home': '返回首页'
   },
   en: {
+    'site.title': 'Yuguang Liu | AI Application Development',
     'nav.blog': 'Blog',
     'nav.notes': 'Notes',
     'nav.curated': 'Curated',
@@ -122,6 +124,15 @@ export function useTranslations(lang: Lang) {
   return function t(key: keyof (typeof ui)[typeof defaultLang]) {
     return ui[lang][key] ?? ui[defaultLang][key]
   }
+}
+
+/**
+ * The site's own name, used in page titles, the OG site name, JSON-LD and the
+ * RSS feed. That is content, not chrome: an English page must not be titled
+ * with the Chinese site name.
+ */
+export function siteTitleFor(lang: Lang): string {
+  return ui[lang]['site.title'] ?? ui[defaultLang]['site.title']
 }
 
 export function stripLangPrefix(pathname: string): string {
