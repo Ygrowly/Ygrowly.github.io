@@ -267,7 +267,10 @@ const { lang, code, label, status, title, projects } = Astro.props
   .systems-evidence-frame {
     position: sticky;
     top: 112px;
-    height: min(620px, calc(100vh - 144px));
+    /* No fixed height. The three projects carry five, five and three evidence
+       rows plus stacks of different lengths, so one number left a 96px gap
+       under RuleArena and overflowed another panel by 17px. The frame now
+       takes its height from whichever panel is active. */
     box-shadow: 0 0 72px -28px color-mix(in srgb, var(--theater-accent) 45%, transparent);
   }
 
@@ -318,8 +321,7 @@ const { lang, code, label, status, title, projects } = Astro.props
   }
 
   .systems-evidence-stack {
-    position: absolute;
-    inset: 0;
+    position: relative;
   }
 
   .systems-evidence-panel {
@@ -332,7 +334,10 @@ const { lang, code, label, status, title, projects } = Astro.props
     transition: opacity 240ms ease;
   }
 
+  /* The active panel sits in flow so it can size the frame; the rest stay
+     absolute, so swapping one for another is still a cross-fade. */
   .systems-evidence-panel.is-active {
+    position: relative;
     opacity: 1;
   }
 
