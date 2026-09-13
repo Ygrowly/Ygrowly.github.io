@@ -3,6 +3,15 @@
 This file is the tracking contract for the site. Check it before adding,
 renaming, or changing Vercel Analytics events.
 
+> **Status: not wired up.** `src/lib/analytics.ts` exports `track()`, every
+> component below carries its `data-analytics-*` attributes, and this contract
+> describes them — but nothing ever calls `inject()`, so no event has ever been
+> sent. Fixing that is not just adding the call: `@vercel/analytics` serves its
+> script from Vercel's edge, and the site runs on GitHub Pages (production) and
+> Cloudflare Pages (previews), neither of which can host it. Treat this document
+> as the intended contract, and pick a provider that actually runs on the host
+> before relying on any of it.
+
 The site uses Vercel Analytics only. Do not add another analytics provider
 unless the project explicitly decides to do that later.
 

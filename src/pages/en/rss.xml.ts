@@ -3,6 +3,7 @@ import type { AstroGlobal, ImageMetadata } from 'astro'
 import { getImage } from 'astro:assets'
 import { getCollection, type CollectionEntry } from 'astro:content'
 import rss from '@astrojs/rss'
+import { siteTitleFor } from '@/i18n/ui'
 import type { Root } from 'mdast'
 import rehypeStringify from 'rehype-stringify'
 import remarkCjkFriendly from 'remark-cjk-friendly'
@@ -11,7 +12,6 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
-import config from 'virtual:config'
 
 import { sortMDByDate } from 'astro-pure/server'
 
@@ -84,7 +84,7 @@ const GET = async (context: AstroGlobal) => {
     stylesheet: '/scripts/pretty-feed-v3.xsl',
 
     // Contents
-    title: `${config.title} (EN)`,
+    title: siteTitleFor('en'),
     description: 'English posts — agents, LLM internals, and engineering notes.',
     site: `${import.meta.env.SITE}/en`,
     customData: '<language>en-us</language>',

@@ -3,6 +3,7 @@ import type { AstroGlobal, ImageMetadata } from 'astro'
 import { getImage } from 'astro:assets'
 import type { CollectionEntry } from 'astro:content'
 import rss from '@astrojs/rss'
+import { siteTitleFor } from '@/i18n/ui'
 import type { Root } from 'mdast'
 import rehypeStringify from 'rehype-stringify'
 import remarkCjkFriendly from 'remark-cjk-friendly'
@@ -78,7 +79,7 @@ const GET = async (context: AstroGlobal) => {
     stylesheet: '/scripts/pretty-feed-v3.xsl',
 
     // Contents
-    title: config.title,
+    title: siteTitleFor('zh'),
     description: config.description,
     site: import.meta.env.SITE,
     items: await Promise.all(

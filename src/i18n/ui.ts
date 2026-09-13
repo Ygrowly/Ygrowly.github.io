@@ -11,11 +11,11 @@ export type Lang = keyof typeof languages
 
 export const ui = {
   zh: {
+    'site.title': '刘宇广 | AI 应用开发',
     'nav.blog': 'Blog',
     'nav.notes': 'Notes',
     'nav.curated': 'Curated',
     'nav.projects': 'Projects',
-    'nav.links': 'Links',
     'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.search': 'Search',
@@ -29,6 +29,7 @@ export const ui = {
     'nav.homeExperience': '经历',
     'nav.homeWriting': '写作',
     'nav.homeAbout': '关于',
+    'nav.homeContact': '联系',
     'nav.openMenu': '打开导航菜单',
     'nav.closeMenu': '关闭导航菜单',
     'notice.translating': '网站界面已提供英文版，但大部分博客与笔记仍为中文，翻译正在进行中。',
@@ -37,7 +38,7 @@ export const ui = {
     'back.blog': '← 返回博客',
     'back.notes': '← 返回笔记',
     'sidebar.toggle': '切换侧边栏',
-    'backToTop': '返回顶部',
+    backToTop: '返回顶部',
     'blog.prev': '← 上一页',
     'blog.next': '下一页 →',
     'blog.pageInfo': '第 {current} 页 · 本页 {count} 篇 · 共 {total} 篇',
@@ -58,11 +59,11 @@ export const ui = {
     'notFound.home': '返回首页'
   },
   en: {
+    'site.title': 'Yuguang Liu | AI Application Development',
     'nav.blog': 'Blog',
     'nav.notes': 'Notes',
     'nav.curated': 'Curated',
     'nav.projects': 'Projects',
-    'nav.links': 'Links',
     'nav.about': 'About',
     'nav.contact': 'Contact',
     'nav.search': 'Search',
@@ -76,6 +77,7 @@ export const ui = {
     'nav.homeExperience': 'Experience',
     'nav.homeWriting': 'Writing',
     'nav.homeAbout': 'About',
+    'nav.homeContact': 'Contact',
     'nav.openMenu': 'Open navigation menu',
     'nav.closeMenu': 'Close navigation menu',
     'notice.translating':
@@ -85,7 +87,7 @@ export const ui = {
     'back.blog': '← Back to blog',
     'back.notes': '← Back to notes',
     'sidebar.toggle': 'Toggle sidebar',
-    'backToTop': 'Back to Top',
+    backToTop: 'Back to Top',
     'blog.prev': '← Previous Posts',
     'blog.next': 'Next Posts →',
     'blog.pageInfo': 'Page {current} - Showing {count} of {total} posts',
@@ -124,6 +126,15 @@ export function useTranslations(lang: Lang) {
   }
 }
 
+/**
+ * The site's own name, used in page titles, the OG site name, JSON-LD and the
+ * RSS feed. That is content, not chrome: an English page must not be titled
+ * with the Chinese site name.
+ */
+export function siteTitleFor(lang: Lang): string {
+  return ui[lang]['site.title'] ?? ui[defaultLang]['site.title']
+}
+
 export function stripLangPrefix(pathname: string): string {
   if (pathname === '/en' || pathname === '/en/') return '/'
   if (pathname.startsWith('/en/')) return pathname.slice(3)
@@ -155,16 +166,9 @@ export function localizedPath(path: string, lang: Lang): string {
 export function hasEnAlternate(barePath: string): boolean {
   if (barePath === '/') return true
   if (
-    [
-      '/about',
-      '/projects',
-      '/experience',
-      '/links',
-      '/contact',
-      '/search',
-      '/curated',
-      '/tags'
-    ].includes(barePath)
+    ['/about', '/projects', '/experience', '/contact', '/search', '/curated', '/tags'].includes(
+      barePath
+    )
   )
     return true
   // blog & notes: only the paginated list is mirrored under /en, not detail pages

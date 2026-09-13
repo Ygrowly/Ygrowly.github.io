@@ -1,6 +1,6 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
-import { homeContent } from '@/data/home'
+import { homeContent, projectHref } from '@/data/home'
 
 const { experience, lab } = homeContent.zh
 
@@ -11,7 +11,9 @@ const headings = [
 ---
 
 <PageLayout title='Experience' {headings} info={{ slug: '/experience', hideComment: true }}>
-  <p>{experience.title}</p>
+  <p>
+    三段实习，按时间倒序。每段先说我在团队里的位置和负责范围，再给技术栈；设计上的取舍、边界和还没解决的问题都放在各自的完整案例里，这里只放结论。
+  </p>
 
   <h2 id='internships'>Internships</h2>
   <div class='experience-entries'>
@@ -21,8 +23,13 @@ const headings = [
           <p class='experience-entry__period'>{item.period}</p>
           <h3 class='experience-entry__company'>{item.company}</h3>
           <p class='experience-entry__role'>{item.role}</p>
+          <p class='experience-entry__scope'>{item.scope}</p>
           <p>{item.contribution}</p>
           <p class='experience-entry__focus'>{item.focus}</p>
+          {item.stack && <p class='experience-entry__stack'>{item.stack}</p>}
+          <a class='experience-entry__case' href={projectHref(item.caseSlug, 'zh')}>
+            {experience.caseLink}
+          </a>
         </article>
       ))
     }
@@ -81,6 +88,32 @@ const headings = [
   .experience-entry__focus {
     font-size: 0.9375rem;
     opacity: 0.75;
+  }
+
+  /* Where I sat and what I owned — the part a role page owes a reader, and the
+     part a case page (which is about the system, not the job) never states. */
+  .experience-entry__scope {
+    opacity: 0.9;
+  }
+
+  .experience-entry__stack {
+    margin-top: 0.5rem;
+    color: var(--signal-accent);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .experience-entry__case {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    margin-top: 0.25rem;
+    color: var(--signal-accent);
+    font-size: 0.9375rem;
+  }
+
+  .experience-entry__case:hover {
+    text-decoration: underline;
   }
 
   .experience-lab__status {

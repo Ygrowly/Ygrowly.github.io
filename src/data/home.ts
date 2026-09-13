@@ -64,7 +64,14 @@ export type HomeContent = {
       role: string
       contribution: string
       focus: string
+      /** Where I sat and what I owned — the part a role page owes a reader. */
+      scope: string
+      /** The case page with the design depth for this role. */
+      caseSlug: string
+      stack?: string
     }[]
+    /** Label for the link from a role to its case page. */
+    caseLink: string
   }
   lab: {
     label: string
@@ -420,27 +427,41 @@ const zh: HomeContent = {
     title: '在真实项目中，把数据、后端和 AI 能力接成闭环。',
     expand: '展开重点',
     collapse: '收起重点',
+    caseLink: '查看完整案例 →',
     items: [
       {
         period: '2026.05 — NOW',
         company: '金山',
         role: 'AI 开发实习生 · EnergyOps Agent',
         contribution: 'Agent 运行时治理、数据可信链路与评测闭环',
-        focus: '重点：工具风险分级与 Hook 链治理、可恢复调度、回放评测驱动的可靠性。'
+        focus: '重点：工具风险分级与 Hook 链治理、可恢复调度、回放评测驱动的可靠性。',
+        scope:
+          '企业能耗智能运营平台。我主导 Agent 运行时治理与评测闭环的方案和交付，Mentor 把关业务方向；数据可信链路与调度自愈是我实际改动最多的部分。',
+        caseSlug: 'energyops-agent',
+        stack: 'Python · FastAPI · PostgreSQL · MCP · WPS Comate · pytest'
       },
       {
         period: '2025.10 — 2026.03',
         company: '深圳市慧泽致远',
         role: 'AI 应用开发实习生 · 数驭穹图',
         contribution: '语义层与领域路由、查询安全与证据绑定',
-        focus: '重点：让自然语言问数有口径、有来源、可验证。'
+        focus: '重点：让自然语言问数有口径、有来源、可验证。',
+        scope:
+          '面向缺少专业数据团队企业的 AI 数据分析与协作平台。我作为初创团队的核心开发，主责语义层与领域路由、查询安全与证据绑定，并支撑轻量湖仓。',
+        caseSlug: 'ai-bi-platform',
+        stack: 'Python · FastAPI · PostgreSQL · DuckDB · Parquet · R2 · Univer · MCP'
       },
       {
         period: '2025.09 — 2026.01',
         company: '成都启点拓界',
         role: '全栈开发实习生 · Ovanta',
         contribution: '内容系统、支付链路与多版本站点交付',
-        focus: '重点：结构化内容建模、支付回调 Hook 链与权益一致性。'
+        focus: '重点：结构化内容建模、支付回调 Hook 链与权益一致性。',
+        scope:
+          '跨区域签证、移民与海外身份自助申请平台，一套核心代码支撑国内版与国际版。我负责内容模型、区域化方案与支付幂等设计。',
+        caseSlug: 'ovanta',
+        stack:
+          'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose'
       }
     ]
   },
@@ -880,6 +901,7 @@ const en: HomeContent = {
     title: 'Connecting data, backend systems, and AI inside real projects.',
     expand: 'Show focus',
     collapse: 'Hide focus',
+    caseLink: 'Read the full case →',
     items: [
       {
         period: '2026.05 — NOW',
@@ -887,7 +909,11 @@ const en: HomeContent = {
         role: 'AI Development Intern · EnergyOps Agent',
         contribution: 'Agent runtime governance, trusted data pipelines, and the eval loop',
         focus:
-          'Focus: tool risk tiers and hook-chain governance, recoverable scheduling, and replay-eval-driven reliability.'
+          'Focus: tool risk tiers and hook-chain governance, recoverable scheduling, and replay-eval-driven reliability.',
+        scope:
+          'A campus energy operations platform. I led the design and delivery of agent runtime governance and the eval loop while my mentor owned business direction; the trusted data pipeline and self-healing scheduling are where most of my changes landed.',
+        caseSlug: 'energyops-agent',
+        stack: 'Python · FastAPI · PostgreSQL · MCP · WPS Comate · pytest'
       },
       {
         period: '2025.10 — 2026.03',
@@ -895,7 +921,11 @@ const en: HomeContent = {
         role: 'AI Application Development Intern · DataSphere',
         contribution: 'Semantic layer, domain routing, query safety, and evidence binding',
         focus:
-          'Focus: natural-language analytics with metric definitions, sources, and verifiable results.'
+          'Focus: natural-language analytics with metric definitions, sources, and verifiable results.',
+        scope:
+          'An AI data-analysis and collaboration platform for companies without a dedicated data team. As a core developer on a small team I owned the semantic layer and domain routing, query safety, and evidence binding, and supported the lightweight lakehouse.',
+        caseSlug: 'ai-bi-platform',
+        stack: 'Python · FastAPI · PostgreSQL · DuckDB · Parquet · R2 · Univer · MCP'
       },
       {
         period: '2025.09 — 2026.01',
@@ -903,7 +933,12 @@ const en: HomeContent = {
         role: 'Full-stack Intern · Ovanta',
         contribution: 'Content system, payment pipeline, and multi-site delivery',
         focus:
-          'Focus: content modeling, payment callback hook chains, and entitlement consistency.'
+          'Focus: content modeling, payment callback hook chains, and entitlement consistency.',
+        scope:
+          'A cross-region self-service platform for visas, immigration, and overseas identity, with one codebase behind both the domestic and international sites. I owned content modeling, the regionalization approach, and payment idempotency.',
+        caseSlug: 'ovanta',
+        stack:
+          'React · Vite · Django · DRF · Strapi · MySQL · PostgreSQL · Redis · Celery · Docker Compose'
       }
     ]
   },
