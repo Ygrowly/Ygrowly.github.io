@@ -15,8 +15,18 @@ interface Props {
 const { content } = Astro.props
 ---
 
-<section class='explore-section' aria-labelledby='explore-title'>
-  <div class='explore-container'>
+{/*
+  The system map: four destinations, each with a procedural object projected
+  onto its card. Every position is measured against this section's canvas box,
+  so the map behaves like the block element it is rather than a full-viewport
+  sticky layer. It also follows the light/dark theme, which the old night
+  chapter did not.
+*/}
+<section class='map-section' data-map-section aria-labelledby='explore-title'>
+  <div class='map-section__backdrop' aria-hidden='true'></div>
+  <canvas class='map-section__sky' data-map-sky aria-hidden='true'></canvas>
+
+  <div class='map-section__inner'>
     <SectionHead
       id='explore'
       code={content.exploreCode}
@@ -24,13 +34,13 @@ const { content } = Astro.props
       title={content.exploreTitle}
       status={content.exploreStatus}
     />
-    <p class='explore-sub'>{content.exploreSub}</p>
+    <p class='map-section__sub'>{content.exploreSub}</p>
 
-    <div class='explore-grid'>
+    <div class='map-grid'>
       {
         content.exploreCards.map((card, index) => (
-          <a class='explore-card' data-sky-kind={card.kind} href={card.href}>
-            <span class='explore-card__index'>0{index + 1}</span>
+          <a class='map-card' data-sky-kind={card.kind} href={card.href}>
+            <span class='map-card__index'>0{index + 1}</span>
             <h3>{card.title}</h3>
             <p>{card.sub}</p>
             <i aria-hidden='true'>→</i>
@@ -42,58 +52,135 @@ const { content } = Astro.props
 </section>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-sky-kind]').forEach((card) => {
-    const kind = card.dataset.skyKind
-    if (!kind) return
-    card.addEventListener('pointerenter', () => {
-      window.dispatchEvent(new CustomEvent('ygrowly:sky-hover', { detail: { kind } }))
-    })
-    card.addEventListener('pointerleave', () => {
-      window.dispatchEvent(new CustomEvent('ygrowly:sky-hover', { detail: { kind: null } }))
-    })
-  })
+  import type { SkyKind, SystemMapScene as SceneType } from '@/lib/system-map'
+
+  const section = document.querySelector<HTMLElement>('[data-map-section]')
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-map-sky]')
+
+  if (section && canvas) {
+    const cards = Array.from(section.querySelectorAll<HTMLElement>('[data-sky-kind]'))
+    let scene: SceneType | null = null
+    let loading = false
+    let near = false
+
+    const sync = () => scene?.setActive(near && !document.hidden)
+
+    const mount = async () => {
+      if (scene || loading) return
+      loading = true
+      const { SystemMapScene } = await import('@/lib/system-map')
+      scene = new SystemMapScene(canvas)
+      scene.mountCards(
+        cards.map((el) => ({ el, kind: el.dataset.skyKind as SkyKind }))
+      )
+      sync()
+    }
+
+    // Pointer, keyboard focus and touch all drive the same highlight. The
+    // previous version was hover-only, so a keyboard or touch reader never saw
+    // the link between a card and its object.
+    for (const el of cards) {
+      const kind = el.dataset.skyKind as SkyKind
+      el.addEventListener('pointerenter', () => scene?.setHover(kind))
+      el.addEventListener('pointerleave', () => scene?.setHover(null))
+      el.addEventListener('focus', () => scene?.setHover(kind))
+      el.addEventListener('blur', () => scene?.setHover(null))
+    }
+
+    // three.js is ~500KB and this map is a desktop read. Below 768px the cards
+    // stack, the canvas is hidden, and the module is never requested.
+    if (window.matchMedia('(min-width: 768px)').matches) {
+      new IntersectionObserver(
+        ([entry]) => {
+          near = entry.isIntersecting
+          if (near) void mount()
+          sync()
+        },
+        { rootMargin: '300px 0px' }
+      ).observe(section)
+
+      document.addEventListener('visibilitychange', sync)
+    }
+  }
 </script>
 
 <style>
-  .explore-section {
-    padding: 0 0 var(--space-9);
-    color: #eef2fa;
-    /* Re-ink the shared module header for the night sky. */
-    --mh-ink: #eef2fa;
-    --mh-muted: #93a2bd;
-    --mh-accent: #22d3ee;
-    --mh-line: rgba(148, 163, 184, 0.4);
+  .map-section {
+    position: relative;
+    padding: var(--space-9) 0 var(--space-10);
+    border-top: 1px solid var(--border-default);
+    background: var(--bg-page);
+    color: var(--text-primary);
+    overflow: clip;
   }
 
-  .explore-container {
+  /* Same grid idiom the hero uses, so the map reads as part of the same deck. */
+  .map-section__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(
+        720px 420px at 50% 30%,
+        color-mix(in srgb, var(--tech-glow) 8%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:
+      auto,
+      56px 56px,
+      56px 56px;
+    mask-image: radial-gradient(120% 90% at 50% 40%, black 30%, transparent 78%);
+    pointer-events: none;
+  }
+
+  .map-section__sky {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .map-section__inner {
+    position: relative;
+    z-index: 2;
     width: min(1200px, calc(100% - 64px));
     margin: 0 auto;
   }
 
-  .explore-sub {
+  .map-section__sub {
     max-width: 560px;
     margin: var(--space-3) 0 0;
-    color: #93a2bd;
+    color: var(--text-secondary);
     font-size: var(--text-base);
   }
 
-  .explore-grid {
+  .map-grid {
     display: grid;
+    margin-top: var(--space-8);
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-5) var(--space-5);
-    margin-top: var(--space-7);
+    gap: var(--space-5);
   }
 
-  .explore-card {
+  .map-card {
     position: relative;
     display: flex;
-    min-height: 220px;
+    min-height: 320px;
     flex-direction: column;
-    padding: 112px var(--space-5) var(--space-5);
-    border: 1px solid rgba(148, 163, 184, 0.16);
+    /* The top band is the object's stage: the scene reads this padding to
+       centre each object, so the two never drift apart. */
+    padding: 190px var(--space-5) var(--space-5);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.04);
-    color: #eef2fa;
+    /* Deliberately unfilled. The canvas sits behind the cards, so an opaque
+       panel paints over the very object the card exists to show; the outline
+       is what defines the card. */
+    background: transparent;
+    color: var(--text-primary);
     transition:
       border-color 180ms ease,
       transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -102,136 +189,148 @@ const { content } = Astro.props
   }
 
   /* Top sweep: an instrument line draws itself across the card edge. */
-  .explore-card::before {
+  .map-card::before {
     position: absolute;
     top: -1px;
-    left: 24px;
     right: 24px;
+    left: 24px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.85), transparent);
+    background: linear-gradient(90deg, transparent, var(--signal-accent), transparent);
     opacity: 0;
     transition: opacity 240ms ease;
     content: '';
   }
 
-  .explore-card:hover::before {
+  .map-card:hover,
+  .map-card:focus-visible {
+    border-color: var(--signal-accent);
+    background: color-mix(in srgb, var(--signal-accent) 6%, transparent);
+    color: var(--text-primary);
+    transform: translateY(-4px);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--signal-accent) 22%, transparent),
+      0 0 44px -10px color-mix(in srgb, var(--tech-glow) 40%, transparent);
+  }
+
+  .map-card:hover::before,
+  .map-card:focus-visible::before {
     opacity: 1;
   }
 
-  .explore-card:hover {
-    border-color: rgba(34, 211, 238, 0.55);
-    background: rgba(255, 255, 255, 0.06);
-    color: #eef2fa;
-    transform: translateY(-4px);
-    box-shadow:
-      0 0 0 1px rgba(34, 211, 238, 0.22),
-      0 0 44px -10px rgba(34, 211, 238, 0.4);
-  }
-
-  .explore-card:nth-child(1) {
+  .map-card:nth-child(1) {
     grid-column: 1 / 7;
   }
 
-  .explore-card:nth-child(2) {
+  .map-card:nth-child(2) {
     margin-top: var(--space-8);
     grid-column: 7 / 12;
   }
 
-  .explore-card:nth-child(3) {
+  .map-card:nth-child(3) {
     grid-column: 2 / 8;
   }
 
-  .explore-card:nth-child(4) {
+  .map-card:nth-child(4) {
     margin-top: var(--space-8);
     grid-column: 8 / 13;
   }
 
-  .explore-card__index {
+  .map-card__index {
     position: absolute;
     top: var(--space-4);
     right: var(--space-5);
-    color: #22d3ee;
+    color: var(--signal-accent);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     letter-spacing: 0.04em;
     opacity: 0.75;
   }
 
-  :global(html[lang='en']) .explore-card__index {
+  :global(html[lang='en']) .map-card__index {
     letter-spacing: 0.08em;
   }
 
-  .explore-card h3 {
+  .map-card h3 {
     margin: 0;
     font-size: var(--text-2xl);
     font-weight: 600;
     letter-spacing: 0;
   }
 
-  :global(html[lang='en']) .explore-card h3 {
+  :global(html[lang='en']) .map-card h3 {
     letter-spacing: -0.02em;
   }
 
-  .explore-card p {
+  .map-card p {
     max-width: 380px;
     margin: var(--space-3) 0 0;
-    color: #93a2bd;
+    color: var(--text-secondary);
     font-size: var(--text-sm);
     line-height: 1.6;
   }
 
-  .explore-card i {
+  .map-card i {
     position: absolute;
     right: var(--space-5);
     bottom: var(--space-5);
-    color: #22d3ee;
+    color: var(--signal-accent);
     font-style: normal;
     transition: transform 180ms ease;
   }
 
-  .explore-card:hover i {
+  .map-card:hover i,
+  .map-card:focus-visible i {
     transform: translateX(4px);
   }
 
   @media (max-width: 1023px) {
-    .explore-container {
+    .map-section__inner {
       width: calc(100% - 48px);
     }
 
-    .explore-card:nth-child(1),
-    .explore-card:nth-child(3) {
+    .map-card:nth-child(1),
+    .map-card:nth-child(3) {
       grid-column: 1 / 8;
     }
 
-    .explore-card:nth-child(2),
-    .explore-card:nth-child(4) {
+    .map-card:nth-child(2),
+    .map-card:nth-child(4) {
       margin-top: var(--space-6);
       grid-column: 6 / 13;
     }
   }
 
   @media (max-width: 767px) {
-    .explore-container {
+    .map-section {
+      padding: var(--space-8) 0;
+    }
+
+    .map-section__inner {
       width: calc(100% - 40px);
     }
 
-    .explore-grid {
+    /* Nothing renders into the canvas below 768px, so it is not just empty. */
+    .map-section__sky {
+      display: none;
+    }
+
+    .map-grid {
       grid-template-columns: 1fr;
       margin-top: var(--space-6);
     }
 
-    .explore-card,
-    .explore-card:nth-child(1),
-    .explore-card:nth-child(2),
-    .explore-card:nth-child(3),
-    .explore-card:nth-child(4) {
+    .map-card,
+    .map-card:nth-child(1),
+    .map-card:nth-child(2),
+    .map-card:nth-child(3),
+    .map-card:nth-child(4) {
       margin-top: 0;
       grid-column: 1;
-      min-height: 168px;
+      min-height: 0;
       padding: var(--space-5);
     }
 
-    .explore-card h3 {
+    .map-card h3 {
       font-size: var(--text-xl);
     }
   }

@@ -6,9 +6,10 @@ import { postHref, selectPublishedNotes, selectPublishedPosts } from '@/lib/home
 
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import ExperienceLab from '@/components/home/ExperienceLab.astro'
-import NightChapter from '@/components/home/NightChapter.astro'
+import ExploreBeyond from '@/components/home/ExploreBeyond.astro'
 import ProfileContact from '@/components/home/ProfileContact.astro'
 import SelectedSystems from '@/components/home/SelectedSystems.astro'
+import SystemEchoes from '@/components/home/SystemEchoes.astro'
 import WritingSection from '@/components/home/WritingSection.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
 
@@ -106,7 +107,8 @@ const featuredReadingTime = (
       {talks}
       {featuredReadingTime}
     />
-    <NightChapter content={content.night} />
+    <SystemEchoes content={content.night} />
+    <ExploreBeyond content={content.night} />
     <ProfileContact
       {lang}
       profile={content.profile}
