@@ -277,9 +277,13 @@ span.katex-display {
           inset-inline-start: 0;
           justify-content: end;
           display: inline-flex;
-          width: 2rem;
+          /* Must equal the gutter strip above (`code::before`, 2.75rem). The
+             `#site-shell *::before` reset forces border-box, so the width has
+             to be the full 2.75rem — with 2rem the first character of every
+             line sat under the gutter. */
+          width: 2.75rem;
           padding-inline-end: 0.75rem;
-          box-sizing: content-box;
+          box-sizing: border-box;
           z-index: 2;
         }
         &:last-child:empty,
